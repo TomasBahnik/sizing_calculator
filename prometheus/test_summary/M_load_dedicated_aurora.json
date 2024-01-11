@@ -1,0 +1,44 @@
+{
+  "name": "M load dedicated Aurora",
+  "url": "https://www.notion.so/ataccama/Retested-M-Size-on-separate-Aurora-dfe654be3de94566a42cde431566a95e",
+  "namespace": "staging-odz6z",
+  "catalogItems": 219965,
+  "tests": [
+    {
+      "timeRange": {
+        "start": "2023-12-20T18:20",
+        "end": "2023-12-21T06:30"
+      },
+      "description": "doc flow 2k CI"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-21T14:30",
+        "end": "2023-12-21T17:30"
+      },
+      "description": "5 concurrent Basic FE load test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-21T21:29",
+        "end": "2023-12-22T01:10"
+      },
+      "description": "18 concurrent Data stories FE load test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-22T10:17",
+        "end": "2023-12-22T17:20"
+      },
+      "description": "30 concurrent Basic FE load test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-28T09:15",
+        "end": "2023-12-29T14:30"
+      },
+      "description": "doc flow test with 4K CIs"
+    }
+  ]
+}
+

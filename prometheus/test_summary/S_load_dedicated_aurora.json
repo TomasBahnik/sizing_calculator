@@ -1,0 +1,37 @@
+{
+  "name": "S load dedicated Aurora",
+  "url": "https://www.notion.so/ataccama/S-size-11K-CIs-91a27bc83d3e4045a6ba89307f780d4c",
+  "namespace": "staging-n8epd",
+  "catalogItems": 10933,
+  "tests": [
+    {
+      "timeRange": {
+        "start": "2023-12-13T11:37",
+        "end": "2023-12-13T18:31"
+      },
+      "description": "Basic 30 concurrent front-end test "
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-13T21:30",
+        "end": "2023-12-14T11:00"
+      },
+      "description": "2K CIs Docflow test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-14T11:17",
+        "end": "2023-12-14T14:30"
+      },
+      "description": "25 concurrent FE_TESTS scenario FE load test (2nd FE test scripts)"
+    },
+    {
+      "timeRange": {
+        "start": "2023-12-14T21:54",
+        "end": "2023-12-15 01:30"
+      },
+      "description": "18 concurrent Data stories FE load test"
+    }
+  ]
+}
+

@@ -1,0 +1,33 @@
+{
+  "name": "Persistent Volumes Capacity",
+  "tableName": "PERSISTENT_VOLUMES_CAPACITY",
+  "useGroupByDefaults": false,
+  "groupBy": [
+    "namespace",
+    "persistentvolumeclaim"
+  ],
+  "queries": [
+    {
+      "labels": ["namespace!='monitoring'"],
+      "query": "max(kubelet_volume_stats_used_bytes{labels}) by (groupBy)",
+      "columnName": "USED_BYTES"
+    },
+    {
+      "labels": ["namespace!='monitoring'"],
+      "query": "max(kubelet_volume_stats_available_bytes{labels}) by (groupBy)",
+      "columnName": "AVAILABLE_BYTES"
+    },
+    {
+      "labels": ["namespace!='monitoring'"],
+      "query": "max(kubelet_volume_stats_capacity_bytes{labels}) by (groupBy)",
+      "columnName": "TOTAL_BYTES"
+    }
+  ],
+  "rules": [
+    {
+      "resource": "USED_BYTES",
+      "resource_limit_column": "TOTAL_BYTES",
+      "limit_pct": 0.9
+    }
+  ]
+}

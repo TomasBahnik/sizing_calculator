@@ -1,0 +1,105 @@
+{
+  "name": "JVM basic metrics",
+  "tableName": "JVM_BASIC",
+  "queries": [
+    {
+      "query": "sum(process_uptime_seconds{labels}) by (groupBy)",
+      "columnName": "PROCESS_UPTIME"
+    },
+    {
+      "query": "sum(system_cpu_usage{labels}) by (groupBy)",
+      "columnName": "SYSTEM_CPU_USAGE"
+    },
+    {
+      "query": "sum(process_cpu_usage{labels}) by (groupBy)",
+      "columnName": "PROCESS_CPU_USAGE"
+    },
+    {
+      "query": "sum(jvm_memory_max_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"heap\""
+      ],
+      "columnName": "PROCESS_HEAP_MAX"
+    },
+    {
+      "query": "sum(jvm_memory_used_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"heap\""
+      ],
+      "columnName": "PROCESS_HEAP_USED"
+    },
+    {
+      "query": "sum(jvm_memory_committed_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"heap\""
+      ],
+      "columnName": "PROCESS_HEAP_COMMITTED"
+    },
+    {
+      "query": "sum(jvm_memory_committed_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"nonheap\""
+      ],
+      "columnName": "PROCESS_NON_HEAP_COMMITTED"
+    },
+    {
+      "query": "sum(jvm_memory_max_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"nonheap\""
+      ],
+      "columnName": "PROCESS_NON_HEAP_MAX"
+    },
+    {
+      "query": "sum(jvm_memory_used_bytes{labels}) by (groupBy)",
+      "staticLabels": [
+        "area=\"nonheap\""
+      ],
+      "columnName": "PROCESS_NON_HEAP_USED"
+    },
+    {
+      "query": "sum(jvm_threads_live_threads{labels}) by (groupBy)",
+      "columnName": "JVM_LIVE_THREADS"
+    },
+    {
+      "query": "sum(jvm_threads_daemon_threads{labels}) by (groupBy)",
+      "columnName": "JVM_DAEMON_THREADS"
+    },
+    {
+      "query": "sum(jvm_threads_peak_threads{labels}) by (groupBy)",
+      "columnName": "JVM_PEAK_THREADS"
+    },
+    {
+      "query": "sum(jvm_classes_loaded_classes{labels}) by (groupBy)",
+      "columnName": "JVM_CLASSES_LOADED"
+    },
+    {
+      "query": "sum(process_files_open_files{labels}) by (groupBy)",
+      "columnName": "PROCESS_OPEN_FILES"
+    },
+    {
+      "query": "sum(jvm_gc_pause_seconds_max{labels}) by (groupBy)",
+      "columnName": "MAXIMUM_GC_EVENT_PAUSE_TIME"
+    }
+  ],
+  "rules": [
+    {
+      "resource": "PROCESS_HEAP_USED",
+      "resource_limit_column": "PROCESS_HEAP_MAX",
+      "limit_pct": 0.9
+    },
+    {
+      "resource": "PROCESS_NON_HEAP_USED",
+      "resource_limit_column": "PROCESS_NON_HEAP_MAX",
+      "limit_pct": 0.9
+    },
+    {
+      "resource": "JVM_LIVE_THREADS",
+      "resource_limit_value": 90
+    },
+    {
+      "resource": "MAXIMUM_GC_EVENT_PAUSE_TIME",
+      "description": "Maximum GC event pause time in seconds",
+      "resource_limit_value": 0.1
+    }
+  ]
+}

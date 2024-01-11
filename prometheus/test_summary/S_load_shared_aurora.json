@@ -1,0 +1,44 @@
+{
+  "name": "S load shared Aurora",
+  "url": "https://www.notion.so/ataccama/S-size-5ea7162a02d94663b5d2e089e6a146d7",
+  "namespace": "staging-9x9jd",
+  "catalogItems": 50838,
+  "tests": [
+    {
+      "timeRange": {
+        "start": "2023-10-27T21:48",
+        "end": "2023-10-29T00:14"
+      },
+      "description": "3K CIs Docflow test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-10-26T18:28",
+        "end": "2023-10-26T19:19"
+      },
+      "description": "Monitoring Projects"
+    },
+    {
+      "timeRange": {
+        "start": "2023-10-26T09:29",
+        "end": "2023-10-26T11:36"
+      },
+      "description": "7 concurrent Basic (Portal demodata) front-end test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-10-26T14:23",
+        "end": "2023-10-26T17:25"
+      },
+      "description": "18 concurrent Data stories FE load test"
+    },
+    {
+      "timeRange": {
+        "start": "2023-10-27T12:36",
+        "end": "2023-10-27T17:36"
+      },
+      "description": "26 concurrent Api load test"
+    }
+  ]
+}
+

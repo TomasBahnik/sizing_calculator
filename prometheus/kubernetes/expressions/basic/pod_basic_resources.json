@@ -1,0 +1,104 @@
+{
+  "name": "Pod Basic Resources",
+  "tableName": "POD_BASIC_RESOURCES",
+  "queries": [
+    {
+      "query": "sum(rate(container_cpu_usage_seconds_total{labels}[rateInterval])) by (groupBy)",
+      "rateInterval": "1m",
+      "columnName": "CPU_CORE"
+    },
+    {
+      "query": "sum(container_memory_working_set_bytes{labels}) by (groupBy)",
+      "columnName": "MEMORY_BYTE"
+    },
+    {
+      "query": "sum(kube_pod_container_resource_limits{labels}) by (groupBy)",
+      "staticLabels": [
+        "resource=\"memory\"",
+        "unit=\"byte\""
+      ],
+      "columnName": "MEMORY_LIMIT_BYTE"
+    },
+    {
+      "query": "sum(kube_pod_container_resource_requests{labels}) by (groupBy)",
+      "staticLabels": [
+        "resource=\"memory\"",
+        "unit=\"byte\""
+      ],
+      "columnName": "MEMORY_REQUEST_BYTE"
+    },
+    {
+      "query": "sum(kube_pod_container_resource_limits{labels}) by (groupBy)",
+      "staticLabels": [
+        "resource=\"cpu\"",
+        "unit=\"core\""
+      ],
+      "columnName": "CPU_LIMIT_CORE"
+    },
+    {
+      "query": "sum(kube_pod_container_resource_requests{labels}) by (groupBy)",
+      "staticLabels": [
+        "resource=\"cpu\"",
+        "unit=\"core\""
+      ],
+      "columnName": "CPU_REQUEST_CORE"
+    },
+    {
+      "query": "max(kube_pod_container_status_restarts_total{labels}) by (groupBy)",
+      "columnName": "RESTARTS"
+    },
+    {
+      "query": "max(kube_pod_container_status_last_terminated_reason{labels}) by (groupBy)",
+      "columnName": "OOM_KILLED",
+      "staticLabels": [
+        "reason=\"OOMKilled\""
+      ]
+    },
+    {
+      "query": "sum(increase(container_cpu_cfs_throttled_periods_total{labels}[rateInterval])) by (groupBy)/sum(increase(container_cpu_cfs_periods_total{labels}[rateInterval])) by (groupBy)",
+      "rateInterval": "1m",
+      "columnName": "CPU_THROTTLED",
+      "staticLabels": [
+        "job=\"kubelet\""
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "resource": "CPU_CORE",
+      "resource_limit_column": "CPU_LIMIT_CORE",
+      "limit_pct": 0.9
+    },
+    {
+      "resource": "CPU_CORE",
+      "resource_limit_column": "CPU_REQUEST_CORE",
+      "limit_pct": 0.1,
+      "compare": "<"
+    },
+    {
+      "resource": "MEMORY_BYTE",
+      "resource_limit_column": "MEMORY_LIMIT_BYTE",
+      "limit_pct": 0.9
+    },
+    {
+      "resource": "MEMORY_BYTE",
+      "resource_limit_column": "MEMORY_REQUEST_BYTE",
+      "limit_pct": 0.1,
+      "compare": "<"
+    },
+    {
+      "resource": "CPU_THROTTLED",
+      "resource_limit_value": 0.8
+    },
+    {
+      "resource": "RESTARTS",
+      "resource_limit_value": 0.5,
+      "compare": "delta"
+    },
+    {
+      "resource": "OOM_KILLED",
+      "resource_limit_value": 0.5,
+      "compare": "delta"
+    }
+  ]
+}

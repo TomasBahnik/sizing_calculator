@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from cpt.common import find_chars_in_str
-from cpt.prometheus.prompt_model import PromQuery
+from prometheus.common import find_chars_in_str
+from prometheus.prompt_model import PromQuery
 
 
 def static_labels(label: str) -> str:

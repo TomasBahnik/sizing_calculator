@@ -1,6 +1,6 @@
 from typing import List
 
-from cpt.prometheus.const import NON_EMPTY_CONTAINER
+from const import NON_EMPTY_CONTAINER
 
 
 def basic(metric: str, namespace: str, containers: str, grp_keys: str):

@@ -4,12 +4,11 @@ import typer
 from pandas import DataFrame, Series
 from snowflake.connector import SnowflakeConnection
 
-import cpt
-from cpt.common import TIMESTAMP_KEY
-from cpt.constants import GMT_TZ
-from cpt.snowflake.const import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RAW_DATA_TABLE_NAME, \
-    API_TESTS_CU_RUN_INFO_TABLE_NAME, API_TESTS_CU_LIST_TABLE_NAME
-from cpt.snowflake.queries import q_uuid
+from prometheus.common import TIMESTAMP_KEY
+from constants import GMT_TZ, TEST_ENV_KEY, END_ISO_TIME, UUID_COLUMN
+from pycpt_snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RUN_INFO_TABLE_NAME, \
+    API_TESTS_CU_LIST_TABLE_NAME, API_TESTS_CU_RAW_DATA_TABLE_NAME
+from pycpt_snowflake.queries import q_uuid
 
 
 def get_df(query: str, con: SnowflakeConnection, dedup: bool = True) -> pd.DataFrame:
@@ -47,7 +46,7 @@ def dedup_df(query: str, con: SnowflakeConnection) -> DataFrame:
     if df.empty:
         typer.echo(f"Empty dataframe for query: {query}")
         exit(3)
-    df_dedup = df.drop_duplicates(subset=[cpt.TEST_ENV_KEY, cpt.END_ISO_TIME])
+    df_dedup = df.drop_duplicates(subset=[TEST_ENV_KEY, END_ISO_TIME])
     return df_dedup
 
 
@@ -76,7 +75,7 @@ def round_localize_gmt(df: DataFrame) -> DataFrame:
 def check_unique_uuid(new_uuid: str, table: str, connection: SnowflakeConnection):
     q = q_uuid(uuid=new_uuid, table_name=table)
     df: DataFrame = get_df(query=q, con=connection)
-    uuids: Series = df[cpt.UUID_COLUMN]
+    uuids: Series = df[UUID_COLUMN]
     if new_uuid in uuids.values:
         raise ValueError(f"Duplicated UUID: {new_uuid}")
 

@@ -7,12 +7,12 @@ import pandas as pd
 import typer
 from pydantic import BaseModel
 
-from cpt.prometheus.collector import TimeRange
-from cpt.prometheus.const import *
-from cpt.prometheus.const import PYCPT_HOME
-from cpt.prometheus.portal import PortalPrometheus
-from cpt.prometheus.prompt_model import PortalTable
-from cpt.prometheus.rules import POD_BASIC_RESOURCES_TABLE, PrometheusRules
+from collector import TimeRange
+from const import *
+from const import PYCPT_HOME
+from portal import PortalPrometheus
+from prompt_model import PortalTable
+from rules import POD_BASIC_RESOURCES_TABLE, PrometheusRules
 
 NEW_SIZING_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', 'new_sizing')
 
@@ -112,8 +112,6 @@ class TestSummary(BaseModel):
 class SizingCalculator:
     def __init__(self, cpu: LimitsRequests, memory: LimitsRequests, time_range: Optional[TimeRange] = None,
                  namespace: Optional[str] = None, test_details: Optional[TestDetails] = None):
-        import cpt.logging
-        self.logger = logging.getLogger(cpt.logging.fullname(self))
         self.cpu: LimitsRequests = cpu
         self.memory: LimitsRequests = memory
         self.time_range: TimeRange = time_range
@@ -170,7 +168,7 @@ class SizingCalculator:
         path = Path(folder, file_name)
         msg = f'Saving report to {path.resolve()}'
         typer.echo(msg)
-        self.logger.info(msg)
+        logger.info(msg)
         with open(path, 'w') as f:
             f.write(report_header + ("<br/>" + data.to_html() + "<hr>"))
 

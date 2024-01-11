@@ -6,14 +6,14 @@ import pandas as pd
 import typer
 import urllib3
 
-from cpt.prometheus import const
-from cpt.prometheus.collector import df_tuple_columns, TimeRange, PrometheusCollector, PROMETHEUS_URL
-from cpt.prometheus.const import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER
-from cpt.prometheus.portal import PortalPrometheus
-from cpt.prometheus.prompt_model import PortalTable
-from cpt.snowflake import dataframe
-from cpt.snowflake.dataframe import add_tz
-from cpt.snowflake.engine import SnowflakeEngine
+from prometheus import const
+from prometheus.collector import df_tuple_columns, TimeRange, PrometheusCollector, PROMETHEUS_URL
+from prometheus.const import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER
+from prometheus.portal import PortalPrometheus
+from prometheus.prompt_model import PortalTable
+from pycpt_snowflake import dataframe
+from pycpt_snowflake.dataframe import add_tz
+from pycpt_snowflake.engine import SnowflakeEngine
 
 METRICS = 'metrics'
 DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]

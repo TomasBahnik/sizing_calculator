@@ -2,7 +2,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import List
 
-from cpt.prometheus.const import DEFAULT_STEP_SEC, DEFAULT_PORTAL_GRP_KEYS
+from const import DEFAULT_STEP_SEC, DEFAULT_PORTAL_GRP_KEYS
 from pydantic import BaseModel
 
 

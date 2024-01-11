@@ -3,13 +3,13 @@ from typing import List
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
 
-import cpt
-from cpt.snowflake.const import FROM_TIME_ALIAS, TO_TIME_ALIAS, PERIOD_UTC_COLUMN
+from constants import EVENT_MMM_BUILD_VERSION_KEY, TEST_ENV_KEY, UUID_COLUMN
+from pycpt_snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, PERIOD_UTC_COLUMN
 
 
 def q_env_build(test_env: str, mmm_build: str, result: str = None, table_name: str = None) -> str:
-    env = f""""{cpt.TEST_ENV_KEY}" = '{test_env}'"""
-    build = f""""{cpt.EVENT_MMM_BUILD_VERSION_KEY}" = '{mmm_build}'"""
+    env = f""""{TEST_ENV_KEY}" = '{test_env}'"""
+    build = f""""{EVENT_MMM_BUILD_VERSION_KEY}" = '{mmm_build}'"""
     q = f"SELECT * FROM {table_name} WHERE RESULT='{result}' AND {build} AND {env}" if result else \
         f"SELECT * FROM {table_name} WHERE {build} AND {env}"
     return q
@@ -41,7 +41,7 @@ def q_from_to_by_uuid(timestamp_field: str, table_name: str) -> str:
     f_t_q = f'min("{timestamp_field}") as {FROM_TIME_ALIAS}'
     t_t_q = f'max("{timestamp_field}") as {TO_TIME_ALIAS}'
     #  double quotes around camel case
-    fields = f'{cpt.UUID_COLUMN}, "{cpt.TEST_ENV_KEY}", "{cpt.EVENT_MMM_BUILD_VERSION_KEY}"'
+    fields = f'{UUID_COLUMN}, "{TEST_ENV_KEY}", "{EVENT_MMM_BUILD_VERSION_KEY}"'
     q = f"select {f_t_q}, {t_t_q}, {fields} from {table_name} group by {fields} order by {FROM_TIME_ALIAS}"
     return q
 
@@ -62,4 +62,4 @@ def q_notion(columns: List[str], table: str, connection: SnowflakeConnection) ->
     query = f"{select_clause} {from_clause} {orderby_clause}"
     # typer.echo(f"query : {query}")
     df: DataFrame = connection.cursor().execute(query).fetch_pandas_all()
-    return df[df[cpt.UUID_COLUMN].notnull()]
+    return df[df[UUID_COLUMN].notnull()]

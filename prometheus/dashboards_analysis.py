@@ -12,12 +12,11 @@ from langchain.prompts.example_selector import LengthBasedExampleSelector
 from pandas import DataFrame
 from pydantic import BaseModel, parse_file_as
 
-from cpt import common
-from cpt.common import check_file
-from cpt.prometheus.collector import PROMETHEUS_REPORT_FOLDER
-from cpt.prometheus.const import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
-from cpt.prometheus.prom_ql import strip_replace, extract_labels
-from cpt.prometheus.prompt_model import Target, PromQuery, Title, PromptExample
+from prometheus.common import check_file, list_files
+from prometheus.collector import PROMETHEUS_REPORT_FOLDER
+from prometheus.const import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
+from prometheus.prom_ql import strip_replace, extract_labels
+from prometheus.prompt_model import Target, PromQuery, Title, PromptExample
 
 JSON_SUFFIX = ".json"
 
@@ -63,7 +62,7 @@ def load_dashboards_from_files(folder: Path, filename: Optional[str] = None,
                                contains: Optional[str] = None, ends_with: str = ("%s" % JSON_SUFFIX)) \
         -> List[Tuple[PromptExample, GrafanaDashboard]]:
     """ Load dashboards from list of files"""
-    dashboards: List[Path] = common.list_files(folder=folder, ends_with=ends_with, contains=contains)
+    dashboards: List[Path] = list_files(folder=folder, ends_with=ends_with, contains=contains)
     if filename is not None:
         dashboard_file = Path(folder, filename)
         check_file(dashboard_file)

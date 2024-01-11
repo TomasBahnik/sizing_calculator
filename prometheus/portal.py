@@ -6,10 +6,9 @@ from typing import List, Optional
 import typer
 from pydantic import parse_file_as
 
-import cpt.logging
-from cpt import common
-from cpt.prometheus import const
-from cpt.prometheus.prompt_model import PortalTable
+from common import list_files
+from const import PORTAL_ONE_NS
+from prompt_model import PortalTable
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
@@ -17,14 +16,13 @@ logger = logging.getLogger(__name__)
 
 class PortalPrometheus:
     def __init__(self, folder: Path):
-        self.logger = logging.getLogger(cpt.logging.fullname(self))
         self.folder: Path = folder
 
     def load_portal_tables(self, table_name: Optional[str] = None) -> List[PortalTable]:
-        self.logger.info(f'Loading prom queries from {self.folder}')
+        logger.info(f'Loading prom queries from {self.folder}')
         file_name_contains = table_name.lower() if table_name else None
-        metrics_files: List[Path] = common.list_files(folder=self.folder, ends_with="json",
-                                                      contains=file_name_contains)
+        metrics_files: List[Path] = list_files(folder=self.folder, ends_with="json",
+                                               contains=file_name_contains)
         if not metrics_files:
             raise FileNotFoundError(f'No json files in {self.folder} with name containing {file_name_contains}')
         ret: List[PortalTable] = [parse_file_as(type_=PortalTable, path=metric_file) for metric_file in metrics_files]
@@ -68,13 +66,13 @@ class PortalPrometheus:
 @app.command()
 def load(metrics_folder: Path = typer.Option('./kubernetes/expressions', "--folder", "-f", dir_okay=True,
                                              help="Folder with saved PromQueries")):
-    from cpt.prometheus.commands import DEFAULT_LABELS
+    from prometheus.commands import DEFAULT_LABELS
     pp: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
     portal_tables = pp.load_portal_tables()
     typer.echo(f'{metrics_folder}: {len(portal_tables)} loaded portal_tables')
     for portal_table in portal_tables:
         pp.replace_portal_labels(portal_table=portal_table, labels=DEFAULT_LABELS,
-                                 debug=True, namespaces=const.PORTAL_ONE_NS)
+                                 debug=True, namespaces=PORTAL_ONE_NS)
 
 
 if __name__ == "__main__":

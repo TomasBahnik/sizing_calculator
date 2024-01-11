@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 from typing import List, Tuple
 
@@ -15,14 +14,11 @@ from pandasai import PandasAI
 from scipy.stats import ttest_ind
 from scipy.stats._stats_py import TtestResult
 
-from cpt.lr import STATUS_PASSED, DURATION_SEC
-from cpt.lr.raw_data import RawData
-from cpt.prometheus import DEPLOYMENT_HELP, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE
-from cpt.prometheus.collector import PrometheusCollector, TimeRange, PROMETHEUS_URL
-from cpt.prometheus.const import *
-from cpt.prometheus.dashboards_analysis import shot_examples, all_examples, prompt_lists
-from cpt.prometheus.prompt_model import PromptExample
-from snowflake_engine import api_df, lr_raw_data
+from prometheus import DEPLOYMENT_HELP, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE
+from prometheus.collector import PrometheusCollector, TimeRange, PROMETHEUS_URL
+from prometheus.const import *
+from prometheus.dashboards_analysis import shot_examples, all_examples, prompt_lists
+from prometheus.prompt_model import PromptExample
 
 TEST_1 = 'test_1'
 
@@ -113,26 +109,6 @@ def title_queries(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
         typer.echo(f"Unknown model {deployment}")
 
 
-@app.command()
-def api_su(test_uuid: str = typer.Option('890c74b2-6881-4175-8e98-9f648f608980',
-                                         "--uuid", "-id", help="UUID of API test"),
-           max_tokens: int = typer.Option(DEFAULT_MAX_TOKENS, "--tokens", help="Maximum tokens in response"),
-           temperature: float = typer.Option(DEFAULT_TEMPERATURE, help="Model temperature"),
-           deployment: str = typer.Option(deployment_name_35, "--model", "-m", help="Ony completion deployment"),
-           prompt: str = typer.Option("give me the list of operation names with gqlDurationMs higher than 1000",
-                                      help="Question about DataFrame"),
-           ):
-    """ Pandas AI for API test"""
-    test_df: pd.DataFrame = api_df(test_uuid=test_uuid)
-    llm = get_model(deployment=deployment, max_tokens=max_tokens, temperature=temperature)
-    pandas_ai = PandasAI(llm)
-    msg = f'model:{deployment}\nprompt: {prompt}'
-    typer.echo(message=msg)
-    logger.info(msg=msg)
-    ret = pandas_ai.run(test_df, prompt=prompt)
-    typer.echo(f"{ret}")
-
-
 def means_compare(df: pd.DataFrame):
     """
     Check if the mean diff is within smaller std dev
@@ -172,31 +148,6 @@ def portal_namespaces(tuple_columns: List[Tuple[str, ...]]) -> List[str]:
     # 1st element as in grp_keys
     namespaces = sorted(list(set([col[0] for col in tuple_columns])))
     return namespaces
-
-
-@app.command()
-def lr_compare(id0: str = typer.Option(..., help="id of the 1st test"),
-               id1: str = typer.Option(..., help="id of the 2nd test"),
-               prompt: str = typer.Option(TRIVIAL_COMPARE_PROMPT)):
-    rd0: RawData = lr_raw_data(test_id=id0)
-    df0: pd.DataFrame = rd0.trx_df(status=STATUS_PASSED)
-    rd1: RawData = lr_raw_data(test_id=id1)
-    df1: pd.DataFrame = rd1.trx_df(status=STATUS_PASSED)
-    llm = get_model(deployment=deployment_name_35, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMPERATURE)
-    pandas_ai = PandasAI(llm)
-    for m_idx in df0.index.unique():
-        s0: pd.Series = df0.loc[m_idx][DURATION_SEC]
-        s1: pd.Series = df1.loc[m_idx][DURATION_SEC]
-        #  ValueError: cannot handle a non-unique multi-index!
-        d0 = s0.reset_index(drop=True)
-        d1 = s1.reset_index(drop=True)
-        if not s0.empty and not s1.empty:
-            typer.echo(f'idx: {m_idx}')
-            df = pd.concat([d0, d1], keys=[TEST_0, TEST_1], axis=1)
-            # means_compare(df)
-            # t_test_compare(df)
-            answer = pandas_ai.run(data_frame=df, prompt=prompt)
-            typer.echo(answer)
 
 
 @app.command()

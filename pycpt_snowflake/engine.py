@@ -10,8 +10,8 @@ from snowflake.sqlalchemy import URL
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from cpt.snowflake.const import DEFAULT_SCHEMA
-from cpt.snowflake.queries import q_from_to_by_uuid
+from pycpt_snowflake import DEFAULT_SCHEMA
+from pycpt_snowflake.queries import q_from_to_by_uuid
 
 logger = logging.getLogger(__name__)
 

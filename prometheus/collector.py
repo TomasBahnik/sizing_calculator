@@ -8,11 +8,9 @@ import pytz
 import typer
 from prometheus_pandas import query
 
-import cpt.logging
-from cpt.configuration import COMMON_PROPERTIES
-from cpt.prometheus import const, queries
-from cpt.prometheus.const import DEFAULT_STEP_SEC, DEFAULT_TIME_DELTA_HOURS, \
-    PROMETHEUS_ARTIFACT_FOLDER, DEFAULT_RATE_INTERVAL, MIBS, GIBS
+from const import DEFAULT_STEP_SEC, DEFAULT_TIME_DELTA_HOURS, \
+    PROMETHEUS_ARTIFACT_FOLDER, DEFAULT_RATE_INTERVAL, MIBS, GIBS, PYCPT_HOME, NON_EMPTY_LABEL
+from queries import sum_irate
 
 PROMETHEUS_URL = os.getenv("PROMETHEUS_URL")
 logger = logging.getLogger(__name__)
@@ -26,7 +24,7 @@ def mem_mibs(df: pd.DataFrame) -> pd.DataFrame:
     return (df / MIBS).round(2)
 
 
-PROMETHEUS_REPORT_FOLDER = Path(COMMON_PROPERTIES.cpt_artefacts_dir, PROMETHEUS_ARTIFACT_FOLDER)
+PROMETHEUS_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', PROMETHEUS_ARTIFACT_FOLDER)
 
 
 class TimeRange:
@@ -47,14 +45,13 @@ class TimeRange:
         return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}\n'
 
     def __str__(self):
-        from cpt.common import DATE_TIME_FORMAT_FOLDER
+        from prometheus.common import DATE_TIME_FORMAT_FOLDER
         return f'{self.from_time.strftime(DATE_TIME_FORMAT_FOLDER)}_{self.to_time.strftime(DATE_TIME_FORMAT_FOLDER)}'
 
 
 class PrometheusCollector:
 
     def __init__(self, url: str, time_range: TimeRange):
-        self.logger = logging.getLogger(cpt.logging.fullname(self))
         self.promQuery = query.Prometheus(url)
         self.timeRange: TimeRange = time_range
 
@@ -69,7 +66,7 @@ class PrometheusCollector:
         :param step_sec: step as float if not specified DEFAULT_STEP_SEC
         :return: DataFrame with values of query
         """
-        self.logger.info(p_query)
+        logger.info(p_query)
         df: pd.DataFrame = self.promQuery.query_range(query=p_query, start=self.timeRange.from_time,
                                                       end=self.timeRange.to_time, step=step_sec)
         return df
@@ -83,8 +80,8 @@ class PrometheusCollector:
         :return:
         """
         portal_pod_cpu_metric: str = "container_cpu_usage_seconds_total"
-        q = queries.sum_irate(metric=portal_pod_cpu_metric, containers=const.NON_EMPTY_LABEL,
-                              namespace=namespace, grp_keys=grp_keys, rate_interval=rate_interval)
+        q = sum_irate(metric=portal_pod_cpu_metric, containers=NON_EMPTY_LABEL,
+                      namespace=namespace, grp_keys=grp_keys, rate_interval=rate_interval)
         return self.range_query(p_query=q)
 
     def portal_cpu_df(self, namespace: str, grp_keys: List[str]) -> pd.DataFrame:

@@ -1,5 +1,3 @@
-import re
-
 from metrics import MIBS, GIBS
 
 LINKED_TABLES_PERCENTAGE = '1-n relations between tables (total percentage of linked tables)'

@@ -1,13 +1,6 @@
-import os
 import re
-from pathlib import Path
 
 from metrics import MIBS, GIBS
-
-CPT_HOME_KEY = 'CPT_HOME'
-CPT_HOME = os.getenv(CPT_HOME_KEY)
-PYCPT_HOME = Path(CPT_HOME, 'bin', 'pycpt')
-API_TEST_MODULE = Path(CPT_HOME, 'modules', 'api-tests').resolve()
 
 LINKED_TABLES_PERCENTAGE = '1-n relations between tables (total percentage of linked tables)'
 MAX_COLUMNS_PER_TABLE = 'Max columns per table'
@@ -25,13 +18,7 @@ common_data_volume = {AVG_COLUMNS_PER_TABLE: 20,
                       'Max # of terms assigned on column level': 25,
                       'Average historical versions of entity': 5,
                       'Max historical version of entity': 20}
-# 300Mi/Gi/m
-RESOURCE_RE = re.compile(r"(\d+\.?\d*)([a-zA-Z]*)$")
 units_conversion = {"Mi": MIBS, "Gi": GIBS, "G": GIBS, "m": 0.001}
-MMM_BUILD_INFO_GQL = {
-    "query": "query getBuildInfo {\n  _buildInfo {\n    branch\n    buildHost\n    buildUserName\n    buildVersion\n  "
-             "  commitId\n    commitIdAbbrev\n    commitTime\n    commitUserName\n    totalCommitCount\n  }\n}\n",
-    "operationName": "getBuildInfo"}
 # use for all pd.Timestamps - bad conversion to Snowflake TIMESTAPMPNTZ
 GMT_TZ = 'GMT'
 EVENT_MMM_BUILD_VERSION_KEY = 'mmmBuildVersion'

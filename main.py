@@ -6,26 +6,31 @@ import typer
 
 from metrics import DEFAULT_TIME_DELTA_HOURS
 from metrics.collector import TimeRange
+from metrics.model.tables import PortalPrometheus
+from prometheus.commands import last_timestamp
+from prometheus.prompt_model import PortalTable
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger
+
+EXPRESSIONS_BASIC = './expressions/basic'
 
 app = typer.Typer()
 
 
 @app.command()
-def reports(start_time: str = typer.Option(None, "--start", "-s",
-                                           help="Start time in UTC without tz. "
-                                                "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
-            end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
-            delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
-                                              help="hours in the past i.e start time = end_time - delta_hours"),
-            namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
-            metrics_folder: Path = typer.Option('./expressions/basic', "--folder", "-f",
-                                                dir_okay=True,
-                                                help="Folder with json files specifying PromQueries to run"),
-            test_summary_file: Path = typer.Option(None, "--test-summary", "-t",
-                                                   help="Test summary file with test start and end time",
-                                                   file_okay=True)):
+def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
+                                                  help="Start time in UTC without tz. "
+                                                       "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
+                   end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
+                   delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+                                                     help="hours in the past i.e start time = end_time - delta_hours"),
+                   namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
+                   metrics_folder: Path = typer.Option(EXPRESSIONS_BASIC, "--folder", "-f",
+                                                       dir_okay=True,
+                                                       help="Folder with json files specifying PromQueries to run"),
+                   test_summary_file: Path = typer.Option(None, "--test-summary", "-t",
+                                                          help="Test summary file with test start and end time",
+                                                          file_okay=True)):
     """
     Create sizing reports for namespace and time range either from test_summary file or from command line args
     When test_summary file is provided then start_time, end_time and delta_hours are ignored
@@ -66,6 +71,18 @@ def reports(start_time: str = typer.Option(None, "--start", "-s",
         save_new_sizing(all_test_sizing, common_folder, test_summary)
     else:
         raise ValueError('Either start_time and end_time or test_summary_file must be provided')
+
+
+@app.command()
+def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='Last update of given namespace'),
+                metrics_folder: Path = typer.Option(EXPRESSIONS_BASIC, "--folder", "-f",
+                                                    dir_okay=True,
+                                                    help="Folder with json files specifying PromQueries to run")):
+    """List last timestamps per table and namespace"""
+    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
+    table_names = [f'{t.dbSchema}.{t.tableName}' for t in portal_tables]
+    last_timestamp(table_names, namespace)
 
 
 if __name__ == "__main__":

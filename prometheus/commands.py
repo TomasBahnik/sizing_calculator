@@ -116,18 +116,6 @@ def last_timestamp(table_names: List[str], namespace: str):
 
 
 @app.command()
-def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='Last update of given namespace'),
-                metrics_folder: Path = typer.Option('./kubernetes/expressions/basic', "--folder", "-f",
-                                                    dir_okay=True,
-                                                    help="Folder with json files specifying PromQueries to run")):
-    """List last timestamps per table and namespace"""
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
-    table_names = [f'{t.dbSchema}.{t.tableName}' for t in portal_tables]
-    last_timestamp(table_names, namespace)
-
-
-@app.command()
 def portal_metrics(
         start_time: str = typer.Option(None, "--start", "-s",
                                        help="Start time of period in datetime format wo timezone "

@@ -16,7 +16,7 @@ POD_GRP = '(pod)'
 
 # from hackathon
 
-COMPANY = 'ataccama'
+COMPANY = 'unknown'
 DEFAULT_PREFIX = """You are looking for Prometheus Query Language expressions. Given the title of that expression  
 give me comma separated list of expressions best fitting that title. Ignore labels. Use prepared examples"""
 DEFAULT_PROM_EXPR_TITLE = 'Average pod CPU'

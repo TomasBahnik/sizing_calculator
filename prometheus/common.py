@@ -37,7 +37,6 @@ SCRIPT_STARTED_RE = re.compile(r"Virtual User Script.+(\d{4}-\d{2}-\d{2}\s\d{2}:
 OPERATION_NAME_START = r"{\"operationName\":\"(\w+)\","
 OPERATION_NAME_START_RE = re.compile(OPERATION_NAME_START)
 RUNTIME_SETTINGS_FILE_RE = re.compile(r"Run-Time Settings file.+: \"(.+)\\default.cfg")
-# t=00005289ms: Request headers for "https://one-nbcxj.worker-01-euc1.prod.ataccama.link/" (465 byte(s))
 FE_APP_URL_RE = re.compile(r"t=\d+ms: Request headers for \"(.+\.\w+/)\" \(")
 
 # load steps and actions from output.txt

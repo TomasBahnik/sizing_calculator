@@ -47,7 +47,6 @@ def q_from_to_by_uuid(timestamp_field: str, table_name: str) -> str:
 
 
 # Notin tables synchronized to Snowflake
-# https://www.notion.so/ataccama/List-of-Performance-Test-Runs-847ecc16dcf145a893a77e7195def747
 NOTION_API_TESTS_TABLE = "PERFORMANCE_TESTING_DB_LIST_OF_API_TESTS"
 NOTION_JOB_TESTS_TABLE = "PERFORMANCE_TESTING_DB_LIST_OF_DOC_FLOW_TESTS"
 

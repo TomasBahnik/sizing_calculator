@@ -5,13 +5,14 @@ import pandas as pd
 import typer
 
 import metrics
-from metrics import DEFAULT_TIME_DELTA_HOURS, PROMETHEUS_URL, NAMESPACE_COLUMN
+from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange, PrometheusCollector
 from metrics.model.tables import PortalPrometheus
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus.prompt_model import PortalTable
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger
+from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule, save_rules_report
 
 DEFAULT_PROM_EXPRESSIONS = './expressions/basic'
 
@@ -153,6 +154,56 @@ def load_metrics(
         unique_ns = set(full_df[NAMESPACE_COLUMN])
         typer.echo(f'shape: {full_df.shape}\n'
                    f'{len(unique_ns)} unique namespaces: {unique_ns}')
+
+
+@app.command()
+def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
+                                             help="Start time in UTC without tz. "
+                                                  "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
+              end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
+              delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+                                                help="hours in the past i.e start time = end_time - delta_hours"),
+              metrics_folder: Path = typer.Option(DEFAULT_PROM_EXPRESSIONS, "--folder", "-f",
+                                                  dir_okay=True,
+                                                  help="Folder with json files specifying PromQueries to run"),
+              limit_pct: float = typer.Option(None, "-l", "--limit-pct",
+                                              help="Resource above percentage of limits. Overrides value in json"),
+              namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace")):
+    """Evaluate SLAs for all tables in metrics_folder"""
+    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
+    # typer.echo(f'{prom_rules}')
+    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
+    for portal_table in portal_tables:
+        if len(portal_table.rules) == 0:
+            typer.echo(f'No rules in {portal_table.name}. Continue ..')
+            continue
+        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=portal_table)
+        empty_report_header = prom_rules.report_header()
+        main_report: str = empty_report_header
+        prom_rules.load_df()
+        namespaces = prom_rules.namespaces(namespace=namespace)
+        for rule in portal_table.rules:
+            # rule.limit_pct has default value == None
+            if limit_pct:  # limit_pct is set
+                # change the limit for all rules where limit_pct is already set
+                # to the same value but keep those rule which do not need limit_pct None
+                # number can be confusing in report
+                rule.limit_pct = limit_pct if rule.limit_pct else None
+            for ns in namespaces:
+                typer.echo(f'namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, '
+                           f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
+                ns_container_df = prom_rules.ns_container_df(namespace=ns)
+                # when verify_integrity of indexes portal table specific keys are needed
+                rr = RatioRule(ns_df=ns_container_df, basic_rule=rule, keys=portal_table.tableKeys)
+                if portal_table.tableName == POD_BASIC_RESOURCES_TABLE:
+                    # add resource request and limits only for POD_BASIC_RESOURCES table
+                    main_report = rr.add_report(main_report, portal_table)
+                else:
+                    main_report = rr.add_report(main_report)
+        if main_report != empty_report_header:
+            #  do not save empty reports
+            save_rules_report(main_report, portal_table, prom_rules)
 
 
 if __name__ == "__main__":

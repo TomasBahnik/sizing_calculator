@@ -4,7 +4,7 @@ from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
 
 from constants import EVENT_MMM_BUILD_VERSION_KEY, TEST_ENV_KEY, UUID_COLUMN
-from pycpt_snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, PERIOD_UTC_COLUMN
+from storage.snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, PERIOD_UTC_COLUMN
 
 
 def q_env_build(test_env: str, mmm_build: str, result: str = None, table_name: str = None) -> str:

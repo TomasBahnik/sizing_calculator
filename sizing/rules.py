@@ -11,8 +11,8 @@ from metrics import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, CONTAINER_COLUMN, POD_CO
 from metrics.collector import TimeRange
 from reports import PROMETHEUS_REPORT_FOLDER
 from prometheus.prompt_model import PortalTable, BasicRatioRule, Compare
-from pycpt_snowflake import dataframe
-from pycpt_snowflake.engine import SnowflakeEngine
+from storage.snowflake import dataframe
+from storage.snowflake.engine import SnowflakeEngine
 
 CONTAINER_POD_COLUMNS = [CONTAINER_COLUMN, POD_COLUMN]
 OVER_LIMIT_PCT_COLUMN = 'OVER_LIMIT_PCT'

@@ -6,9 +6,9 @@ from snowflake.connector import SnowflakeConnection
 
 from prometheus.common import TIMESTAMP_KEY
 from constants import GMT_TZ, TEST_ENV_KEY, END_ISO_TIME, UUID_COLUMN
-from pycpt_snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RUN_INFO_TABLE_NAME, \
-    API_TESTS_CU_LIST_TABLE_NAME, API_TESTS_CU_RAW_DATA_TABLE_NAME
-from pycpt_snowflake.queries import q_uuid
+from storage.snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RUN_INFO_TABLE_NAME, \
+    API_TESTS_CU_RAW_DATA_TABLE_NAME, API_TESTS_CU_LIST_TABLE_NAME
+from storage.snowflake.queries import q_uuid
 
 
 def get_df(query: str, con: SnowflakeConnection, dedup: bool = True) -> pd.DataFrame:

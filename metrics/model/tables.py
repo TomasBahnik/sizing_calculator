@@ -1,12 +1,14 @@
+import logging
 from pathlib import Path
 from typing import Optional, List
 
 import typer
 from pydantic import parse_file_as
 
-from shared.utils import list_files
-from prometheus.portal import logger
 from prometheus.prompt_model import PortalTable
+from shared.utils import list_files
+
+logger = logging.getLogger(__name__)
 
 
 class PortalPrometheus:

@@ -13,7 +13,7 @@ from metrics.collector import TimeRange, PrometheusCollector
 from metrics.model.tables import PortalPrometheus
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus.const import FILE, TITLE, QUERIES, STATIC_LABEL
-from prometheus.dashboards_analysis import app, JSON_SUFFIX, all_examples, prompt_lists
+from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
 from prometheus.prompt_model import PortalTable, PromptExample
 from reports import PROMETHEUS_REPORT_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \

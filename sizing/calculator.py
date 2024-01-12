@@ -1,4 +1,5 @@
 import logging
+import os
 from enum import StrEnum
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -7,12 +8,15 @@ import pandas as pd
 import typer
 from pydantic import BaseModel
 
-from collector import TimeRange
-from const import *
-from const import PYCPT_HOME
-from portal import PortalPrometheus
-from prompt_model import PortalTable
-from rules import POD_BASIC_RESOURCES_TABLE, PrometheusRules
+from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
+    POD_BASIC_RESOURCES_TABLE
+from metrics.collector import TimeRange
+from metrics.model.tables import PortalPrometheus
+from prometheus.prompt_model import PortalTable
+from sizing.rules import PrometheusRules
+from shared import PYCPT_HOME
+from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
+    MEMORY_LIMIT_NAME, CPU_LIMIT_MILLIS_COLUMNS, MEMORY_LIMIT_MIBS_COLUMNS, PERCENTILES
 
 NEW_SIZING_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', 'new_sizing')
 
@@ -279,66 +283,3 @@ def sizing_ini(new_sizings: pd.DataFrame, folder: Path):
         config.set(section=section, option='limits.memory', value=str(row[MEMORY_LIMIT_NAME]) + 'Mi')
     with open(path, 'w') as f:
         config.write(f)
-
-
-app = typer.Typer()
-
-
-@app.command()
-def reports(start_time: str = typer.Option(None, "--start", "-s",
-                                           help="Start time in UTC without tz. "
-                                                "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
-            end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
-            delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
-                                              help="hours in the past i.e start time = end_time - delta_hours"),
-            namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
-            metrics_folder: Path = typer.Option('./cpt/prometheus/kubernetes/expressions/basic', "--folder", "-f",
-                                                dir_okay=True,
-                                                help="Folder with json files specifying PromQueries to run"),
-            test_summary_file: Path = typer.Option(None, "--test-summary", "-t",
-                                                   help="Test summary file with test start and end time",
-                                                   file_okay=True)):
-    """
-    Create sizing reports for namespace and time range either from test_summary file or from command line args
-    When test_summary file is provided then start_time, end_time and delta_hours are ignored
-    """
-    all_test_sizing: List[pd.DataFrame] = []
-    if start_time is not None and end_time is not None:
-        time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-        test_name = f'{namespace if namespace is not None else "all"}_{str(time_range)}'
-        test_time_range = TestTimeRange(start=time_range.from_time, end=time_range.to_time)
-        test_details = TestDetails(timeRange=test_time_range, description=test_name)
-        test_summary = TestSummary(name=test_name, namespace=namespace, catalogItems=1, tests=[test_details])
-        s_c = sizing_calculator(start_time=test_time_range.start.isoformat(),
-                                end_time=test_time_range.end.isoformat(),
-                                delta_hours=delta_hours,
-                                metrics_folder=metrics_folder, namespace=namespace, test_details=test_details)
-        common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(' ', '_'))
-        folder = Path(common_folder, test_details.description.replace(' ', '_'))
-        s_c.all_reports(folder=folder, test_summary=test_summary)
-        all_test_sizing.append(s_c.new_sizing())
-        save_new_sizing(all_test_sizing, common_folder, test_summary)
-
-    elif test_summary_file is not None:
-        test_summary: TestSummary = TestSummary.parse_file(test_summary_file)
-        logger.info(f'Loaded test summary from {test_summary_file}')
-        common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(' ', '_'))
-        for test_details in test_summary.tests:
-            logger.info(f'Processing {test_details.description}')
-            start_time = test_details.timeRange.start
-            end_time = test_details.timeRange.end
-            delta_hours = (end_time - start_time).total_seconds() / 3600
-            namespace = test_summary.namespace
-            s_c = sizing_calculator(start_time=start_time.isoformat(), end_time=end_time.isoformat(),
-                                    delta_hours=delta_hours,
-                                    metrics_folder=metrics_folder, namespace=namespace, test_details=test_details)
-            folder = Path(common_folder, test_details.description.replace(' ', '_'))
-            s_c.all_reports(folder=folder, test_summary=test_summary)
-            all_test_sizing.append(s_c.new_sizing())
-        save_new_sizing(all_test_sizing, common_folder, test_summary)
-    else:
-        raise ValueError('Either start_time and end_time or test_summary_file must be provided')
-
-
-if __name__ == "__main__":
-    app()

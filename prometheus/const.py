@@ -1,9 +1,7 @@
 # the last slash in PROMETHEUS_URL is important otherwise it is not considered as directory
-import os
 
 MEMORY_RESOURCE = "memory"
 # used with ~= operation (positive) , excluding  empty containers !="" (negative)
-NON_EMPTY_LABEL = ".+"
 CPU_RESOURCE = "cpu"
 RESOURCE_REQUESTS = 'requests'
 RESOURCE_LIMITS = 'limits'
@@ -12,10 +10,8 @@ MMM_BE_DPE = "mmm-be|dpe"
 PRODUCT_NS = "product"
 DEFAULT_NS = "default"
 JOB_STATUS = "failure|queued|success"
-DEFAULT_STEP_SEC = 30  # float in sec
 DEFAULT_JVM_GC_THRESHOLD_SEC: float = 0.3
 JOB_COUNT_DEFAULT_STEP = 120  # float in sec
-DEFAULT_TIME_DELTA_HOURS = 1
 POD_GRP = '(pod)'
 
 # from hackathon
@@ -86,29 +82,9 @@ TITLE = 'title'
 LABEL = 'label'
 STATIC_LABEL = 'static_labels'
 FILE = 'file'
-PROMETHEUS_ARTIFACT_FOLDER = 'prometheus'
 #  Portal constants
-PORTAL_ONE_NS = "one.+"
-NAMESPACE_COLUMN = 'NAMESPACE'
-POD_COLUMN = 'POD'
-CONTAINER_COLUMN = 'CONTAINER'
-DEFAULT_PORTAL_GRP_KEYS = [NAMESPACE_COLUMN.lower(), POD_COLUMN.lower(), CONTAINER_COLUMN.lower()]
-DEFAULT_RATE_INTERVAL = '1m'
 COMMON_PORTAL_ALERTS_GRP_KEYS = ['alertname', 'alertstate', 'severity']
-TIMESTAMP_COLUMN = 'TIMESTAMP'
 NON_EMPTY_CONTAINER = 'container!=""'
 # network metrics do have this container name
 NON_POD_CONTAINER = 'container!="POD"'
 NON_LINKERD_CONTAINER = 'container!="linkerd-proxy"'
-MIBS: int = 1024 ** 2
-GIBS: int = 1024 ** 3
-PERCENTILES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1]
-REQUEST_PERCENTILE = '20%'
-LIMIT_PERCENTILE = '100%'
-CPU_LIMIT_MILLIS_COLUMNS = ['CPU request [m]', 'CPU limit [m]']
-MEMORY_LIMIT_MIBS_COLUMNS = ['Memory request [Mi]', 'Memory limit [Mi]']
-CPU_REQUEST_NAME = f'CPU_{REQUEST_PERCENTILE} [m]'
-CPU_LIMIT_NAME = f'CPU_{LIMIT_PERCENTILE} [m]'
-MEMORY_REQUEST_NAME = f'mem_{REQUEST_PERCENTILE} [Mi]'
-MEMORY_LIMIT_NAME = f'mem_{LIMIT_PERCENTILE} [Mi]'
-PYCPT_HOME = os.getenv('PYCPT_HOME')

@@ -1,6 +1,4 @@
 import logging
-import os
-from pathlib import Path
 from typing import Optional, List, Tuple, Dict
 
 import pandas as pd
@@ -8,11 +6,10 @@ import pytz
 import typer
 from prometheus_pandas import query
 
-from const import DEFAULT_STEP_SEC, DEFAULT_TIME_DELTA_HOURS, \
-    PROMETHEUS_ARTIFACT_FOLDER, DEFAULT_RATE_INTERVAL, MIBS, GIBS, PYCPT_HOME, NON_EMPTY_LABEL
-from queries import sum_irate
+from metrics.prom_ql.queries import sum_irate
 
-PROMETHEUS_URL = os.getenv("PROMETHEUS_URL")
+from metrics import DEFAULT_TIME_DELTA_HOURS, GIBS, MIBS, DEFAULT_STEP_SEC, NON_EMPTY_LABEL, DEFAULT_RATE_INTERVAL
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,9 +19,6 @@ def mem_gibs(df: pd.DataFrame) -> pd.DataFrame:
 
 def mem_mibs(df: pd.DataFrame) -> pd.DataFrame:
     return (df / MIBS).round(2)
-
-
-PROMETHEUS_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', PROMETHEUS_ARTIFACT_FOLDER)
 
 
 class TimeRange:

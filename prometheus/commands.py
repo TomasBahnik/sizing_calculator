@@ -6,10 +6,12 @@ import pandas as pd
 import typer
 import urllib3
 
+import metrics
 from prometheus import const
-from prometheus.collector import df_tuple_columns, TimeRange, PrometheusCollector, PROMETHEUS_URL
-from prometheus.const import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER
-from prometheus.portal import PortalPrometheus
+from metrics.collector import df_tuple_columns, TimeRange, PrometheusCollector
+from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, TIMESTAMP_COLUMN
+from prometheus.const import NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER
+from metrics.model.tables import PortalPrometheus
 from prometheus.prompt_model import PortalTable
 from pycpt_snowflake import dataframe
 from pycpt_snowflake.dataframe import add_tz
@@ -66,7 +68,7 @@ def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
     idx_list: List[str, str, pd.Timestamp] = stacked_df.index.to_list()
     #  timestamps are last - because of stack
     timestamps = [t[len(grp_keys)] for t in idx_list]
-    sf_df_data = {const.TIMESTAMP_COLUMN: timestamps}
+    sf_df_data = {metrics.TIMESTAMP_COLUMN: timestamps}
     for i in range(len(grp_keys)):
         key: str = grp_keys[i].upper()
         values = [t[i] for t in idx_list]
@@ -135,11 +137,11 @@ def portal_metrics(
         end_time: str = typer.Option(None, "--end", "-e",
                                      help="End of period in datetime format wo timezone (UTC is added) "
                                           "e.g. '2023-07-21T00:43:00'. If None, end_time = now in UTC"),
-        delta_hours: float = typer.Option(const.DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+        delta_hours: float = typer.Option(metrics.DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
                                           help="hours in the past i.e start time = end_time - delta_hours"),
         namespaces: str = typer.Option(..., "-n", "--namespace",
                                        help=f"list of namespaces separated by | enclosed in \" "
-                                            f"or using .+ e.g. for all '{const.PORTAL_ONE_NS}'"),
+                                            f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'"),
         metrics_folder: Path = typer.Option('./kubernetes/expressions/basic', "--folder", "-f",
                                             dir_okay=True,
                                             help="Folder with json files specifying PromQueries to run")):

@@ -7,11 +7,11 @@ import pandas as pd
 import typer
 from pandas import DataFrame
 
-from collector import PROMETHEUS_REPORT_FOLDER, TimeRange
-from const import NAMESPACE_COLUMN, \
-    POD_COLUMN, CONTAINER_COLUMN
-from portal import PortalPrometheus
-from prompt_model import PortalTable, BasicRatioRule, Compare
+from metrics import TIMESTAMP_COLUMN, POD_BASIC_RESOURCES_TABLE, NAMESPACE_COLUMN, CONTAINER_COLUMN, POD_COLUMN
+from metrics.collector import TimeRange
+from reports import PROMETHEUS_REPORT_FOLDER
+from metrics.model.tables import PortalPrometheus
+from prometheus.prompt_model import PortalTable, BasicRatioRule, Compare
 from pycpt_snowflake import dataframe
 from pycpt_snowflake.engine import SnowflakeEngine
 
@@ -21,8 +21,6 @@ RATIO_COLUMN = 'RATIO'
 OVER_LIMIT_COUNT_COLUMN = 'OVER_LIMIT_COUNT'
 MAX_OVER_LIMIT_TIME_SEC_COLUMN = 'MAX_OVER_LIMIT_TIME_SEC'
 POD_CONTAINER_TYPE = 'POD'
-POD_BASIC_RESOURCES_TABLE = 'POD_BASIC_RESOURCES'
-JVM_BASIC_TABLE = 'PORTAL_JVM_BASIC'
 
 CPU_REQUEST_CORE = 'CPU_REQUEST_CORE'
 CPU_LIMIT_CORE = 'CPU_LIMIT_CORE'
@@ -31,7 +29,7 @@ CPU_CORE = 'CPU_CORE'
 MEMORY_REQUEST_BYTE = 'MEMORY_REQUEST_BYTE'
 MEMORY_LIMIT_BYTE = 'MEMORY_LIMIT_BYTE'
 DEFAULT_TIME_DELTA_HOURS = 1
-TIMESTAMP_COLUMN = 'TIMESTAMP'
+# TIMESTAMP_COLUMN = 'TIMESTAMP'
 
 app = typer.Typer()
 logger = logging.getLogger(__name__)
@@ -283,7 +281,7 @@ class RatioRule:
         return report_html
 
     def requests_limits(self, resource_table: PortalTable) -> pd.DataFrame:
-        from prometheus.sizing_calculator import LimitsRequests, SizingCalculator, CPU_FIELDS, MEMORY_FIELDS
+        from sizing.calculator import LimitsRequests, SizingCalculator, CPU_FIELDS, MEMORY_FIELDS
         cpu: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **CPU_FIELDS)
         memory: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **MEMORY_FIELDS)
         sizing_calc = SizingCalculator(cpu=cpu, memory=memory)

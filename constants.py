@@ -2,7 +2,7 @@ import os
 import re
 from pathlib import Path
 
-from prometheus.const import MIBS, GIBS
+from metrics import MIBS, GIBS
 
 CPT_HOME_KEY = 'CPT_HOME'
 CPT_HOME = os.getenv(CPT_HOME_KEY)

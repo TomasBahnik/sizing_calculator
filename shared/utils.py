@@ -1,6 +1,5 @@
 import logging
 import os
-import re
 import socket
 import subprocess
 from datetime import datetime, timezone
@@ -9,41 +8,7 @@ from typing import List, Optional, Set
 
 import typer
 
-logger: logging.Logger = logging.getLogger(__name__)
-
 DATE_TIME_FORMAT_FOLDER = "%Y-%m-%dT%H-%M-%S%z"
-
-START_ITER_REGEXP = r"Starting\siteration\s(\d+)"
-START_ITER = re.compile(START_ITER_REGEXP)
-
-NOTIFY_TRANSACTION = 'Notify: Transaction'
-START_TRX = re.compile(NOTIFY_TRANSACTION + r"\s\"(.*)\"\sstarted")
-# ended with a "Pass" status (Duration: 0.8570 Wasted Time: 0.3640)
-TRX_COMMON = r"\s\"(.*)\"\sended\swith\sa\s\"(.*)\"\sstatus"
-END_TRX = re.compile(NOTIFY_TRANSACTION + TRX_COMMON)
-END_TRX_PASSED_DURATION = re.compile(r".*\(Duration:\s(\d+\.\d+)\)")
-END_TRX_PASSED_DURATION_WASTED = re.compile(r".*\(Duration:\s(\d+\.\d+)\sWasted\sTime:\s(\d+\.\d+)\)")
-END_TRX_PASSED_DURATION_THINK = re.compile(r".*\(Duration:\s(\d+\.\d+)\sThink\sTime:\s(\d+\.\d+)\)")
-# (Duration: 14.7360 Think Time: 0.0010 Wasted Time: 3.5380)
-END_TRX_PASSED_ALL_TIMES = \
-    re.compile(r".*\(Duration:\s(\d+\.\d+)\sThink\sTime:\s(\d+\.\d+)\sWasted\sTime:\s(\d+\.\d+)\)")
-# t=00006915ms
-LOG_TIMESTAMP_RE = re.compile(r"t=(\d+)ms")
-# Virtual User Script started at : 2020-10-05 11:27:34
-SCRIPT_STARTED_RE = re.compile(r"Virtual User Script.+(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})")
-# {"operationName":"GetApplicationMode","variables":{}
-# TODO operationName -> OPERATION_NAME const can't escape '\' in f strings use """?
-# OPERATION_NAME_START = r"{\"operationName\":\"(\w+)\",\"variables\":(\{.*\})"
-OPERATION_NAME_START = r"{\"operationName\":\"(\w+)\","
-OPERATION_NAME_START_RE = re.compile(OPERATION_NAME_START)
-RUNTIME_SETTINGS_FILE_RE = re.compile(r"Run-Time Settings file.+: \"(.+)\\default.cfg")
-FE_APP_URL_RE = re.compile(r"t=\d+ms: Request headers for \"(.+\.\w+/)\" \(")
-
-# load steps and actions from output.txt
-# used as LOG_TIMESTAMP_RE = re.compile(r"t=(\d+)ms")
-# t=00029357ms: Step 21: Click on Browse button started    [MsgId: MMSG-205180]	[MsgId: MMSG-205180]
-SCRIPT_STEP_OUTPUT_RE = r't=(\d+)ms:\sStep\s([\d\.]+):\s([a-zA-Z\s"]+[\w"])\s{4}'
-SCRIPT_STEP_OUTPUT_RE_COMPILED = re.compile(SCRIPT_STEP_OUTPUT_RE)
 
 
 def list_files(folder: Path, ends_with: str = '.txt', contains: Optional[str] = None) -> List[Path]:
@@ -97,19 +62,6 @@ def archive_folder(src_path: Path, dest_path: Path, dest_base_file_name: str):
     cmd = ['tar', '-C', str(path_before_last_folder), '-czf', str(full_archive_path), last_folder]
     p = subprocess.run(cmd)
     return p
-
-
-MMM_BE_BUILD_INFO_KEY = "mmmBeBuildInfo"
-MMM_BUILD_VERSION_KEY = "buildVersion"
-TIMESTAMP_KEY = 'timeStamp'
-SOURCE_DB_KEY = 'sourceDb'
-FROM_DATE_KEY = 'fromDate'
-# used as filter for MMM/DPM part of job stats
-DPM_SOURCE_DB = 'dpm'
-MMM_SOURCE_DB = 'mmm'
-# keys in job stat json
-DPM_JOB_STATS_KEY = f'{DPM_SOURCE_DB}_jobs'
-MMM_JOB_STATS_KEY = f'{MMM_SOURCE_DB}_jobs'
 
 
 def check_folder(folder: Path) -> Path:

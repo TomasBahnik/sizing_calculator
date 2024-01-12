@@ -11,3 +11,4 @@ UUID_COLUMN = UUID_KEY
 TEST_ENV_KEY = "testEnv"
 END_ISO_TIME = "endIsoTime"
 EVENT_MMM_BUILD_VERSION_KEY = 'mmmBuildVersion'
+TIMESTAMP_KEY = 'timeStamp'

@@ -4,9 +4,9 @@ import typer
 from pandas import DataFrame, Series
 from snowflake.connector import SnowflakeConnection
 
-from shared.utils import TIMESTAMP_KEY
 from storage.snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RUN_INFO_TABLE_NAME, \
-    API_TESTS_CU_RAW_DATA_TABLE_NAME, API_TESTS_CU_LIST_TABLE_NAME, GMT_TZ, UUID_COLUMN, TEST_ENV_KEY, END_ISO_TIME
+    API_TESTS_CU_RAW_DATA_TABLE_NAME, API_TESTS_CU_LIST_TABLE_NAME, GMT_TZ, UUID_COLUMN, TEST_ENV_KEY, END_ISO_TIME, \
+    TIMESTAMP_KEY
 from storage.snowflake.queries import q_uuid
 
 

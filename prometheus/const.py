@@ -84,7 +84,6 @@ STATIC_LABEL = 'static_labels'
 FILE = 'file'
 #  Portal constants
 COMMON_PORTAL_ALERTS_GRP_KEYS = ['alertname', 'alertstate', 'severity']
-NON_EMPTY_CONTAINER = 'container!=""'
 # network metrics do have this container name
 NON_POD_CONTAINER = 'container!="POD"'
 NON_LINKERD_CONTAINER = 'container!="linkerd-proxy"'

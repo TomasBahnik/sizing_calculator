@@ -7,11 +7,10 @@ import typer
 import urllib3
 
 import metrics
-from prometheus import const
+from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
 from metrics.collector import df_tuple_columns, TimeRange, PrometheusCollector
-from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, TIMESTAMP_COLUMN
-from prometheus.const import NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER
 from metrics.model.tables import PortalPrometheus
+from prometheus.const import NON_LINKERD_CONTAINER
 from prometheus.prompt_model import PortalTable
 from pycpt_snowflake import dataframe
 from pycpt_snowflake.dataframe import add_tz

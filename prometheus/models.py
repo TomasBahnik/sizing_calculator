@@ -16,7 +16,7 @@ from scipy.stats import ttest_ind
 from scipy.stats._stats_py import TtestResult
 
 from metrics import DEFAULT_TIME_DELTA_HOURS, PROMETHEUS_URL, PORTAL_ONE_NS, DEFAULT_PORTAL_GRP_KEYS
-from prometheus import DEPLOYMENT_HELP, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE
+from prometheus import DEPLOYMENT_HELP, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE, QUERIES, TITLE, FILE
 from metrics.collector import PrometheusCollector, TimeRange
 from prometheus.const import *
 from prometheus.dashboards_analysis import shot_examples, all_examples, prompt_lists

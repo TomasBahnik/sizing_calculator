@@ -1,22 +1,3 @@
-# the last slash in PROMETHEUS_URL is important otherwise it is not considered as directory
-
-MEMORY_RESOURCE = "memory"
-# used with ~= operation (positive) , excluding  empty containers !="" (negative)
-CPU_RESOURCE = "cpu"
-RESOURCE_REQUESTS = 'requests'
-RESOURCE_LIMITS = 'limits'
-TERM_SUGGESTIONS = 'term-suggestions-.*'
-MMM_BE_DPE = "mmm-be|dpe"
-PRODUCT_NS = "product"
-DEFAULT_NS = "default"
-JOB_STATUS = "failure|queued|success"
-DEFAULT_JVM_GC_THRESHOLD_SEC: float = 0.3
-JOB_COUNT_DEFAULT_STEP = 120  # float in sec
-POD_GRP = '(pod)'
-
-# from hackathon
-
-COMPANY = 'unknown'
 DEFAULT_PREFIX = """You are looking for Prometheus Query Language expressions. Given the title of that expression  
 give me comma separated list of expressions best fitting that title. Ignore labels. Use prepared examples"""
 DEFAULT_PROM_EXPR_TITLE = 'Average pod CPU'
@@ -75,15 +56,3 @@ if p < 0.05:
 else:
     print("Equivalent")
 """
-
-SPIKES_COUNT_KEY = 'spikes_count'
-QUERIES = 'queries'
-TITLE = 'title'
-LABEL = 'label'
-STATIC_LABEL = 'static_labels'
-FILE = 'file'
-#  Portal constants
-COMMON_PORTAL_ALERTS_GRP_KEYS = ['alertname', 'alertstate', 'severity']
-# network metrics do have this container name
-NON_POD_CONTAINER = 'container!="POD"'
-NON_LINKERD_CONTAINER = 'container!="linkerd-proxy"'

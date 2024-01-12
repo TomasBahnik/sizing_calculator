@@ -8,7 +8,7 @@ import urllib3
 import metrics
 from metrics import TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
 from metrics.collector import df_tuple_columns
-from prometheus.const import NON_LINKERD_CONTAINER
+from prometheus import NON_LINKERD_CONTAINER
 from prometheus.prompt_model import PortalTable
 from storage.snowflake import dataframe
 from storage.snowflake.dataframe import add_tz

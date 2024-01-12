@@ -12,7 +12,7 @@ from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange, PrometheusCollector
 from metrics.model.tables import PortalPrometheus
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
-from prometheus.const import FILE, TITLE, QUERIES, STATIC_LABEL
+from prometheus import QUERIES, TITLE, STATIC_LABEL, FILE
 from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
 from prometheus.prompt_model import PortalTable, PromptExample
 from reports import PROMETHEUS_REPORT_FOLDER

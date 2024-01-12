@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from prometheus.common import find_chars_in_str
+from shared.utils import find_chars_in_str
 from prometheus.prompt_model import PromQuery
 
 

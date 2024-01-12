@@ -414,7 +414,7 @@ class PrometheusRules:
 
 
 def save_rules_report(main_report, portal_table, prom_rules):
-    from prometheus.common import DATE_TIME_FORMAT_FOLDER
+    from shared.utils import DATE_TIME_FORMAT_FOLDER
     ft = prom_rules.timeRange.from_time.strftime(DATE_TIME_FORMAT_FOLDER)
     tt = prom_rules.timeRange.to_time.strftime(DATE_TIME_FORMAT_FOLDER)
     folder = Path(PROMETHEUS_REPORT_FOLDER, portal_table.dbSchema, portal_table.tableName)

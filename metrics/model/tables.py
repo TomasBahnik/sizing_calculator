@@ -4,7 +4,7 @@ from typing import Optional, List
 import typer
 from pydantic import parse_file_as
 
-from prometheus.common import list_files
+from shared.utils import list_files
 from prometheus.portal import logger
 from prometheus.prompt_model import PortalTable
 

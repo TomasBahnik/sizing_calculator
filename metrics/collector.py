@@ -39,7 +39,7 @@ class TimeRange:
         return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}\n'
 
     def __str__(self):
-        from prometheus.common import DATE_TIME_FORMAT_FOLDER
+        from shared.utils import DATE_TIME_FORMAT_FOLDER
         return f'{self.from_time.strftime(DATE_TIME_FORMAT_FOLDER)}_{self.to_time.strftime(DATE_TIME_FORMAT_FOLDER)}'
 
 

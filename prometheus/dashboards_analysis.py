@@ -9,7 +9,7 @@ from langchain import PromptTemplate, FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
 from pydantic import BaseModel, parse_file_as
 
-from prometheus.common import check_file, list_files
+from shared.utils import check_file, list_files
 from reports import PROMETHEUS_REPORT_FOLDER
 from prometheus.const import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
 from prometheus.prom_ql import strip_replace, extract_labels

@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import List, Tuple
 
 import pandas as pd
@@ -7,9 +6,8 @@ import typer
 import urllib3
 
 import metrics
-from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
-from metrics.collector import df_tuple_columns, TimeRange, PrometheusCollector
-from metrics.model.tables import PortalPrometheus
+from metrics import TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
+from metrics.collector import df_tuple_columns
 from prometheus.const import NON_LINKERD_CONTAINER
 from prometheus.prompt_model import PortalTable
 from pycpt_snowflake import dataframe
@@ -19,7 +17,6 @@ from pycpt_snowflake.engine import SnowflakeEngine
 METRICS = 'metrics'
 DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
 
-app = typer.Typer()
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
@@ -113,76 +110,3 @@ def last_timestamp(table_names: List[str], namespace: str):
             # return str(max_timestamps[0])
     finally:
         sf.sf_engine.dispose()
-
-
-@app.command()
-def portal_metrics(
-        start_time: str = typer.Option(None, "--start", "-s",
-                                       help="Start time of period in datetime format wo timezone "
-                                            "e.g. '2023-07-20T04:43:00' UTC is added. "
-                                            "If None, start_time = end_time - delta"),
-        end_time: str = typer.Option(None, "--end", "-e",
-                                     help="End of period in datetime format wo timezone (UTC is added) "
-                                          "e.g. '2023-07-21T00:43:00'. If None, end_time = now in UTC"),
-        delta_hours: float = typer.Option(metrics.DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
-                                          help="hours in the past i.e start time = end_time - delta_hours"),
-        namespaces: str = typer.Option(..., "-n", "--namespace",
-                                       help=f"list of namespaces separated by | enclosed in \" "
-                                            f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'"),
-        metrics_folder: Path = typer.Option('./kubernetes/expressions/basic', "--folder", "-f",
-                                            dir_okay=True,
-                                            help="Folder with json files specifying PromQueries to run")):
-    """
-    Loads prom queries from `metrics_folder`, runs them and stores in Snowflake.
-
-    Explicitly specified namespaces are preferred. Regex based ones can be huge.
-    Note that double slash is needed in PromQL e.g. for digit regex `\\d+`
-
-    There is no option for just update. It is difficult to resolve last timestamp for each namespace.
-    Dedup Snowflake table instead
-    https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
-    """
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
-    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
-    for portal_table in portal_tables:
-        typer.echo(f'Table: {portal_table.dbSchema}.{portal_table.tableName}, '
-                   f'period: {time_range.from_time} - {time_range.to_time}')
-        # new table for each Portal table
-        all_series: List[pd.Series] = []
-        all_columns: List[str] = []
-        # grp keys ONLY on table level NOT query level - can't be mixed !!
-        grp_keys: List[str] = portal_table.prepare_group_keys()
-        replaced_pt: PortalTable = portal_prometheus.replace_portal_labels(portal_table=portal_table,
-                                                                           labels=DEFAULT_LABELS,
-                                                                           namespaces=namespaces)
-        #  default = DEFAULT_STEP_SEC
-        step_sec: float = portal_table.stepSec
-        for prom_query in replaced_pt.queries:
-            typer.echo(f'{prom_query.columnName}')
-            typer.echo(f'\tquery: {prom_query.query}')
-            df: pd.DataFrame = prom_collector.range_query(p_query=prom_query.query, step_sec=step_sec)
-            if df.empty:
-                typer.echo(f'Query returns empty data. Continue')
-                continue
-            sf_ser = sf_series(metric_df=df, grp_keys=grp_keys)
-            all_series.append(sf_ser)
-            all_columns.append(prom_query.columnName)
-        # after concat, index stays the same, so we can extract common columns
-        if not all_series:
-            typer.echo(f'No data after all queries. Continue')
-            continue
-        all_data_df: pd.DataFrame = pd.concat(all_series, axis=1)
-        all_data_df.columns = all_columns
-        # extract common columns TIMESTAMP, NAMESPACE, POD
-        common_columns_df = common_columns(stacked_df=all_data_df, grp_keys=grp_keys)
-        full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
-        prom_save(dfs=[full_df], portal_table=portal_table)
-        unique_ns = set(full_df[NAMESPACE_COLUMN])
-        typer.echo(f'shape: {full_df.shape}\n'
-                   f'{len(unique_ns)} unique namespaces: {unique_ns}')
-
-
-if __name__ == "__main__":
-    app()

@@ -12,7 +12,7 @@ from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, 
     POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange
 from metrics.model.tables import PortalPrometheus
-from prometheus.prompt_model import PortalTable
+from prometheus.sla_model import SlaTable
 from sizing.rules import PrometheusRules
 from shared import PYCPT_HOME
 from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
@@ -42,10 +42,10 @@ CPU_FIELDS: Dict[str, Resource] = {"measured": Resource.CPU_CORE, "limit": Resou
 
 
 class LimitsRequests:
-    def __init__(self, ns_df: pd.DataFrame, portal_table: PortalTable,
+    def __init__(self, ns_df: pd.DataFrame, portal_table: SlaTable,
                  measured: Resource, limit: Resource, request: Resource):
         self.ns_df: pd.DataFrame = ns_df
-        self.portal_table: PortalTable = portal_table
+        self.portal_table: SlaTable = portal_table
         self.keys: List[str] = self.portal_table.tableKeys
         self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
         self.indexFromKeys: List[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
@@ -228,7 +228,7 @@ def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metric
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
     # value error if no table with name
-    resource_table: PortalTable = portal_prometheus.load_portal_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
+    resource_table: SlaTable = portal_prometheus.load_portal_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
     prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=resource_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)

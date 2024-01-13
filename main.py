@@ -14,7 +14,8 @@ from metrics.model.tables import PortalPrometheus
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus import QUERIES, TITLE, STATIC_LABEL, FILE
 from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
-from prometheus.prompt_model import PortalTable, PromptExample
+from prometheus.prompt_model import PromptExample
+from prometheus.sla_model import SlaTable
 from reports import PROMETHEUS_REPORT_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger
@@ -88,7 +89,7 @@ def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='La
                                                     help="Folder with json files specifying PromQueries to run")):
     """List last timestamps per table and namespace"""
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
+    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
     table_names = [f'{t.dbSchema}.{t.tableName}' for t in portal_tables]
     last_timestamp(table_names, namespace)
 
@@ -121,7 +122,7 @@ def load_metrics(
     https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
     """
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
+    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     for portal_table in portal_tables:
@@ -132,9 +133,9 @@ def load_metrics(
         all_columns: List[str] = []
         # grp keys ONLY on table level NOT query level - can't be mixed !!
         grp_keys: List[str] = portal_table.prepare_group_keys()
-        replaced_pt: PortalTable = portal_prometheus.replace_portal_labels(portal_table=portal_table,
-                                                                           labels=DEFAULT_LABELS,
-                                                                           namespaces=namespaces)
+        replaced_pt: SlaTable = portal_prometheus.replace_portal_labels(portal_table=portal_table,
+                                                                        labels=DEFAULT_LABELS,
+                                                                        namespaces=namespaces)
         #  default = DEFAULT_STEP_SEC
         step_sec: float = portal_table.stepSec
         for prom_query in replaced_pt.queries:
@@ -179,7 +180,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     # typer.echo(f'{prom_rules}')
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[PortalTable] = portal_prometheus.load_portal_tables()
+    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
     for portal_table in portal_tables:
         if len(portal_table.rules) == 0:
             typer.echo(f'No rules in {portal_table.name}. Continue ..')

@@ -10,7 +10,7 @@ from pandas import DataFrame
 from metrics import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, CONTAINER_COLUMN, POD_COLUMN
 from metrics.collector import TimeRange
 from reports import PROMETHEUS_REPORT_FOLDER
-from prometheus.prompt_model import PortalTable, BasicRatioRule, Compare
+from prometheus.sla_model import Compare, BasicSla, SlaTable
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
 
@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 
 class RatioRule:
 
-    def __init__(self, basic_rule: BasicRatioRule, ns_df: pd.DataFrame, keys: List[str]):
-        self.basic_rule: BasicRatioRule = basic_rule
+    def __init__(self, basic_rule: BasicSla, ns_df: pd.DataFrame, keys: List[str]):
+        self.basic_rule: BasicSla = basic_rule
         self.keys: List[str] = keys
         self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
         # NAMESPACE is already filtered, no need for unique index
@@ -279,14 +279,14 @@ class RatioRule:
         report_html += unique_limits_html
         return report_html
 
-    def requests_limits(self, resource_table: PortalTable) -> pd.DataFrame:
+    def requests_limits(self, resource_table: SlaTable) -> pd.DataFrame:
         from sizing.calculator import LimitsRequests, SizingCalculator, CPU_FIELDS, MEMORY_FIELDS
         cpu: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **CPU_FIELDS)
         memory: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **MEMORY_FIELDS)
         sizing_calc = SizingCalculator(cpu=cpu, memory=memory)
         return sizing_calc.request_limits()
 
-    def add_report(self, main_header: str, resource_table: Optional[PortalTable] = None) -> str:
+    def add_report(self, main_header: str, resource_table: Optional[SlaTable] = None) -> str:
         self.eval_rule()
         requests_limits_df = self.requests_limits(resource_table=resource_table) if resource_table else None
         self.report_df = pd.concat([self.report_df, requests_limits_df], axis=1, join='inner') \
@@ -347,9 +347,9 @@ class RatioRule:
 
 class PrometheusRules:
 
-    def __init__(self, portal_table: PortalTable, time_range: TimeRange):
+    def __init__(self, portal_table: SlaTable, time_range: TimeRange):
         self.timeRange: TimeRange = time_range
-        self.portal_table: PortalTable = portal_table
+        self.portal_table: SlaTable = portal_table
         # load_df() must be called to set this to non-empty
         self.df: pd.DataFrame = pd.DataFrame()
 

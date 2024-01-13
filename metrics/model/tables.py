@@ -5,7 +5,7 @@ from typing import Optional, List
 import typer
 from pydantic import parse_file_as
 
-from prometheus.prompt_model import PortalTable
+from prometheus.sla_model import SlaTable
 from shared.utils import list_files
 
 logger = logging.getLogger(__name__)
@@ -15,14 +15,14 @@ class PortalPrometheus:
     def __init__(self, folder: Path):
         self.folder: Path = folder
 
-    def load_portal_tables(self, table_name: Optional[str] = None) -> List[PortalTable]:
+    def load_portal_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
         logger.info(f'Loading prom queries from {self.folder}')
         file_name_contains = table_name.lower() if table_name else None
         metrics_files: List[Path] = list_files(folder=self.folder, ends_with="json",
                                                contains=file_name_contains)
         if not metrics_files:
             raise FileNotFoundError(f'No json files in {self.folder} with name containing {file_name_contains}')
-        ret: List[PortalTable] = [parse_file_as(type_=PortalTable, path=metric_file) for metric_file in metrics_files]
+        ret: List[SlaTable] = [parse_file_as(type_=SlaTable, path=metric_file) for metric_file in metrics_files]
         if table_name:
             ret = [portal_table for portal_table in ret if portal_table.tableName == table_name]
             if len(ret) == 0:
@@ -30,8 +30,8 @@ class PortalPrometheus:
         return ret
 
     @classmethod
-    def replace_portal_labels(cls, portal_table: PortalTable, namespaces: Optional[str],
-                              labels: Optional[List[str]] = None, debug: bool = False) -> PortalTable:
+    def replace_portal_labels(cls, portal_table: SlaTable, namespaces: Optional[str],
+                              labels: Optional[List[str]] = None, debug: bool = False) -> SlaTable:
         """
         Replace `groupBy`, `rateInterval` and `labels` placeholders
         groupBy is taken from PortalTable

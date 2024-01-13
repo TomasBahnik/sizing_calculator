@@ -9,7 +9,7 @@ import metrics
 from metrics import TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
 from metrics.collector import df_tuple_columns
 from prometheus import NON_LINKERD_CONTAINER
-from prometheus.prompt_model import PortalTable
+from prometheus.sla_model import SlaTable
 from storage.snowflake import dataframe
 from storage.snowflake.dataframe import add_tz
 from storage.snowflake.engine import SnowflakeEngine
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 urllib3.disable_warnings()
 
 
-def prom_save(dfs: List[pd.DataFrame], portal_table: PortalTable):
+def prom_save(dfs: List[pd.DataFrame], portal_table: SlaTable):
     sf = SnowflakeEngine(schema=portal_table.dbSchema)
     try:
         # Snowflake table

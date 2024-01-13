@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pycpt"
+name = "sizing_calculator"
 version = "0.1.0"
 description = "Packages for pycpt with AI support"
 authors = ["Bahnik, Tomas <tomas.bahnik@ataccama.com>"]

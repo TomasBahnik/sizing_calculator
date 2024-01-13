@@ -6,7 +6,7 @@
 # 2. activate pycpt
 # 3. switch to PYCPT_HOME with pyproject.toml file
 # 4. poetry install
-name: pycpt
+name: sizing_calculator
 
 channels:
   - conda-forge

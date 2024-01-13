@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class SnowflakeEngine:
     DATABASE = 'PERFORMANCE_TESTS'
-    ACCOUNT = 'ef97109.eu-central-1'
+    ACCOUNT = os.getenv('SNOWFLAKE_ACCOUNT')
     USER = os.getenv('SNOWFLAKE_USER')
     PASSWORD = os.getenv('SNOWFLAKE_PASSWORD')
 

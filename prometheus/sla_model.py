@@ -26,7 +26,10 @@ class BasicSla(BaseModel):
 
 
 class SlaTable(BaseModel):
-    """Prometheus' expressions with SLAs to Snowflake table"""
+    """
+    Prometheus' expressions with SLAs to Snowflake table
+    queries correspond to (Snowflake) table columns
+    """
     name: str
     tableName: str
     # e.g. minio_cluster_capacity has no container/pod and sets "useGroupByDefaults": false

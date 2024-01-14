@@ -21,15 +21,19 @@ class PromQuery(Target):
     staticLabels: List[str] = []
 
 
-class Title(BaseModel):
-    name: str
-    queries: List[PromQuery] = []
-
-
 class PortalPromQuery(PromQuery):
-    """Adds connection with Prometheus' expressions to Snowflake table column"""
+    """
+    Adds connection with Prometheus' expressions to Snowflake table column
+    tableName is loaded to SlaTable
+    """
     rateInterval: str = None
     columnName: str = None
+
+
+class Title(BaseModel):
+    """Grafana dashboard title with list of Prometheus expressions"""
+    name: str
+    queries: List[PromQuery] = []
 
 
 class PromptExample(BaseModel):

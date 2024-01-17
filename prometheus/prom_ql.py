@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 from shared.utils import find_chars_in_str
-from prometheus.prompt_model import PromQuery
+from prometheus.prompt_model import PromExpression
 
 
 def static_labels(label: str) -> str:
@@ -24,7 +24,7 @@ def count_labels(query: str, counter: int = 0):
     return count_labels(new_query, counter=counter)
 
 
-def prom_labels(prom_query: PromQuery, start: int = 0) -> PromQuery:
+def prom_labels(prom_query: PromExpression, start: int = 0) -> PromExpression:
     """
     Recursively extract labels (i.e. parts inside {..}) and static labels (those without '$')
     from Prometheus expression used in Grafana dashboard
@@ -58,7 +58,7 @@ LEFT_CB = 1
 RIGHT_CB = -1
 
 
-def extract_labels(prom_query: PromQuery) -> PromQuery:
+def extract_labels(prom_query: PromExpression) -> PromExpression:
     """
     Detailed doc string  !!
     TODO based on [${__range_s}s] `__range_s` is classified as static label use `[` and `]`
@@ -126,7 +126,7 @@ def remove_inner_cbs(prom_query):
     return tmp_expr
 
 
-def replace_labels(prom_query: PromQuery):
+def replace_labels(prom_query: PromExpression):
     """
     Replace actual (dynamic and static) labels by numbered string.
     If the label itself contains `{` as e.g. in

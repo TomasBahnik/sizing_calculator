@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel
 
 from metrics import DEFAULT_STEP_SEC, DEFAULT_PORTAL_GRP_KEYS
-from prometheus.prompt_model import PortalPromQuery
+from prometheus.prompt_model import ColumnPromExpression
 
 
 class Compare(StrEnum):
@@ -39,7 +39,7 @@ class SlaTable(BaseModel):
     tableKeys: List[str] = None
     stepSec: float = DEFAULT_STEP_SEC
     groupBy: List[str] = DEFAULT_PORTAL_GRP_KEYS if useGroupByDefaults else []
-    queries: List[PortalPromQuery] = []
+    queries: List[ColumnPromExpression] = []
     rules: List[BasicSla] = []
 
     def __init__(self, **data):

@@ -9,7 +9,7 @@ class Target(BaseModel):
     expr: str = None
 
 
-class PromQuery(Target):
+class PromExpression(Target):
     """Shared by
        1. definition of SLAs (json)
        2. extracting prom expressions from Grafana dashboards
@@ -21,11 +21,12 @@ class PromQuery(Target):
     staticLabels: List[str] = []
 
 
-class PortalPromQuery(PromQuery):
+class ColumnPromExpression(PromExpression):
     """
-    Adds connection with Prometheus' expressions to Snowflake table column
+    Adds connection between (Snowflake) table column and Prometheus' expressions
     tableName is loaded to SlaTable
     """
+    # rate interval can be set differently for each expression
     rateInterval: str = None
     columnName: str = None
 
@@ -33,7 +34,7 @@ class PortalPromQuery(PromQuery):
 class Title(BaseModel):
     """Grafana dashboard title with list of Prometheus expressions"""
     name: str
-    queries: List[PromQuery] = []
+    queries: List[PromExpression] = []
 
 
 class PromptExample(BaseModel):

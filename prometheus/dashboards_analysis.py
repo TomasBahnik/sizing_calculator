@@ -13,7 +13,7 @@ from shared.utils import check_file, list_files
 from reports import PROMETHEUS_REPORT_FOLDER
 from prometheus import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
 from prometheus.prom_ql import strip_replace, extract_labels
-from prometheus.prompt_model import Target, PromQuery, Title, PromptExample
+from prometheus.prompt_model import Target, PromExpression, Title, PromptExample
 
 JSON_SUFFIX = ".json"
 
@@ -124,13 +124,13 @@ def extract_targets(dashboard: GrafanaDashboard) -> Dict[str, List[Target]]:
     return ret
 
 
-def expr_query(expr: str) -> PromQuery:
+def expr_query(expr: str) -> PromExpression:
     # initial value of prom_query.query = expr with labels
     expr = strip_replace(expr)
-    return extract_labels(PromQuery(expr=expr, query=expr))
+    return extract_labels(PromExpression(expr=expr, query=expr))
 
 
-def prom_queries(title_targets: Dict[str, List[Target]]) -> Dict[str, List[PromQuery]]:
+def prom_queries(title_targets: Dict[str, List[Target]]) -> Dict[str, List[PromExpression]]:
     """ title: List[PromQuery] dictionary"""
     ret = {title: [expr_query(target.expr) for target in targets if target.expr] for title, targets in
            title_targets.items()}
@@ -140,7 +140,7 @@ def prom_queries(title_targets: Dict[str, List[Target]]) -> Dict[str, List[PromQ
 def prompt_lists(p_e_s: List[PromptExample]):
     """ Prepare and return lists for prompt examples and html report """
     titles_oo: List[Title] = flatten_list([[title for title in p_e.titles] for p_e in p_e_s])
-    queries_oo: List[List[PromQuery]] = [t.queries for t in titles_oo]
+    queries_oo: List[List[PromExpression]] = [t.queries for t in titles_oo]
     titles = [t.name for t in titles_oo]
     queries = [[pq.query for pq in pqs] for pqs in queries_oo]
     file_names: List[str] = flatten_list([p_e.file_names() for p_e in p_e_s])
@@ -151,7 +151,7 @@ def prompt_lists(p_e_s: List[PromptExample]):
 def prompt_examples(dashboards: List[Tuple[PromptExample, GrafanaDashboard]]) -> List[PromptExample]:
     for p_e, d in dashboards:
         title_targets: Dict[str, List[Target]] = extract_targets(d)
-        title_queries: Dict[str, List[PromQuery]] = prom_queries(title_targets=title_targets)
+        title_queries: Dict[str, List[PromExpression]] = prom_queries(title_targets=title_targets)
         if title_queries.keys() != title_targets.keys():
             raise ValueError("Different titles for targets and queries")
         titles = list(title_queries.keys())

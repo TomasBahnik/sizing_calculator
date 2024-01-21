@@ -19,6 +19,7 @@ from prometheus.sla_model import SlaTable
 from reports import PROMETHEUS_REPORT_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
+from sizing.data import CPU_DF, MEM_DF
 from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule, save_rules_report
 
 DEFAULT_PROM_EXPRESSIONS = './expressions/basic'
@@ -68,8 +69,8 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         for test_details in test_summary.tests:
             logger.info(f'Processing {test_details.description}')
             namespace = test_summary.namespace
-            cpu_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=CPU_RESOURCE)
-            memory_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=MEMORY_RESOURCE)
+            cpu_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=CPU_RESOURCE, df=CPU_DF)
+            memory_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=MEMORY_RESOURCE, df=MEM_DF)
             s_c = SizingCalculator.from_test_details(cpu=cpu_dummy, memory=memory_dummy,
                                                      test_details=test_details, namespace=namespace)
             folder = Path(common_folder, test_details.description.replace(' ', '_'))

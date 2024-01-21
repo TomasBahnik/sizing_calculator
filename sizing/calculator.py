@@ -69,15 +69,8 @@ class LimitsRequests:
         self.request_value.name = resource.request
 
     @classmethod
-    def dummy(cls, sla_table: SlaTable, resource: Resource) -> LimitsRequests:
+    def dummy(cls, sla_table: SlaTable, resource: Resource, df: pd.DataFrame) -> LimitsRequests:
         """Create LimitsRequests with simple data"""
-        data = {TIMESTAMP_COLUMN: [pd.Timestamp.now()],
-                CONTAINER_COLUMN: ['container'],
-                POD_COLUMN: ['pod'],
-                resource.limit: [1000],
-                resource.request: [500],
-                resource.measured: [600]}
-        df = pd.DataFrame(data=data)
         return cls(ns_df=df, sla_table=sla_table, resource=resource)
 
     def set_index_ns_df(self, keys: List[str]):

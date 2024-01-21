@@ -15,7 +15,7 @@ class PortalPrometheus:
     def __init__(self, folder: Path):
         self.folder: Path = folder
 
-    def load_portal_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
+    def load_sla_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
         logger.info(f'Loading prom queries from {self.folder}')
         file_name_contains = table_name.lower() if table_name else None
         metrics_files: List[Path] = list_files(folder=self.folder, ends_with="json",

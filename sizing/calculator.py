@@ -253,7 +253,7 @@ def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metric
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
     # value error if no table with name
-    resource_table: SlaTable = portal_prometheus.load_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
+    resource_table: SlaTable = portal_prometheus.load_sla_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
     prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=resource_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)

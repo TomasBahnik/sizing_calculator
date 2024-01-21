@@ -1,3 +1,4 @@
+from __future__ import annotations
 from enum import StrEnum
 from typing import List
 
@@ -56,3 +57,7 @@ class SlaTable(BaseModel):
         grp_keys: List[str] = DEFAULT_PORTAL_GRP_KEYS + self.groupBy if self.useGroupByDefaults else self.groupBy
         grp_keys: List[str] = sorted(set([gk.strip() for gk in grp_keys]))
         return grp_keys
+
+    @classmethod
+    def dummy(cls) -> SlaTable:
+        return SlaTable(name='dummy', tableName='dummy')

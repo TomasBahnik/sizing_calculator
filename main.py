@@ -18,7 +18,7 @@ from prometheus.prompt_model import PromptExample
 from prometheus.sla_model import SlaTable
 from reports import PROMETHEUS_REPORT_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
-    save_new_sizing, logger
+    save_new_sizing, logger, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
 from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule, save_rules_report
 
 DEFAULT_PROM_EXPRESSIONS = './expressions/basic'
@@ -67,13 +67,11 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(' ', '_'))
         for test_details in test_summary.tests:
             logger.info(f'Processing {test_details.description}')
-            start_time = test_details.timeRange.start
-            end_time = test_details.timeRange.end
-            delta_hours = (end_time - start_time).total_seconds() / 3600
             namespace = test_summary.namespace
-            s_c = sizing_calculator(start_time=start_time.isoformat(), end_time=end_time.isoformat(),
-                                    delta_hours=delta_hours,
-                                    metrics_folder=metrics_folder, namespace=namespace, test_details=test_details)
+            cpu_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=CPU_RESOURCE)
+            memory_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=MEMORY_RESOURCE)
+            s_c = SizingCalculator.from_test_details(cpu=cpu_dummy, memory=memory_dummy,
+                                                     test_details=test_details, namespace=namespace)
             folder = Path(common_folder, test_details.description.replace(' ', '_'))
             s_c.all_reports(folder=folder, test_summary=test_summary)
             all_test_sizing.append(s_c.new_sizing())
@@ -89,7 +87,7 @@ def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='La
                                                     help="Folder with json files specifying PromQueries to run")):
     """List last timestamps per table and namespace"""
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
+    portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
     table_names = [f'{t.dbSchema}.{t.tableName}' for t in portal_tables]
     last_timestamp(table_names, namespace)
 
@@ -122,7 +120,7 @@ def load_metrics(
     https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
     """
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
+    portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     for portal_table in portal_tables:
@@ -180,17 +178,17 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     # typer.echo(f'{prom_rules}')
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    portal_tables: List[SlaTable] = portal_prometheus.load_portal_tables()
-    for portal_table in portal_tables:
-        if len(portal_table.rules) == 0:
-            typer.echo(f'No rules in {portal_table.name}. Continue ..')
+    sla_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
+    for sla_table in sla_tables:
+        if len(sla_table.rules) == 0:
+            typer.echo(f'No rules in {sla_table.name}. Continue ..')
             continue
-        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=portal_table)
+        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=sla_table)
         empty_report_header = prom_rules.report_header()
         main_report: str = empty_report_header
         prom_rules.load_df()
         namespaces = prom_rules.namespaces(namespace=namespace)
-        for rule in portal_table.rules:
+        for rule in sla_table.rules:
             # rule.limit_pct has default value == None
             if limit_pct:  # limit_pct is set
                 # change the limit for all rules where limit_pct is already set
@@ -202,15 +200,15 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
                            f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
                 ns_container_df = prom_rules.ns_container_df(namespace=ns)
                 # when verify_integrity of indexes portal table specific keys are needed
-                rr = RatioRule(ns_df=ns_container_df, basic_rule=rule, keys=portal_table.tableKeys)
-                if portal_table.tableName == POD_BASIC_RESOURCES_TABLE:
+                rr = RatioRule(ns_df=ns_container_df, basic_rule=rule, keys=sla_table.tableKeys)
+                if sla_table.tableName == POD_BASIC_RESOURCES_TABLE:
                     # add resource request and limits only for POD_BASIC_RESOURCES table
-                    main_report = rr.add_report(main_report, portal_table)
+                    main_report = rr.add_report(main_report, sla_table)
                 else:
                     main_report = rr.add_report(main_report)
         if main_report != empty_report_header:
             #  do not save empty reports
-            save_rules_report(main_report, portal_table, prom_rules)
+            save_rules_report(main_report=main_report, sla_table=sla_table, prom_rules=prom_rules)
 
 
 @app.command()

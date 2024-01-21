@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Optional, List, Tuple, Dict
 
@@ -34,6 +36,11 @@ class TimeRange:
             else pd.Timestamp.now(tz=pytz.UTC).floor('T')
         self.from_time = pd.Timestamp(ts_input=start_time, tz=pytz.UTC) if start_time \
             else self.to_time - pd.Timedelta(hours=delta_hours)
+
+    @classmethod
+    def from_timestamps(cls, from_time: pd.Timestamp, to_time: pd.Timestamp) -> TimeRange:
+        """Create TimeRange from two timestamps"""
+        return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 
     def __format__(self, format_spec=''):
         return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}\n'

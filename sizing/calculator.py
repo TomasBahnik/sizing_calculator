@@ -10,7 +10,7 @@ import typer
 from pydantic import BaseModel
 
 from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
-    POD_BASIC_RESOURCES_TABLE, POD_COLUMN
+    POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange
 from metrics.model.tables import PortalPrometheus
 from prometheus.sla_model import SlaTable

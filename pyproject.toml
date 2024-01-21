@@ -2,7 +2,7 @@
 name = "sizing_calculator"
 version = "0.1.0"
 description = "Packages for pycpt with AI support"
-authors = ["Bahnik, Tomas <tomas.bahnik@ataccama.com>"]
+authors = ["Bahnik, Tomas <tomas.bahnik@email.cz>"]
 readme = "README.md"
 # cpt\bin\pycpt\pycpt does not contain any element see
 # https://stackoverflow.com/questions/75397736/poetry-install-on-an-existing-project-error-does-not-contain-any-element

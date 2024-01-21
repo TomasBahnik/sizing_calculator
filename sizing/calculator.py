@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import os
-from enum import StrEnum
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -9,60 +10,75 @@ import typer
 from pydantic import BaseModel
 
 from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
-    POD_BASIC_RESOURCES_TABLE
+    POD_BASIC_RESOURCES_TABLE, POD_COLUMN
 from metrics.collector import TimeRange
 from metrics.model.tables import PortalPrometheus
 from prometheus.sla_model import SlaTable
-from sizing.rules import PrometheusRules
 from shared import PYCPT_HOME
 from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
     MEMORY_LIMIT_NAME, CPU_LIMIT_MILLIS_COLUMNS, MEMORY_LIMIT_MIBS_COLUMNS, PERCENTILES
+from sizing.rules import PrometheusRules
 
 NEW_SIZING_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', 'new_sizing')
 
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-class Resource(StrEnum):
-    CPU_CORE = "CPU_CORE"
-    CPU_LIMIT_CORE = "CPU_LIMIT_CORE"
-    CPU_REQUEST_CORE = "CPU_REQUEST_CORE"
-    MEMORY_BYTE = "MEMORY_BYTE"
-    MEMORY_LIMIT_BYTE = "MEMORY_LIMIT_BYTE"
-    MEMORY_REQUEST_BYTE = "MEMORY_REQUEST_BYTE"
-    CPU_THROTTLED = "CPU_THROTTLED"
-    TOTAL_BYTES = 'TOTAL_BYTES'
-    USED_BYTES = 'USED_BYTES'
+class Resource:
+    def __init__(self, name: str, unit: str, limit: str, measured: str, request: Optional[str] = None):
+        self.name = name
+        self.unit = unit
+        self.limit = limit
+        self.measured = measured
+        self.request = request
+
+    def __str__(self):
+        return f'{self.name} : {self.measured}[{self.unit}]'
 
 
-MEMORY_FIELDS: Dict[str, Resource] = {"measured": Resource.MEMORY_BYTE, "limit": Resource.MEMORY_LIMIT_BYTE,
-                                      "request": Resource.MEMORY_REQUEST_BYTE}
-CPU_FIELDS: Dict[str, Resource] = {"measured": Resource.CPU_CORE, "limit": Resource.CPU_LIMIT_CORE,
-                                   "request": Resource.CPU_REQUEST_CORE}
+MEMORY_RESOURCE = Resource(name='memory', unit='Mi',
+                           limit='MEMORY_LIMIT_BYTE', measured='MEMORY_BYTE', request='MEMORY_REQUEST_BYTE')
+
+CPU_RESOURCE = Resource(name='cpu', unit='m',
+                        limit='CPU_LIMIT_CORE', measured='CPU_CORE', request='CPU_REQUEST_CORE')
+
+JVM_PROCESS_HEAP_RESOURCE = Resource(name='jvm_process_heap', unit='Mi',
+                                     limit='JVM_PROCESS_HEAP_MAX', measured='JVM_PROCESS_HEAP_USED')
+
+JVM_PROCESS_NON_HEAP_RESOURCE = Resource(name='jvm_process_non_heap', unit='Mi',
+                                         limit='JVM_PROCESS_NON_HEAP_MAX', measured='JVM_PROCESS_NON_HEAP_USED')
 
 
 class LimitsRequests:
-    def __init__(self, ns_df: pd.DataFrame, portal_table: SlaTable,
-                 measured: Resource, limit: Resource, request: Resource):
+    def __init__(self, ns_df: pd.DataFrame, sla_table: SlaTable, resource: Resource):
         self.ns_df: pd.DataFrame = ns_df
-        self.portal_table: SlaTable = portal_table
-        self.keys: List[str] = self.portal_table.tableKeys
+        self.sla_table: SlaTable = sla_table
+        self.keys: List[str] = self.sla_table.tableKeys
         self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
         self.indexFromKeys: List[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
         self.ns_df_indexed: pd.DataFrame = self.set_index_ns_df(self.indexFromKeys)
         # unstack TIMESTAMP_COLUMN
         self.ns_df_unstacked = self.ns_df_indexed.unstack(level=0)
-        self.measured: Resource = measured
-        self.limit: Resource = limit
-        self.request: Resource = request
-        self.limit_field = self.ns_df_unstacked[self.limit.name]
-        self.request_field = self.ns_df_unstacked[self.request.name]
-        self.measured_field = self.ns_df_unstacked[self.measured.name]
+        self.limit_field = self.ns_df_unstacked[resource.limit]
+        self.request_field = self.ns_df_unstacked[resource.request]
+        self.measured_field = self.ns_df_unstacked[resource.measured]
         self.verify_limits_requests()
-        self.limit_values = self.limit_field.max(axis=1)
+        self.limit_value = self.limit_field.max(axis=1)
         self.request_value = self.request_field.max(axis=1)
-        self.limit_values.name = self.limit.name
-        self.request_value.name = self.request.name
+        self.limit_value.name = resource.limit
+        self.request_value.name = resource.request
+
+    @classmethod
+    def dummy(cls, sla_table: SlaTable, resource: Resource) -> LimitsRequests:
+        """Create LimitsRequests with simple data"""
+        data = {TIMESTAMP_COLUMN: [pd.Timestamp.now()],
+                CONTAINER_COLUMN: ['container'],
+                POD_COLUMN: ['pod'],
+                resource.limit: [1000],
+                resource.request: [500],
+                resource.measured: [600]}
+        df = pd.DataFrame(data=data)
+        return cls(ns_df=df, sla_table=sla_table, resource=resource)
 
     def set_index_ns_df(self, keys: List[str]):
         """Create index from keys columns"""
@@ -76,7 +92,7 @@ class LimitsRequests:
 
     def request_limit_df(self, columns: List[str]) -> pd.DataFrame:
         """Return requests and limits values"""
-        df = pd.concat([self.request_value, self.limit_values], axis=1)
+        df = pd.concat([self.request_value, self.limit_value], axis=1)
         df.columns = columns
         df.dropna(how='all', inplace=True)
         return df
@@ -98,10 +114,13 @@ class TestTimeRange(BaseModel):
     start: pd.Timestamp
     end: pd.Timestamp
 
+    def to_time_range(self) -> TimeRange:
+        return TimeRange.from_timestamps(from_time=self.start, to_time=self.end)
+
 
 class TestDetails(BaseModel):
     """Test result"""
-    timeRange: TestTimeRange
+    testTimeRange: TestTimeRange
     description: str
 
 
@@ -121,6 +140,12 @@ class SizingCalculator:
         self.time_range: TimeRange = time_range
         self.namespace: str = namespace
         self.test_details: TestDetails = test_details
+
+    @classmethod
+    def from_test_details(cls, cpu: LimitsRequests, memory: LimitsRequests, namespace,
+                          test_details: TestDetails) -> SizingCalculator:
+        return cls(cpu=cpu, memory=memory, time_range=test_details.testTimeRange.to_time_range(),
+                   namespace=namespace, test_details=test_details)
 
     def memory_mibs(self) -> pd.DataFrame:
         memory_request_limits = self.memory.request_limit_df(columns=MEMORY_LIMIT_MIBS_COLUMNS)
@@ -153,7 +178,7 @@ class SizingCalculator:
 
     def report_header(self) -> str:
         """report header with namespace and time range"""
-        duration = (self.test_details.timeRange.end - self.test_details.timeRange.start).total_seconds()
+        duration = (self.test_details.testTimeRange.end - self.test_details.testTimeRange.start).total_seconds()
         samples = int(duration / DEFAULT_STEP_SEC) + 1
         data: Dict[str, List[str]] = {'description': [self.test_details.description],
                                       'duration [hours]': [duration / 3600],
@@ -228,12 +253,12 @@ def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metric
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
     # value error if no table with name
-    resource_table: SlaTable = portal_prometheus.load_portal_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
+    resource_table: SlaTable = portal_prometheus.load_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
     prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=resource_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)
-    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, portal_table=resource_table, **CPU_FIELDS)
-    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, portal_table=resource_table, **MEMORY_FIELDS)
+    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=resource_table, resource=CPU_RESOURCE)
+    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=resource_table, resource=MEMORY_RESOURCE)
     return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, namespace=namespace,
                             test_details=test_details)
 

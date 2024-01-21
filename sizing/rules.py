@@ -280,9 +280,9 @@ class RatioRule:
         return report_html
 
     def requests_limits(self, resource_table: SlaTable) -> pd.DataFrame:
-        from sizing.calculator import LimitsRequests, SizingCalculator, CPU_FIELDS, MEMORY_FIELDS
-        cpu: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **CPU_FIELDS)
-        memory: LimitsRequests = LimitsRequests(ns_df=self.ns_df, portal_table=resource_table, **MEMORY_FIELDS)
+        from sizing.calculator import LimitsRequests, SizingCalculator, CPU_RESOURCE, MEMORY_RESOURCE
+        cpu: LimitsRequests = LimitsRequests(ns_df=self.ns_df, sla_table=resource_table, resource=CPU_RESOURCE)
+        memory: LimitsRequests = LimitsRequests(ns_df=self.ns_df, sla_table=resource_table, resource=MEMORY_RESOURCE)
         sizing_calc = SizingCalculator(cpu=cpu, memory=memory)
         return sizing_calc.request_limits()
 
@@ -413,11 +413,11 @@ class PrometheusRules:
         return df.T.to_html()
 
 
-def save_rules_report(main_report, portal_table, prom_rules):
+def save_rules_report(main_report: str, sla_table: SlaTable, prom_rules: PrometheusRules):
     from shared.utils import DATE_TIME_FORMAT_FOLDER
     ft = prom_rules.timeRange.from_time.strftime(DATE_TIME_FORMAT_FOLDER)
     tt = prom_rules.timeRange.to_time.strftime(DATE_TIME_FORMAT_FOLDER)
-    folder = Path(PROMETHEUS_REPORT_FOLDER, portal_table.dbSchema, portal_table.tableName)
+    folder = Path(PROMETHEUS_REPORT_FOLDER, sla_table.dbSchema, sla_table.tableName)
     os.makedirs(folder, exist_ok=True)
     html_file = Path(folder, f'{ft}_{tt}.html')
     msg = f"Writing reports to {html_file}"

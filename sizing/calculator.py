@@ -64,8 +64,8 @@ class LimitsRequests:
         self.request_field = self.ns_df_unstacked[resource.request]
         self.measured_field = self.ns_df_unstacked[resource.measured]
         self.verify_limits_requests()
-        self.limit_value = self.limit_field.max(axis=1)
-        self.request_value = self.request_field.max(axis=1)
+        self.limit_value: float = self.limit_field.max(axis=1)
+        self.request_value: float = self.request_field.max(axis=1)
         self.limit_value.name = resource.limit
         self.request_value.name = resource.request
 

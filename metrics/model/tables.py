@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 class PortalPrometheus:
     def __init__(self, folder: Path):
         self.folder: Path = folder
+        self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")
+        self.slaTables: List[SlaTable] = [SlaTable.parse_file(path=sla_file) for sla_file in self.slaFiles]
+
+    def get_sla_table(self, table_name: str) -> SlaTable:
+        for sla_table in self.slaTables:
+            if sla_table.tableName == table_name:
+                return sla_table
+        raise ValueError(f'no table with name {table_name}')
 
     def load_sla_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
         logger.info(f'Loading prom queries from {self.folder}')

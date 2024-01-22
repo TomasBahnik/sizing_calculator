@@ -4,32 +4,32 @@
   "catalogItems": 11107,
   "tests": [
     {
-      "timeRange": {
+      "testTimeRange": {
         "start": "2024-01-05T20:10",
         "end": "2024-01-06T12:10"
       },
-      "description": "2K CIs Docflow test"
+      "description": "2K CIs Docflow"
     },
     {
-      "timeRange": {
+      "testTimeRange": {
         "start": "2024-01-06T21:03",
         "end": "2024-01-07T00:20"
       },
-      "description": "Basic (Portal-demodata) 5 concurrent front-end test"
+      "description": "Basic FE 5 VU"
     },
     {
-      "timeRange": {
+      "testTimeRange": {
         "start": "2024-01-06T13:19",
         "end": "2024-01-06T16:30"
       },
-      "description": "7 concurrent FE_TESTS scenario FE load test (2nd FE test scripts)"
+      "description": "Extra FE 7 VU"
     },
     {
-      "timeRange": {
+      "testTimeRange": {
         "start": "2024-01-07T12:05",
         "end": "2024-01-07T15:25"
       },
-      "description": "5 concurrent Data stories FE load test"
+      "description": "DS FE 5 VU"
     }
   ]
 }

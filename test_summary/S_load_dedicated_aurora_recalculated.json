@@ -1,0 +1,36 @@
+{
+  "name": "S load dedicated Aurora recalculated",
+  "namespace": "staging-d3536",
+  "catalogItems": 11107,
+  "tests": [
+    {
+      "testTimeRange": {
+        "start": "2024-01-10T14:00",
+        "end": "2024-01-11T10:00"
+      },
+      "description": "2K CIs Docflow"
+    },
+    {
+      "testTimeRange": {
+        "start": "2024-01-11T11:08",
+        "end": "2024-01-11T14:35"
+      },
+      "description": "Basic FE 5 concurrent"
+    },
+    {
+      "testTimeRange": {
+        "start": "2024-01-11T14:36",
+        "end": "2024-01-11T17:50"
+      },
+      "description": "DS FE 5 concurrent"
+    },
+    {
+      "testTimeRange": {
+        "start": "2024-01-11T10:36",
+        "end": "2024-01-12T01:30"
+      },
+      "description": "600 CIs Docflow"
+    }
+  ]
+}
+

@@ -36,17 +36,18 @@ class Resource:
         return f'{self.name} : {self.measured}[{self.unit}]'
 
 
-MEMORY_RESOURCE = Resource(name='memory', unit='Mi',
-                           limit='MEMORY_LIMIT_BYTE', measured='MEMORY_BYTE', request='MEMORY_REQUEST_BYTE')
+MEMORY_RESOURCE: Resource = Resource(name='memory', unit='Mi',
+                                     limit='MEMORY_LIMIT_BYTE', measured='MEMORY_BYTE', request='MEMORY_REQUEST_BYTE')
 
-CPU_RESOURCE = Resource(name='cpu', unit='m',
-                        limit='CPU_LIMIT_CORE', measured='CPU_CORE', request='CPU_REQUEST_CORE')
+CPU_RESOURCE: Resource = Resource(name='cpu', unit='m',
+                                  limit='CPU_LIMIT_CORE', measured='CPU_CORE', request='CPU_REQUEST_CORE')
 
-JVM_PROCESS_HEAP_RESOURCE = Resource(name='jvm_process_heap', unit='Mi',
-                                     limit='JVM_PROCESS_HEAP_MAX', measured='JVM_PROCESS_HEAP_USED')
+JVM_PROCESS_HEAP_RESOURCE: Resource = Resource(name='jvm_process_heap', unit='Mi',
+                                               limit='JVM_PROCESS_HEAP_MAX', measured='JVM_PROCESS_HEAP_USED')
 
-JVM_PROCESS_NON_HEAP_RESOURCE = Resource(name='jvm_process_non_heap', unit='Mi',
-                                         limit='JVM_PROCESS_NON_HEAP_MAX', measured='JVM_PROCESS_NON_HEAP_USED')
+JVM_PROCESS_NON_HEAP_RESOURCE: Resource = Resource(name='jvm_process_non_heap', unit='Mi',
+                                                   limit='JVM_PROCESS_NON_HEAP_MAX',
+                                                   measured='JVM_PROCESS_NON_HEAP_USED')
 
 
 class LimitsRequests:

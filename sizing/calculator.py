@@ -60,12 +60,12 @@ class LimitsRequests:
         self.ns_df_indexed: pd.DataFrame = self.set_index_ns_df(self.indexFromKeys)
         # unstack TIMESTAMP_COLUMN
         self.ns_df_unstacked = self.ns_df_indexed.unstack(level=0)
-        self.limit_field = self.ns_df_unstacked[resource.limit]
-        self.request_field = self.ns_df_unstacked[resource.request]
-        self.measured_field = self.ns_df_unstacked[resource.measured]
+        self.limit_field: pd.DataFrame = self.ns_df_unstacked[resource.limit]
+        self.request_field: pd.DataFrame = self.ns_df_unstacked[resource.request]
+        self.measured_field: pd.DataFrame = self.ns_df_unstacked[resource.measured]
         self.verify_limits_requests()
-        self.limit_value = self.limit_field.max(axis=1)
-        self.request_value = self.request_field.max(axis=1)
+        self.limit_value: pd.Series = self.limit_field.max(axis=1)
+        self.request_value: pd.Series = self.request_field.max(axis=1)
         self.limit_value.name = resource.limit
         self.request_value.name = resource.request
 

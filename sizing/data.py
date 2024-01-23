@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataLoader:
-    def __init__(self, delta_hours: float, start_time: Optional[str], end_time: Optional[str]):
+    def __init__(self, delta_hours: Optional[float], start_time: Optional[str], end_time: Optional[str]):
         self.startTime = start_time
         self.endTime = end_time
         self.deltaHours = delta_hours

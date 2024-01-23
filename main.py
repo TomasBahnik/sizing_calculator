@@ -279,5 +279,22 @@ def prom_expressions(dashboards_folder: Path = typer.Option(..., "--folder", dir
                 json.dump(title.dict(), json_file, indent=4)
 
 
+@app.command()
+def load_save_df(start_time: str = typer.Option(None, "--start", "-s",
+                                                help="Start time in UTC without tz. "
+                                                     "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
+                 end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
+                 delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+                                                   help="hours in the past i.e start time = end_time - delta_hours"),
+                 namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace")):
+    """Load df from DB and save it to json"""
+    from sizing.data import DataLoader
+    data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
+    sla_table = PortalPrometheus().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    data_loader.save_df(sla_table=sla_table, namespace=namespace)
+    df = data_loader.load_df(sla_table=sla_table)
+    typer.echo(f'Loaded {df.shape} from {data_loader.timeRange}')
+
+
 if __name__ == "__main__":
     app()

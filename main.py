@@ -11,15 +11,14 @@ import metrics
 from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange, PrometheusCollector
 from metrics.model.tables import PortalPrometheus
-from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus import QUERIES, TITLE, STATIC_LABEL, FILE
+from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
 from prometheus.prompt_model import PromptExample
 from prometheus.sla_model import SlaTable
 from reports import PROMETHEUS_REPORT_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
-from sizing.data import CPU_DF, MEM_DF
 from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule, save_rules_report
 
 DEFAULT_PROM_EXPRESSIONS = './expressions/basic'

@@ -6,13 +6,14 @@ import typer
 from pydantic import parse_file_as
 
 from prometheus.sla_model import SlaTable
+from shared import SLA_TABLES_FOLDER
 from shared.utils import list_files
 
 logger = logging.getLogger(__name__)
 
 
 class PortalPrometheus:
-    def __init__(self, folder: Path):
+    def __init__(self, folder: Path = SLA_TABLES_FOLDER):
         self.folder: Path = folder
         self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")
         self.slaTables: List[SlaTable] = [SlaTable.parse_file(path=sla_file) for sla_file in self.slaFiles]

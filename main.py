@@ -46,6 +46,8 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
     When test_summary file is provided then start_time, end_time and delta_hours are ignored
     """
     all_test_sizing: List[pd.DataFrame] = []
+    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    sla_table: SlaTable = portal_prometheus.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     if start_time is not None and end_time is not None:
         time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
         test_name = f'{namespace if namespace is not None else "all"}_{str(time_range)}'
@@ -69,10 +71,13 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         for test_details in test_summary.tests:
             logger.info(f'Processing {test_details.description}')
             namespace = test_summary.namespace
-            cpu_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=CPU_RESOURCE, df=CPU_DF)
-            memory_dummy = LimitsRequests.dummy(sla_table=SlaTable.dummy(), resource=MEMORY_RESOURCE, df=MEM_DF)
-            s_c = SizingCalculator.from_test_details(cpu=cpu_dummy, memory=memory_dummy,
-                                                     test_details=test_details, namespace=namespace)
+            time_range = test_details.testTimeRange.to_time_range()
+            prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
+            prom_rules.load_df()
+            ns_df = prom_rules.ns_df(namespace=namespace)
+            cpu = LimitsRequests(ns_df=ns_df, resource=CPU_RESOURCE, sla_table=sla_table)
+            memory = LimitsRequests(ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table)
+            s_c = SizingCalculator.from_test_details(cpu=cpu, memory=memory, test_details=test_details)
             folder = Path(common_folder, test_details.description.replace(' ', '_'))
             s_c.all_reports(folder=folder, test_summary=test_summary)
             all_test_sizing.append(s_c.new_sizing())
@@ -184,7 +189,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
         if len(sla_table.rules) == 0:
             typer.echo(f'No rules in {sla_table.name}. Continue ..')
             continue
-        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=sla_table)
+        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
         empty_report_header = prom_rules.report_header()
         main_report: str = empty_report_header
         prom_rules.load_df()
@@ -199,9 +204,9 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
             for ns in namespaces:
                 typer.echo(f'namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, '
                            f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
-                ns_container_df = prom_rules.ns_container_df(namespace=ns)
+                ns_df = prom_rules.ns_df(namespace=ns)
                 # when verify_integrity of indexes portal table specific keys are needed
-                rr = RatioRule(ns_df=ns_container_df, basic_rule=rule, keys=sla_table.tableKeys)
+                rr = RatioRule(ns_df=ns_df, basic_rule=rule, keys=sla_table.tableKeys)
                 if sla_table.tableName == POD_BASIC_RESOURCES_TABLE:
                     # add resource request and limits only for POD_BASIC_RESOURCES table
                     main_report = rr.add_report(main_report, sla_table)

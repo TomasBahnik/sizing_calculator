@@ -127,19 +127,20 @@ class TestSummary(BaseModel):
 
 
 class SizingCalculator:
-    def __init__(self, cpu: LimitsRequests, memory: LimitsRequests, time_range: Optional[TimeRange] = None,
-                 namespace: Optional[str] = None, test_details: Optional[TestDetails] = None):
+    def __init__(self, cpu: LimitsRequests,
+                 memory: LimitsRequests,
+                 time_range: Optional[TimeRange] = None,
+                 test_details: Optional[TestDetails] = None):
         self.cpu: LimitsRequests = cpu
         self.memory: LimitsRequests = memory
         self.time_range: TimeRange = time_range
-        self.namespace: str = namespace
         self.test_details: TestDetails = test_details
 
     @classmethod
-    def from_test_details(cls, cpu: LimitsRequests, memory: LimitsRequests, namespace,
+    def from_test_details(cls, cpu: LimitsRequests, memory: LimitsRequests,
                           test_details: TestDetails) -> SizingCalculator:
         return cls(cpu=cpu, memory=memory, time_range=test_details.testTimeRange.to_time_range(),
-                   namespace=namespace, test_details=test_details)
+                   test_details=test_details)
 
     def memory_mibs(self) -> pd.DataFrame:
         memory_request_limits = self.memory.request_limit_df(columns=MEMORY_LIMIT_MIBS_COLUMNS)
@@ -247,14 +248,13 @@ def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metric
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
     # value error if no table with name
-    resource_table: SlaTable = portal_prometheus.load_sla_tables(table_name=POD_BASIC_RESOURCES_TABLE)[0]
-    prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, portal_table=resource_table)
+    sla_table: SlaTable = portal_prometheus.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)
-    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=resource_table, resource=CPU_RESOURCE)
-    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=resource_table, resource=MEMORY_RESOURCE)
-    return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, namespace=namespace,
-                            test_details=test_details)
+    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=CPU_RESOURCE)
+    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=MEMORY_RESOURCE)
+    return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, test_details=test_details)
 
 
 def test_summary_header(test_summary: TestSummary) -> str:

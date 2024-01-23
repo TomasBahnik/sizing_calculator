@@ -347,9 +347,9 @@ class RatioRule:
 
 class PrometheusRules:
 
-    def __init__(self, portal_table: SlaTable, time_range: TimeRange):
+    def __init__(self, sla_table: SlaTable, time_range: TimeRange):
         self.timeRange: TimeRange = time_range
-        self.portal_table: SlaTable = portal_table
+        self.sla_table: SlaTable = sla_table
         # load_df() must be called to set this to non-empty
         self.df: pd.DataFrame = pd.DataFrame()
 
@@ -363,10 +363,10 @@ class PrometheusRules:
         return q
 
     def load_range_table(self) -> pd.DataFrame:
-        sf = SnowflakeEngine(schema=self.portal_table.dbSchema)
+        sf = SnowflakeEngine(schema=self.sla_table.dbSchema)
         try:
-            table_name = self.portal_table.tableName
-            table_keys = [TIMESTAMP_COLUMN] + self.portal_table.tableKeys
+            table_name = self.sla_table.tableName
+            table_keys = [TIMESTAMP_COLUMN] + self.sla_table.tableKeys
             q = self.time_range_query(table_name=table_name)
             typer.echo(f'Snowflake table: {sf.schema}.{table_name}, '
                        f'range: {self.timeRange.from_time} - {self.timeRange.to_time}')
@@ -380,6 +380,7 @@ class PrometheusRules:
             sf.sf_engine.dispose()
 
     def load_df(self):
+        """Load data from Snowflake sla table and set self.df"""
         self.df = self.load_range_table()
 
     def namespaces(self, namespace: str) -> List[str]:
@@ -392,22 +393,25 @@ class PrometheusRules:
         return all_ns
 
     def ns_df(self, namespace: str):
+        """filter df by namespace"""
         return self.df[self.df[NAMESPACE_COLUMN] == namespace]
 
     def ns_container_df(self, namespace: str) -> pd.DataFrame:
         # CPU and memory is per container
         # network is per POD type container='POD'
         # in jvm table there is no POD_CONTAINER_TYPE but for sure
+        # POD_NETWORK_STATS and POD_BASIC_RESOURCES are separate tables
+        # so ns_df and ns_container_df are equal i.e. no need to filter out POD_CONTAINER_TYPE
         ns_df = self.df[self.df[NAMESPACE_COLUMN] == namespace]
         try:
             ns_container_df = ns_df[ns_df[CONTAINER_COLUMN] != POD_CONTAINER_TYPE]
             return ns_container_df
         except KeyError as error:
-            typer.echo(f'\t No {error}: in {self.portal_table.tableName}. Return full ns df')
+            typer.echo(f'\t No {error}: in {self.sla_table.tableName}. Return full ns df')
             return ns_df
 
     def report_header(self) -> str:
-        data: Dict[str, List[str]] = {'table_name': [self.portal_table.tableName],
+        data: Dict[str, List[str]] = {'table_name': [self.sla_table.tableName],
                                       'time_range': [f'{self.timeRange.from_time}-{self.timeRange.to_time}']}
         df: pd.DataFrame = pd.DataFrame(data=data)
         return df.T.to_html()

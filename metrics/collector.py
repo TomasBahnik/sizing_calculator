@@ -43,7 +43,7 @@ class TimeRange:
         return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 
     def __format__(self, format_spec=''):
-        return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}\n'
+        return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}'
 
     def __str__(self):
         from shared.utils import DATE_TIME_FORMAT_FOLDER

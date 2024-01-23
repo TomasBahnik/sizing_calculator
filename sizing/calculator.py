@@ -14,12 +14,12 @@ from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, 
 from metrics.collector import TimeRange
 from metrics.model.tables import PortalPrometheus
 from prometheus.sla_model import SlaTable
-from shared import PYCPT_HOME
+from shared import PYCPT_ARTEFACTS
 from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
     MEMORY_LIMIT_NAME, CPU_LIMIT_MILLIS_COLUMNS, MEMORY_LIMIT_MIBS_COLUMNS, PERCENTILES
 from sizing.rules import PrometheusRules
 
-NEW_SIZING_REPORT_FOLDER = Path(PYCPT_HOME, '../cpt_artefacts', 'new_sizing')
+NEW_SIZING_REPORT_FOLDER = Path(PYCPT_ARTEFACTS, 'new_sizing')
 
 logger: logging.Logger = logging.getLogger(__name__)
 

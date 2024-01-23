@@ -1,7 +1,18 @@
-import pandas as pd
+import logging
+import os
+from pathlib import Path
+from typing import Optional
 
-from metrics import TIMESTAMP_COLUMN, CONTAINER_COLUMN, POD_COLUMN, MIBS
+import pandas as pd
+import typer
+
+from metrics import TIMESTAMP_COLUMN, CONTAINER_COLUMN, POD_COLUMN, MIBS, NAMESPACE_COLUMN
+from metrics.collector import TimeRange
+from prometheus.sla_model import SlaTable
+from shared import PYCPT_ARTEFACTS
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE
+from storage.snowflake import dataframe
+from storage.snowflake.engine import SnowflakeEngine
 
 time_delta = pd.Timedelta(seconds=1)
 cpu_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now()],
@@ -19,3 +30,71 @@ mem_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now
             MEMORY_RESOURCE.request: [5 * MIBS, 4 * MIBS],
             MEMORY_RESOURCE.measured: [6 * MIBS, 7 * MIBS]}
 MEM_DF = pd.DataFrame(mem_data)
+DATA_FOLDER = Path(PYCPT_ARTEFACTS, 'data')
+
+logger = logging.getLogger(__name__)
+
+
+class DataLoader:
+    def __init__(self, delta_hours: float, start_time: Optional[str], end_time: Optional[str]):
+        self.startTime = start_time
+        self.endTime = end_time
+        self.deltaHours = delta_hours
+        self.timeRange = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
+
+    def time_range_query(self, table_name: str):
+        lower_bound = f""""{TIMESTAMP_COLUMN}" >= '{self.timeRange.from_time}'"""
+        upper_bound = f""""{TIMESTAMP_COLUMN}" <= '{self.timeRange.to_time}'"""
+        q = f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"
+        return q
+
+    def load_range_table(self, sla_table: SlaTable) -> pd.DataFrame:
+        sf = SnowflakeEngine(schema=sla_table.dbSchema)
+        try:
+            table_name = sla_table.tableName
+            table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys
+            q = self.time_range_query(table_name=table_name)
+            msg = f'Snowflake table: {sf.schema}.{table_name}, {self.timeRange}'
+            typer.echo(message=msg)
+            logger.info(msg)
+            df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
+            dedup_df = df.drop_duplicates(subset=table_keys)
+            removed = len(df) - len(dedup_df)
+            if removed > 0:
+                msg = f'Removed {removed} duplicates from {table_name}'
+                typer.echo(message=msg)
+                logger.info(msg)
+            return dedup_df
+        finally:
+            sf.sf_engine.dispose()
+
+    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> pd.DataFrame:
+        """Optionally filter time range df by namespace"""
+        df = self.load_range_table(sla_table=sla_table)
+        if namespace:
+            return df[df[NAMESPACE_COLUMN] == namespace]
+        else:
+            return df
+
+    def save_df(self, sla_table: SlaTable, namespace: Optional[str]):
+        """Save df to json file"""
+        df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)
+        filename = f'{sla_table.tableName}_{str(self.timeRange)}.json'
+        df_path = Path(DATA_FOLDER, filename)
+        msg = f'Save df with shape {df.shape} to {df_path}'
+        typer.echo(message=msg)
+        logger.info(msg)
+        os.makedirs(df_path.parent, exist_ok=True)
+        df.to_json(df_path)
+
+    def load_df(self, sla_table: SlaTable) -> pd.DataFrame:
+        """Load df from json file"""
+        filename = f'{sla_table.tableName}_{str(self.timeRange)}.json'
+        df_path = Path(DATA_FOLDER, filename)
+        if df_path.exists():
+            msg = f'Load df from {df_path}'
+            typer.echo(message=msg)
+            logger.info(msg)
+            return pd.read_json(df_path)
+        else:
+            raise FileNotFoundError(f'File {df_path} not found')

@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 import pandas as pd
 import typer
@@ -68,13 +68,20 @@ class DataLoader:
         finally:
             sf.sf_engine.dispose()
 
-    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> pd.DataFrame:
-        """Optionally filter time range df by namespace"""
+    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> (pd.DataFrame, Tuple[str]):
+        """Optionally filter time range df by namespace
+        :param sla_table: SlaTable
+        :param namespace: optional namespace filter
+        :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
+        """
         df = self.load_range_table(sla_table=sla_table)
+        all_ns = sorted(set(df[NAMESPACE_COLUMN]))
+        if namespace and namespace not in all_ns:
+            raise ValueError(f'Namespace {namespace} not found in {all_ns}')
         if namespace:
-            return df[df[NAMESPACE_COLUMN] == namespace]
+            return df[df[NAMESPACE_COLUMN] == namespace], (namespace,)
         else:
-            return df
+            return df, tuple(all_ns)
 
     def save_df(self, sla_table: SlaTable, namespace: Optional[str]):
         """Save df to json file"""

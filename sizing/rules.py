@@ -1,6 +1,4 @@
 import logging
-import os
-from pathlib import Path
 from typing import List, Set, Dict, Optional
 
 import pandas as pd
@@ -9,7 +7,6 @@ from pandas import DataFrame
 
 from metrics import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, CONTAINER_COLUMN, POD_COLUMN
 from metrics.collector import TimeRange
-from reports import PROMETHEUS_REPORT_FOLDER
 from prometheus.sla_model import Compare, BasicSla, SlaTable
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
@@ -395,36 +392,3 @@ class PrometheusRules:
     def ns_df(self, namespace: str):
         """filter df by namespace"""
         return self.df[self.df[NAMESPACE_COLUMN] == namespace]
-
-    def ns_container_df(self, namespace: str) -> pd.DataFrame:
-        # CPU and memory is per container
-        # network is per POD type container='POD'
-        # in jvm table there is no POD_CONTAINER_TYPE but for sure
-        # POD_NETWORK_STATS and POD_BASIC_RESOURCES are separate tables
-        # so ns_df and ns_container_df are equal i.e. no need to filter out POD_CONTAINER_TYPE
-        ns_df = self.df[self.df[NAMESPACE_COLUMN] == namespace]
-        try:
-            ns_container_df = ns_df[ns_df[CONTAINER_COLUMN] != POD_CONTAINER_TYPE]
-            return ns_container_df
-        except KeyError as error:
-            typer.echo(f'\t No {error}: in {self.sla_table.tableName}. Return full ns df')
-            return ns_df
-
-    def report_header(self) -> str:
-        data: Dict[str, List[str]] = {'table_name': [self.sla_table.tableName],
-                                      'time_range': [f'{self.timeRange.from_time}-{self.timeRange.to_time}']}
-        df: pd.DataFrame = pd.DataFrame(data=data)
-        return df.T.to_html()
-
-
-def save_rules_report(main_report: str, sla_table: SlaTable, prom_rules: PrometheusRules):
-    from shared.utils import DATE_TIME_FORMAT_FOLDER
-    ft = prom_rules.timeRange.from_time.strftime(DATE_TIME_FORMAT_FOLDER)
-    tt = prom_rules.timeRange.to_time.strftime(DATE_TIME_FORMAT_FOLDER)
-    folder = Path(PROMETHEUS_REPORT_FOLDER, sla_table.dbSchema, sla_table.tableName)
-    os.makedirs(folder, exist_ok=True)
-    html_file = Path(folder, f'{ft}_{tt}.html')
-    msg = f"Writing reports to {html_file}"
-    typer.echo(msg)
-    with open(html_file, "w") as file:
-        file.write(main_report)

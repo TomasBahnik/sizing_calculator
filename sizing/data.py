@@ -36,11 +36,16 @@ logger = logging.getLogger(__name__)
 
 
 class DataLoader:
-    def __init__(self, delta_hours: Optional[float], start_time: Optional[str], end_time: Optional[str]):
+    def __init__(self,
+                 delta_hours: Optional[float],
+                 start_time: Optional[str],
+                 end_time: Optional[str],
+                 time_range: Optional[TimeRange] = None):
         self.startTime = start_time
         self.endTime = end_time
         self.deltaHours = delta_hours
-        self.timeRange = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
+        self.timeRange = time_range if time_range else \
+            TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
 
     def time_range_query(self, table_name: str):
         lower_bound = f""""{TIMESTAMP_COLUMN}" >= '{self.timeRange.from_time}'"""

@@ -3,21 +3,22 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 import pandas as pd
 import typer
-from pydantic import BaseModel
 
-from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
+from metrics import CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
     POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange
 from metrics.model.tables import SlaTables
 from prometheus.sla_model import SlaTable
+from reports.html import sizing_calc_report, sizing_calc_summary_header
 from shared import PYCPT_ARTEFACTS
 from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
     MEMORY_LIMIT_NAME, CPU_LIMIT_MILLIS_COLUMNS, MEMORY_LIMIT_MIBS_COLUMNS, PERCENTILES
 from sizing.rules import PrometheusRules
+from test_summary.model import TestDetails, TestSummary
 
 NEW_SIZING_REPORT_FOLDER = Path(PYCPT_ARTEFACTS, 'new_sizing')
 
@@ -103,29 +104,6 @@ cpu_lower_limit_millis = 1
 memory_lower_limit_mib = 1
 
 
-class TestTimeRange(BaseModel):
-    """Test time range"""
-    start: pd.Timestamp
-    end: pd.Timestamp
-
-    def to_time_range(self) -> TimeRange:
-        return TimeRange.from_timestamps(from_time=self.start, to_time=self.end)
-
-
-class TestDetails(BaseModel):
-    """Test result"""
-    testTimeRange: TestTimeRange
-    description: str
-
-
-class TestSummary(BaseModel):
-    """Summary of test run"""
-    name: str
-    namespace: str
-    catalogItems: int
-    tests: List[TestDetails] = []
-
-
 class SizingCalculator:
     def __init__(self, cpu: LimitsRequests,
                  memory: LimitsRequests,
@@ -171,40 +149,24 @@ class SizingCalculator:
         percentiles_df[count_column] = counts_ser
         return pd.concat([percentiles_df, self.cpu_millis()], axis=1, join='inner')
 
-    def report_header(self) -> str:
-        """report header with namespace and time range"""
-        duration = (self.test_details.testTimeRange.end - self.test_details.testTimeRange.start).total_seconds()
-        samples = int(duration / DEFAULT_STEP_SEC) + 1
-        data: Dict[str, List[str]] = {'description': [self.test_details.description],
-                                      'duration [hours]': [duration / 3600],
-                                      'from': [self.time_range.from_time.isoformat()],
-                                      'to': [self.time_range.to_time.isoformat()],
-                                      'max samples': [samples],
-                                      }
-        df: pd.DataFrame = pd.DataFrame(data=data)
-        return df.to_html()
-
-    def report(self, data: pd.DataFrame, folder: Path, file_name: str, test_summary: Optional[TestSummary] = None):
-        """Create and save full report to file"""
-        file_name = f'{file_name}_{str(self.time_range)}.html'
-        report_header = self.report_header() if test_summary is None \
-            else test_summary_header(test_summary) + "<br/>" + self.report_header()
-        path = Path(folder, file_name)
-        msg = f'Saving report to {path.resolve()}'
-        typer.echo(msg)
-        logger.info(msg)
-        with open(path, 'w') as f:
-            f.write(report_header + ("<br/>" + data.to_html() + "<hr>"))
-
-    def all_reports(self, folder: Path, test_summary: Optional[TestSummary] = None):
+    def sizing_calc_all_reports(self,
+                                folder: Path,
+                                test_summary: Optional[TestSummary] = None):
         """Create and save all reports to folder"""
         os.makedirs(folder, exist_ok=True)
-        self.report(data=self.request_limits(), folder=folder, file_name='requests_limits',
-                    test_summary=test_summary)
-        self.report(data=self.mem_percentiles(), folder=folder, file_name='memory_percentiles',
-                    test_summary=test_summary)
-        self.report(data=self.cpu_percentiles(), folder=folder, file_name='cpu_percentiles',
-                    test_summary=test_summary)
+        # self.test_details is None by default
+        sizing_calc_report(time_range=self.time_range, test_details=self.test_details,
+                           data=self.request_limits(), folder=folder,
+                           file_name='requests_limits',
+                           test_summary=test_summary)
+        sizing_calc_report(time_range=self.time_range, test_details=self.test_details,
+                           data=self.mem_percentiles(), folder=folder,
+                           file_name='memory_percentiles',
+                           test_summary=test_summary)
+        sizing_calc_report(time_range=self.time_range, test_details=self.test_details,
+                           data=self.cpu_percentiles(), folder=folder,
+                           file_name='cpu_percentiles',
+                           test_summary=test_summary)
 
     def new_sizing(self) -> pd.DataFrame:
         cpu_request: pd.Series = self.cpu_percentiles()[REQUEST_PERCENTILE]
@@ -257,23 +219,14 @@ def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metric
     return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, test_details=test_details)
 
 
-def test_summary_header(test_summary: TestSummary) -> str:
-    """test summary header"""
-    data: Dict[str, List[str]] = {'name': [test_summary.name],
-                                  'namespace': [test_summary.namespace],
-                                  'catalog items': [test_summary.catalogItems],
-                                  }
-    df: pd.DataFrame = pd.DataFrame(data=data)
-    return df.to_html()
-
-
-def save_new_sizing(all_test_sizing, common_folder, test_summary):
+def save_new_sizing(all_test_sizing: List[pd.DataFrame],
+                    folder: Path, test_summary: Optional[TestSummary] = None):
     if len(all_test_sizing) > 0:
         new_sizings = pd.concat(all_test_sizing).groupby(CONTAINER_COLUMN).max()
-        folder = common_folder
         os.makedirs(folder, exist_ok=True)
         typer.echo(f'Saving new sizings to {folder}')
-        new_sizings_report = test_summary_header(test_summary) + "<br/>" + new_sizings.to_html()
+        new_sizings_report = sizing_calc_summary_header(test_summary) + "<br/>" + new_sizings.to_html() \
+            if test_summary else new_sizings.to_html()
         with open(Path(folder, 'new_sizings.html'), 'w') as f:
             f.write(new_sizings_report)
         # new_sizings.to_json(Path(folder, 'new_sizings.json'), orient='index', indent=2)

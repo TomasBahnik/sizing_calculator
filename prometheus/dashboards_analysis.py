@@ -5,7 +5,7 @@ from typing import List, Optional, TypeVar, Dict, Tuple
 
 import pandas as pd
 import typer
-from langchain import PromptTemplate, FewShotPromptTemplate
+from langchain.prompts import PromptTemplate, FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
 from pydantic import BaseModel, parse_file_as
 

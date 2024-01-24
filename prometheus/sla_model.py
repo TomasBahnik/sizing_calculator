@@ -9,11 +9,11 @@ from prometheus.prompt_model import ColumnPromExpression
 
 
 class Compare(StrEnum):
-    GREATER = ">"
-    LESS = "<"
-    EQUAL = "="
+    GREATER: str = ">"
+    LESS: str = "<"
+    EQUAL: str = "="
     # value(end_time) - value(start_time)
-    DELTA = "delta"
+    DELTA: str = "delta"
 
 
 class BasicSla(BaseModel):
@@ -23,7 +23,7 @@ class BasicSla(BaseModel):
     # compare if resource is greater or lower
     resource_limit_value: float = None
     # default compare, business ready has 0 = false, 1 = true and compares < 1
-    compare = Compare.GREATER
+    compare: Compare = Compare.GREATER
 
 
 class SlaTable(BaseModel):

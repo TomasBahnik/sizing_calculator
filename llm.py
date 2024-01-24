@@ -5,9 +5,10 @@ from typing import List, Tuple
 import openai
 import pandas as pd
 import typer
-from langchain import FewShotPromptTemplate, LLMChain
-from langchain.chat_models import AzureChatOpenAI
-from langchain.llms import AzureOpenAI
+from langchain.prompts import FewShotPromptTemplate
+from langchain.chains import LLMChain
+from langchain_community.chat_models import AzureChatOpenAI
+from langchain_community.llms import AzureOpenAI
 from pandasai import PandasAI
 
 from metrics import DEFAULT_TIME_DELTA_HOURS, PORTAL_ONE_NS, PROMETHEUS_URL, DEFAULT_PORTAL_GRP_KEYS

@@ -12,7 +12,7 @@ from shared.utils import list_files
 logger = logging.getLogger(__name__)
 
 
-class PortalPrometheus:
+class SlaTables:
     def __init__(self, folder: Path = SLA_TABLES_FOLDER):
         self.folder: Path = folder
         self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")

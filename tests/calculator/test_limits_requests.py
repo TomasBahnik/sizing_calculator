@@ -12,9 +12,9 @@ class TestLimitRequest:
     def test_max_limit_request(self):
         from sizing.data import DataLoader
         from metrics import POD_BASIC_RESOURCES_TABLE
-        from metrics.model.tables import PortalPrometheus
+        from metrics.model.tables import SlaTables
         data_loader: DataLoader = DataLoader(delta_hours=None, start_time='2024-01-06T20', end_time='2024-01-06T20:05')
-        sla_table = PortalPrometheus().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+        sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
         df: pd.DataFrame = data_loader.load_df(sla_table=sla_table)
         cpu = LimitsRequests(sla_table=sla_table, resource=CPU_RESOURCE, ns_df=df)
         max_cpu_request = cpu.request_value.max()

@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from metrics import DEFAULT_STEP_SEC, CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
     POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange
-from metrics.model.tables import PortalPrometheus
+from metrics.model.tables import SlaTables
 from prometheus.sla_model import SlaTable
 from shared import PYCPT_ARTEFACTS
 from sizing import REQUEST_PERCENTILE, CPU_REQUEST_NAME, LIMIT_PERCENTILE, CPU_LIMIT_NAME, MEMORY_REQUEST_NAME, \
@@ -246,9 +246,9 @@ class SizingCalculator:
 def sizing_calculator(start_time: str, end_time: str, delta_hours: float, metrics_folder: Path,
                       namespace: str, test_details: Optional[TestDetails] = None) -> SizingCalculator:
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    sla_tables: SlaTables = SlaTables(folder=metrics_folder)
     # value error if no table with name
-    sla_table: SlaTable = portal_prometheus.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)

@@ -10,16 +10,19 @@ from pandas import DataFrame
 import metrics
 from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange, PrometheusCollector
-from metrics.model.tables import PortalPrometheus
+from metrics.model.tables import SlaTables
 from prometheus import QUERIES, TITLE, STATIC_LABEL, FILE
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
 from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
 from prometheus.prompt_model import PromptExample
 from prometheus.sla_model import SlaTable
-from reports import PROMETHEUS_REPORT_FOLDER
+from reports import PROMETHEUS_REPORT_FOLDER, html
+from reports.html import save_rules_report
+from shared import SLA_TABLES_FOLDER
 from sizing.calculator import TestTimeRange, TestDetails, TestSummary, sizing_calculator, NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, logger, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
-from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule, save_rules_report
+from sizing.data import DataLoader
+from sizing.rules import DEFAULT_TIME_DELTA_HOURS, PrometheusRules, RatioRule
 
 DEFAULT_PROM_EXPRESSIONS = './expressions/basic'
 
@@ -45,7 +48,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
     When test_summary file is provided then start_time, end_time and delta_hours are ignored
     """
     all_test_sizing: List[pd.DataFrame] = []
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    portal_prometheus: SlaTables = SlaTables(folder=metrics_folder)
     sla_table: SlaTable = portal_prometheus.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     if start_time is not None and end_time is not None:
         time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
@@ -87,11 +90,11 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
 
 @app.command()
 def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='Last update of given namespace'),
-                metrics_folder: Path = typer.Option(DEFAULT_PROM_EXPRESSIONS, "--folder", "-f",
-                                                    dir_okay=True,
-                                                    help="Folder with json files specifying PromQueries to run")):
+                folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+                                            dir_okay=True,
+                                            help="Folder with json files specifying SLA tables")):
     """List last timestamps per table and namespace"""
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    portal_prometheus: SlaTables = SlaTables(folder=folder)
     portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
     table_names = [f'{t.dbSchema}.{t.tableName}' for t in portal_tables]
     last_timestamp(table_names, namespace)
@@ -111,9 +114,9 @@ def load_metrics(
         namespaces: str = typer.Option(..., "-n", "--namespace",
                                        help=f"list of namespaces separated by | enclosed in \" "
                                             f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'"),
-        metrics_folder: Path = typer.Option(DEFAULT_PROM_EXPRESSIONS, "--folder", "-f",
-                                            dir_okay=True,
-                                            help="Folder with json files specifying PromQueries to run")):
+        folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+                                    dir_okay=True,
+                                    help="Folder with json files specifying SLA tables")):
     """
     Loads prom queries from `metrics_folder`, runs them and stores in Snowflake.
 
@@ -124,7 +127,7 @@ def load_metrics(
     Dedup Snowflake table instead
     https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
     """
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
+    portal_prometheus: SlaTables = SlaTables(folder=folder)
     portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
@@ -173,26 +176,24 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
               end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
               delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
                                                 help="hours in the past i.e start time = end_time - delta_hours"),
-              metrics_folder: Path = typer.Option(DEFAULT_PROM_EXPRESSIONS, "--folder", "-f",
-                                                  dir_okay=True,
-                                                  help="Folder with json files specifying PromQueries to run"),
+              folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+                                          dir_okay=True,
+                                          help="Folder with json files specifying SLA tables"),
               limit_pct: float = typer.Option(None, "-l", "--limit-pct",
                                               help="Resource above percentage of limits. Overrides value in json"),
               namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace")):
     """Evaluate SLAs for all tables in metrics_folder"""
+    data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    # typer.echo(f'{prom_rules}')
-    portal_prometheus: PortalPrometheus = PortalPrometheus(folder=metrics_folder)
-    sla_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
-    for sla_table in sla_tables:
+    portal_prometheus: SlaTables = SlaTables(folder=folder)
+    all_sla_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
+    for sla_table in all_sla_tables:
         if len(sla_table.rules) == 0:
             typer.echo(f'No rules in {sla_table.name}. Continue ..')
             continue
-        prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
-        empty_report_header = prom_rules.report_header()
+        all_ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
+        empty_report_header = headers.report_header(sla_table=sla_table, time_range=time_range)
         main_report: str = empty_report_header
-        prom_rules.load_df()
-        namespaces = prom_rules.namespaces(namespace=namespace)
         for rule in sla_table.rules:
             # rule.limit_pct has default value == None
             if limit_pct:  # limit_pct is set
@@ -203,7 +204,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
             for ns in namespaces:
                 typer.echo(f'namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, '
                            f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
-                ns_df = prom_rules.ns_df(namespace=ns)
+                ns_df = all_ns_df[all_ns_df[NAMESPACE_COLUMN] == ns]
                 # when verify_integrity of indexes portal table specific keys are needed
                 rr = RatioRule(ns_df=ns_df, basic_rule=rule, keys=sla_table.tableKeys)
                 if sla_table.tableName == POD_BASIC_RESOURCES_TABLE:
@@ -213,7 +214,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
                     main_report = rr.add_report(main_report)
         if main_report != empty_report_header:
             #  do not save empty reports
-            save_rules_report(main_report=main_report, sla_table=sla_table, prom_rules=prom_rules)
+            save_rules_report(main_report=main_report, sla_table=sla_table, time_range=time_range)
 
 
 @app.command()
@@ -290,7 +291,7 @@ def load_save_df(start_time: str = typer.Option(None, "--start", "-s",
     """Load df from DB and save it to json"""
     from sizing.data import DataLoader
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
-    sla_table = PortalPrometheus().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader.save_df(sla_table=sla_table, namespace=namespace)
     df = data_loader.load_df(sla_table=sla_table)
     typer.echo(f'Loaded {df.shape} from {data_loader.timeRange}')

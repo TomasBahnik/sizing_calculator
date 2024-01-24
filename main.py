@@ -192,8 +192,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
             typer.echo(f'No rules in {sla_table.name}. Continue ..')
             continue
         all_ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
-        empty_report_header = headers.report_header(sla_table=sla_table, time_range=time_range)
-        main_report: str = empty_report_header
+        main_report: str = html.report_header(sla_table=sla_table, time_range=time_range)
         for rule in sla_table.rules:
             # rule.limit_pct has default value == None
             if limit_pct:  # limit_pct is set
@@ -212,7 +211,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
                     main_report = rr.add_report(main_report, sla_table)
                 else:
                     main_report = rr.add_report(main_report)
-        if main_report != empty_report_header:
+        if main_report != html.report_header(sla_table=sla_table, time_range=time_range):
             #  do not save empty reports
             save_rules_report(main_report=main_report, sla_table=sla_table, time_range=time_range)
 

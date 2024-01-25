@@ -9,7 +9,6 @@ from langchain.prompts import FewShotPromptTemplate
 from langchain.chains import LLMChain
 from langchain_community.chat_models import AzureChatOpenAI
 from langchain_community.llms import AzureOpenAI
-from pandasai import PandasAI
 
 from metrics import DEFAULT_TIME_DELTA_HOURS, PORTAL_ONE_NS, PROMETHEUS_URL, DEFAULT_PORTAL_GRP_KEYS
 from metrics.collector import TimeRange, PrometheusCollector
@@ -123,6 +122,7 @@ def cpu_usage(prompt: str = typer.Option(PROMETHEUS_POD_CPU_PROMPT, "--prompt", 
                                                                          "None=all")
               ):
     """ Pandas AI for prometheus CPU usage"""
+    from pandasai import PandasAI
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     # grp keys for PromQL = grp keys for namespaces

@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional, List
 
 import typer
-from pydantic import parse_file_as
 
 from prometheus.sla_model import SlaTable
 from shared import SLA_TABLES_FOLDER
@@ -31,7 +30,7 @@ class SlaTables:
                                                contains=file_name_contains)
         if not metrics_files:
             raise FileNotFoundError(f'No json files in {self.folder} with name containing {file_name_contains}')
-        ret: List[SlaTable] = [parse_file_as(type_=SlaTable, path=metric_file) for metric_file in metrics_files]
+        ret: List[SlaTable] = [SlaTable.model_validate_json(metric_file.read_text()) for metric_file in metrics_files]
         if table_name:
             ret = [portal_table for portal_table in ret if portal_table.tableName == table_name]
             if len(ret) == 0:

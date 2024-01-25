@@ -7,13 +7,13 @@ import pandas as pd
 import typer
 from langchain.prompts import PromptTemplate, FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
-from pydantic import BaseModel, parse_file_as
+from pydantic import BaseModel
 
-from shared.utils import check_file, list_files
-from reports import PROMETHEUS_REPORT_FOLDER
 from prometheus import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
 from prometheus.prom_ql import strip_replace, extract_labels
 from prometheus.prompt_model import Target, PromExpression, Title, PromptExample
+from reports import PROMETHEUS_REPORT_FOLDER
+from shared.utils import check_file, list_files
 
 JSON_SUFFIX = ".json"
 
@@ -69,7 +69,8 @@ def load_dashboards_from_files(folder: Path, filename: Optional[str] = None,
     logger.info(msg=msg)
     typer.echo(message=msg)
     ret = list(zip([PromptExample(fileName=x) for x in dashboards],
-                   [parse_file_as(type_=GrafanaDashboard, path=dashboard_file) for dashboard_file in dashboards]))
+                   [GrafanaDashboard.model_validate_json(json_data=dashboard_file.read_text())
+                    for dashboard_file in dashboards]))
     return ret
 
 

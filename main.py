@@ -1,23 +1,17 @@
-import json
 import logging
-import os
 from pathlib import Path
 from typing import List
 
 import pandas as pd
 import typer
-from pandas import DataFrame
 
 import metrics
 from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import TimeRange, PrometheusCollector
 from metrics.model.tables import SlaTables
-from prometheus import QUERIES, TITLE, STATIC_LABEL, FILE
 from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, common_columns, prom_save
-from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
-from prometheus.prompt_model import PromptExample
 from prometheus.sla_model import SlaTable
-from reports import PROMETHEUS_REPORT_FOLDER, html
+from reports import html
 from reports.html import sla_report
 from shared import SLA_TABLES_FOLDER
 from sizing.calculator import NEW_SIZING_REPORT_FOLDER, \
@@ -42,7 +36,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
                    folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
                                                dir_okay=True,
                                                help="Folder with json files specifying PromQueries to run"),
-                   test_summary_file: Path = typer.Option(None, "--test-summary", "-t",
+                   test_summary_json: Path = typer.Option(None, "--test-summary", "-t",
                                                           help="Test summary file with test start and end time",
                                                           file_okay=True)):
     """
@@ -67,11 +61,11 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         report_folder = Path(common_folder)
         s_c.sizing_calc_all_reports(folder=report_folder, test_summary=None)
         all_test_sizing.append(s_c.new_sizing())
-        save_new_sizing(all_test_sizing, common_folder, test_summary = None)
+        save_new_sizing(all_test_sizing, common_folder, test_summary=None)
 
-    elif test_summary_file is not None:
-        test_summary: TestSummary = TestSummary.parse_file(test_summary_file)
-        logger.info(f'Loaded test summary from {test_summary_file}')
+    elif test_summary_json is not None:
+        test_summary: TestSummary = TestSummary.model_validate_json(test_summary_json.read_text())
+        logger.info(f'Loaded test summary from {test_summary_json}')
         common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(' ', '_'))
         for test_details in test_summary.tests:
             logger.info(f'Processing {test_details.description}')
@@ -218,69 +212,6 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
         if main_report != html.sla_report_header(sla_table=sla_table, time_range=time_range):
             #  do not save empty reports
             sla_report(main_report=main_report, sla_table=sla_table, time_range=time_range)
-
-
-@app.command()
-def grafana_report(dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True,
-                                                          help="Folder with grafana dashboards"),
-                   dashboard_file: str = typer.Option(None, "--file",
-                                                      help=f"Name of dashboard file. If None all files with "
-                                                           f"--suffix value from the folder are loaded"),
-                   file_name_contains: str = typer.Option(None, "--contains", "-c",
-                                                          help="Filter filenames that contain this string"),
-                   file_name_ends_with: str = typer.Option(JSON_SUFFIX, "--suffix", "-s",
-                                                           help="Filter filenames that ends with this string")):
-    """HTML report with prometheus metrics to stdout"""
-    examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file,
-                                                 contains=file_name_contains, ends_with=file_name_ends_with)
-    file_names, queries, static_labels, titles = prompt_lists(examples)
-    tmp_dict = {FILE: file_names, TITLE: titles, QUERIES: queries, STATIC_LABEL: static_labels}
-    tmp_df = DataFrame(data=tmp_dict)
-    tmp_df.sort_values(by=[FILE, TITLE], inplace=True, ignore_index=True)
-    base_path = Path(PROMETHEUS_REPORT_FOLDER, grafana_report.__name__)
-    os.makedirs(name=base_path, exist_ok=True)
-    html_file = Path(base_path, f"{dashboards_folder.parts[-1]}_{file_name_contains}_{file_name_ends_with[1:]}.html")
-    if dashboard_file:
-        html_file = Path(f"{dashboards_folder.parts[-1]}_{dashboard_file}_{file_name_ends_with[1:]}.html")
-    typer.echo(f'Saving to {html_file.resolve()}')
-    tmp_df.to_html(html_file, index=True)
-
-
-@app.command()
-def prom_expressions(dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True,
-                                                            help="Folder with grafana dashboards"),
-                     dashboard_file: str = typer.Option(None, "--file",
-                                                        help=f"Name of dashboard file. If None all files with "
-                                                             f"--suffix value from the folder are loaded"),
-                     file_name_contains: str = typer.Option(None, "--contains", "-c",
-                                                            help="Filter filenames that contain this string"),
-                     file_name_ends_with: str = typer.Option(JSON_SUFFIX, "--suffix", "-s",
-                                                             help="Filter filenames that ends with this string")):
-    """
-    Store Prometheus expression as dumped cpt.prometheus.prompt_model.Title so it can be loaded back to objects
-
-    :param dashboards_folder:
-    :param dashboard_file:
-    :param file_name_contains:
-    :param file_name_ends_with:
-    :return:
-    """
-    examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file,
-                                                 contains=file_name_contains, ends_with=file_name_ends_with)
-    for e in examples:
-        typer.echo(f'{e.fileName}')
-        bare_file_name = e.fileName.parts[-1].split('.')[0]
-        #  instance of cpt.prometheus.prompt_model.Title
-        for title in e.titles:
-            # typer.echo(f'\title{title.name}: {len(title.queries)} queries')
-            base_file_name = title.name.replace(' ', '_').replace('/', ' ')
-            base_path = Path(PROMETHEUS_REPORT_FOLDER,
-                             prom_expressions.__name__, dashboards_folder.parts[-1], bare_file_name)
-            os.makedirs(base_path, exist_ok=True)
-            f_n = Path(base_path, f"{base_file_name}.json").resolve()
-            typer.echo(f'Saving {f_n}')
-            with open(f_n, "w") as json_file:
-                json.dump(title.dict(), json_file, indent=4)
 
 
 @app.command()

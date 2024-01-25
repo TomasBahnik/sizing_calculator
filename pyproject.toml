@@ -15,5 +15,9 @@ prometheus-pandas = "^0.3.3"
 pydantic = "^2.5.3"
 pydantic-settings = "^2.1.0"
 
-# snowflake-connector-python 3.6.0 insatlled pandas 1.5.3
+# snowflake-connector-python 3.6.0 insatlled pandas 1.5.3 explicitely selected last version <2.2.0
 pandas = "2.1.3"
+
+# AI (pandasai part needs to be rewrited)
+langchain = "^0.1.3"
+openai = "^1.10.0"

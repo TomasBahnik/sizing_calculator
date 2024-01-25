@@ -21,3 +21,4 @@ pandas = "2.1.3"
 # AI (pandasai part needs to be rewrited)
 langchain = "^0.1.3"
 openai = "^1.10.0"
+langchain-openai = "^0.0.4"

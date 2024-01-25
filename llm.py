@@ -3,16 +3,14 @@ from pathlib import Path
 from typing import List, Tuple
 
 import openai
-import pandas as pd
 import typer
-from langchain.prompts import FewShotPromptTemplate
 from langchain.chains import LLMChain
-from langchain_community.chat_models import AzureChatOpenAI
-from langchain_community.llms import AzureOpenAI
+from langchain.prompts import FewShotPromptTemplate
+from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureOpenAI
 
 from metrics import DEFAULT_TIME_DELTA_HOURS, PORTAL_ONE_NS, PROMETHEUS_URL, DEFAULT_PORTAL_GRP_KEYS
 from metrics.collector import TimeRange, PrometheusCollector
-
 from prometheus import TITLE, QUERIES, FILE, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE, DEPLOYMENT_HELP
 from prometheus.dashboards_analysis import all_examples, prompt_lists, shot_examples
 from prometheus.prompt_model import PromptExample
@@ -37,7 +35,8 @@ def init(key, base):
     os.environ["OPENAI_API_TYPE"] = "azure"
     os.environ["OPENAI_API_VERSION"] = '2023-05-15'
     os.environ["OPENAI_API_KEY"] = key
-    os.environ["OPENAI_API_BASE"] = base
+    # os.environ["OPENAI_API_BASE"] = base
+    os.environ["AZURE_OPENAI_ENDPOINT"] = base
 
 
 init(key=key_dev, base=base_dev)
@@ -123,6 +122,7 @@ def cpu_usage(prompt: str = typer.Option(PROMETHEUS_POD_CPU_PROMPT, "--prompt", 
               ):
     """ Pandas AI for prometheus CPU usage"""
     from pandasai import PandasAI
+    import pandas as pd
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     # grp keys for PromQL = grp keys for namespaces

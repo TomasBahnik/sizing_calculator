@@ -64,7 +64,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         save_new_sizing(all_test_sizing, common_folder, test_summary=None)
 
     elif test_summary_json is not None:
-        test_summary: TestSummary = TestSummary.model_validate_json(test_summary_json.read_text())
+        test_summary: TestSummary = TestSummary.model_validate_json(json_data=test_summary_json.read_text())
         logger.info(f'Loaded test summary from {test_summary_json}')
         common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(' ', '_'))
         for test_details in test_summary.tests:

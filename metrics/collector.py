@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import logging
 from typing import Optional, List, Tuple, Dict
 
@@ -8,9 +9,8 @@ import pytz
 import typer
 from prometheus_pandas import query
 
-from metrics.prom_ql.queries import sum_irate
-
 from metrics import DEFAULT_TIME_DELTA_HOURS, GIBS, MIBS, DEFAULT_STEP_SEC, NON_EMPTY_LABEL, DEFAULT_RATE_INTERVAL
+from metrics.prom_ql.queries import sum_irate
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class TimeRange:
             else self.to_time - pd.Timedelta(hours=delta_hours)
 
     @classmethod
-    def from_timestamps(cls, from_time: pd.Timestamp, to_time: pd.Timestamp) -> TimeRange:
+    def from_timestamps(cls, from_time: datetime.datetime, to_time: datetime.datetime) -> TimeRange:
         """Create TimeRange from two timestamps"""
         return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 

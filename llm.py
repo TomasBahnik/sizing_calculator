@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 import openai
 import typer
@@ -9,12 +9,10 @@ from langchain.prompts import FewShotPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from langchain_openai import AzureOpenAI
 
-from metrics import DEFAULT_TIME_DELTA_HOURS, PORTAL_ONE_NS, PROMETHEUS_URL, DEFAULT_PORTAL_GRP_KEYS
-from metrics.collector import TimeRange, PrometheusCollector
 from prometheus import TITLE, QUERIES, FILE, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE, DEPLOYMENT_HELP
 from prometheus.dashboards_analysis import all_examples, prompt_lists, shot_examples
 from prometheus.prompt_model import PromptExample
-from prometheus.prompts import DEFAULT_MAX_TOKENS, DEFAULT_PREFIX, DEFAULT_PROM_EXPR_TITLE, PROMETHEUS_POD_CPU_PROMPT
+from prometheus.prompts import DEFAULT_MAX_TOKENS, DEFAULT_PREFIX, DEFAULT_PROM_EXPR_TITLE
 
 app = typer.Typer()
 
@@ -99,56 +97,6 @@ def title_queries(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
         typer.echo(f'{"=" * 10} Response End {"=" * 10}')
     else:
         typer.echo(f"Unknown model {deployment}")
-
-
-def portal_namespaces(tuple_columns: List[Tuple[str, ...]]) -> List[str]:
-    """ Unique and sorted namespaces as first element in df column as tuple"""
-    # 1st element as in grp_keys
-    namespaces = sorted(list(set([col[0] for col in tuple_columns])))
-    return namespaces
-
-
-@app.command()
-def cpu_usage(prompt: str = typer.Option(PROMETHEUS_POD_CPU_PROMPT, "--prompt", "-p", help="Prompt for CPU"),
-              start_time: str = typer.Option(None, "--start", "-s", help="Start time of period ISO format "
-                                                                         "'2023-07-21T04:43:00-0200'"),
-              end_time: str = typer.Option(None, "--end", "-e",
-                                           help="End time of period. end_time = now if None, ISO format with tz "),
-              delta_hours: int = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
-                                              help="start time = end_time - delta"),
-              clear_cache: bool = typer.Option(False, "--clear-cache", "-c", help="Clear pandas AI cache"),
-              namespaces: str = typer.Option(PORTAL_ONE_NS, "--ns", help="list of namespaces separated by |,"
-                                                                         "None=all")
-              ):
-    """ Pandas AI for prometheus CPU usage"""
-    from pandasai import PandasAI
-    import pandas as pd
-    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    prom: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
-    # grp keys for PromQL = grp keys for namespaces
-    cpu_df: pd.DataFrame = prom.portal_cpu_df(grp_keys=DEFAULT_PORTAL_GRP_KEYS, namespace=namespaces)
-    tuple_columns = cpu_df.columns
-    namespaces = portal_namespaces(tuple_columns=tuple_columns)
-    typer.echo(f'Prompt : {prompt}')
-    typer.echo(f'{len(namespaces)} namespaces')
-    llm = get_model(deployment=deployment_name_35, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMPERATURE)
-    pandas_ai = PandasAI(llm)
-    if clear_cache:
-        typer.echo("Clear cache")
-        pandas_ai.clear_cache()
-    for ns in namespaces:
-        # the generated code is cached and reused after 1st namespace
-        ns_columns = [col for col in tuple_columns if col[0] == ns]
-        df = cpu_df[ns_columns]
-        answer = pandas_ai.run(data_frame=df, prompt=prompt)
-        typed_answer = eval(answer)
-        if isinstance(typed_answer, List):
-            # Prompt class: prompt: str, check_answer: assertions
-            assert len(ns_columns) >= len(typed_answer)
-            typer.echo(f'namespace: {ns}: {len(ns_columns)} columns: answer length: {len(typed_answer)}')
-        else:
-            typer.echo(f"answer type after eval: {type(typed_answer)}")
-            typer.echo(f'namespace: {ns}: {len(ns_columns)} columns:  answer: {answer}')
 
 
 if __name__ == "__main__":

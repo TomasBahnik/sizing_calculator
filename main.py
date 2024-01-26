@@ -13,7 +13,7 @@ from prometheus.commands import last_timestamp, DEFAULT_LABELS, sf_series, commo
 from prometheus.sla_model import SlaTable
 from reports import html
 from reports.html import sla_report
-from shared import SLA_TABLES_FOLDER
+from settings import settings
 from sizing.calculator import NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
 from sizing.data import DataLoader
@@ -33,7 +33,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
                    delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
                                                      help="hours in the past i.e start time = end_time - delta_hours"),
                    namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
-                   folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+                   folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
                                                dir_okay=True,
                                                help="Folder with json files specifying PromQueries to run"),
                    test_summary_json: Path = typer.Option(None, "--test-summary", "-t",
@@ -89,7 +89,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
 
 @app.command()
 def last_update(namespace: str = typer.Option(..., '-n', '--namespace', help='Last update of given namespace'),
-                folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+                folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
                                             dir_okay=True,
                                             help="Folder with json files specifying SLA tables")):
     """List last timestamps per table and namespace"""
@@ -113,7 +113,7 @@ def load_metrics(
         namespaces: str = typer.Option(..., "-n", "--namespace",
                                        help=f"list of namespaces separated by | enclosed in \" "
                                             f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'"),
-        folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+        folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
                                     dir_okay=True,
                                     help="Folder with json files specifying SLA tables")):
     """
@@ -175,7 +175,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
               end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
               delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
                                                 help="hours in the past i.e start time = end_time - delta_hours"),
-              folder: Path = typer.Option(SLA_TABLES_FOLDER, "--folder", "-f",
+              folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
                                           dir_okay=True,
                                           help="Folder with json files specifying SLA tables"),
               limit_pct: float = typer.Option(None, "-l", "--limit-pct",

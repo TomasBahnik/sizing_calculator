@@ -14,12 +14,12 @@ from metrics.collector import TimeRange
 from metrics.model.tables import SlaTables
 from prometheus.sla_model import SlaTable
 from reports.html import sizing_calc_report, sizing_calc_summary_header
-from shared import PYCPT_ARTEFACTS
+from settings import settings
 from sizing import *
 from sizing.rules import PrometheusRules
 from test_summary.model import TestDetails, TestSummary
 
-NEW_SIZING_REPORT_FOLDER = Path(PYCPT_ARTEFACTS, 'new_sizing')
+NEW_SIZING_REPORT_FOLDER = Path(settings.pycpt_artefacts, 'new_sizing')
 
 logger: logging.Logger = logging.getLogger(__name__)
 

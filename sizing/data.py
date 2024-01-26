@@ -9,7 +9,7 @@ import typer
 from metrics import TIMESTAMP_COLUMN, CONTAINER_COLUMN, POD_COLUMN, MIBS, NAMESPACE_COLUMN
 from metrics.collector import TimeRange
 from prometheus.sla_model import SlaTable
-from shared import PYCPT_ARTEFACTS
+from settings import settings
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
@@ -30,7 +30,7 @@ mem_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now
             MEMORY_RESOURCE.request: [5 * MIBS, 4 * MIBS],
             MEMORY_RESOURCE.measured: [6 * MIBS, 7 * MIBS]}
 MEM_DF = pd.DataFrame(mem_data)
-DATA_FOLDER = Path(PYCPT_ARTEFACTS, 'data')
+DATA_FOLDER = Path(settings.pycpt_artefacts, 'data')
 
 logger = logging.getLogger(__name__)
 

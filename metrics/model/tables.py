@@ -5,14 +5,14 @@ from typing import Optional, List
 import typer
 
 from prometheus.sla_model import SlaTable
-from shared import SLA_TABLES_FOLDER
+from settings import settings
 from shared.utils import list_files
 
 logger = logging.getLogger(__name__)
 
 
 class SlaTables:
-    def __init__(self, folder: Path = SLA_TABLES_FOLDER):
+    def __init__(self, folder: Path = settings.sla_tables):
         self.folder: Path = folder
         self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")
         self.slaTables: List[SlaTable] = [SlaTable.model_validate_json(json_data=sla_file.read_text())

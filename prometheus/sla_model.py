@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 from enum import StrEnum
 from typing import List
 
 from pydantic import BaseModel
 
-from metrics import DEFAULT_STEP_SEC, DEFAULT_PORTAL_GRP_KEYS
+from metrics import DEFAULT_PORTAL_GRP_KEYS
 from prometheus.prompt_model import ColumnPromExpression
+from settings import settings
 
 
 class Compare(StrEnum):
@@ -38,7 +40,7 @@ class SlaTable(BaseModel):
     dbSchema: str = 'PORTAL'
     # dbSchema: str = 'ONDEMAND'
     tableKeys: List[str] = None
-    stepSec: float = DEFAULT_STEP_SEC
+    stepSec: float = settings.step_sec
     groupBy: List[str] = DEFAULT_PORTAL_GRP_KEYS if useGroupByDefaults else []
     queries: List[ColumnPromExpression] = []
     rules: List[BasicSla] = []

@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     data: Path = Path(pycpt_artefacts, 'data')
     prometheus_report_folder: Path = Path(pycpt_artefacts, 'prometheus')
 
+    # Prometheus
+    time_delta_hours: float = 1  # time delta from now in hours for timeseries queries
+    step_sec: float = 30  # prometheus sample step in sec
+
 
 # singleton instance of the Settings class. Use this instead of creating your own instance.
 settings = Settings()

@@ -1,8 +1,5 @@
 import os
 
-DEFAULT_STEP_SEC = 30  # float in sec
-DEFAULT_TIME_DELTA_HOURS = 1
-DEFAULT_RATE_INTERVAL = '1m'
 MIBS: int = 1024 ** 2
 GIBS: int = 1024 ** 3
 NON_EMPTY_LABEL = ".+"

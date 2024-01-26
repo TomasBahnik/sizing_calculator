@@ -6,11 +6,11 @@ from typing import Optional, List, Tuple, Dict
 
 import pandas as pd
 import pytz
-import typer
 from prometheus_pandas import query
 
-from metrics import DEFAULT_TIME_DELTA_HOURS, GIBS, MIBS, DEFAULT_STEP_SEC, NON_EMPTY_LABEL, DEFAULT_RATE_INTERVAL
+from metrics import GIBS, MIBS, NON_EMPTY_LABEL
 from metrics.prom_ql.queries import sum_irate
+from settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def mem_mibs(df: pd.DataFrame) -> pd.DataFrame:
 
 class TimeRange:
     def __init__(self, start_time: Optional[str] = None, end_time: Optional[str] = None,
-                 delta_hours: float = DEFAULT_TIME_DELTA_HOURS):
+                 delta_hours: float = settings.time_delta_hours):
         """
         :param start_time: fixed start time. If None, start_time = end_time - delta
         :param end_time: fixed end time. If None, end_time = now in GMT
@@ -60,7 +60,7 @@ class PrometheusCollector:
         return f'url: {self.promQuery.api_url}\n' \
                f'period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n'
 
-    def range_query(self, p_query: str, step_sec: float = DEFAULT_STEP_SEC) -> pd.DataFrame:
+    def range_query(self, p_query: str, step_sec: float = settings.step_sec) -> pd.DataFrame:
         """
         Time range query
         :param p_query: Prometheus expression
@@ -84,14 +84,6 @@ class PrometheusCollector:
         q = sum_irate(metric=portal_pod_cpu_metric, containers=NON_EMPTY_LABEL,
                       namespace=namespace, grp_keys=grp_keys, rate_interval=rate_interval)
         return self.range_query(p_query=q)
-
-    def portal_cpu_df(self, namespace: str, grp_keys: List[str]) -> pd.DataFrame:
-        """Read raw df and convert its columns to tuples"""
-        raw_df: pd.DataFrame = self.container_cpu_portal(namespace=namespace,
-                                                         grp_keys=grp_keys, rate_interval=DEFAULT_RATE_INTERVAL)
-        typer.echo(f'timerange {min(raw_df.index)} - {max(raw_df.index)}, df shape: {raw_df.shape}')
-        df_tuple_columns(grp_keys, raw_df)
-        return raw_df
 
 
 def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:

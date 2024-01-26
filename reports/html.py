@@ -7,11 +7,10 @@ from typing import Dict, List, Optional
 import pandas as pd
 import typer
 
-from metrics import DEFAULT_STEP_SEC
 from metrics.collector import TimeRange
 from prometheus.sla_model import SlaTable
-from test_summary.model import TestDetails, TestSummary
 from settings import settings
+from test_summary.model import TestDetails, TestSummary
 
 
 def sla_report_header(sla_table: SlaTable, time_range: TimeRange) -> str:
@@ -38,7 +37,7 @@ def sizing_calc_report_header(test_details: Optional[TestDetails], time_range: T
     """report header with namespace and time range"""
     # time_range present always
     duration = (time_range.to_time - time_range.from_time).total_seconds()
-    samples = int(duration / DEFAULT_STEP_SEC) + 1
+    samples = int(duration / settings.step_sec) + 1
     description = test_details.description if test_details else ''
     data: Dict[str, List[str]] = {'description': [description],
                                   'duration [hours]': [duration / 3600],

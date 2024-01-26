@@ -17,10 +17,9 @@ from settings import settings
 from sizing.calculator import NEW_SIZING_REPORT_FOLDER, \
     save_new_sizing, SizingCalculator, LimitsRequests, CPU_RESOURCE, MEMORY_RESOURCE
 from sizing.data import DataLoader
-from sizing.rules import DEFAULT_TIME_DELTA_HOURS, RatioRule
+from sizing.rules import RatioRule
 from test_summary.model import TestSummary
 
-DEFAULT_PROM_EXPRESSIONS = './expressions/basic'
 logger: logging.Logger = logging.getLogger(__name__)
 app = typer.Typer()
 
@@ -30,7 +29,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
                                                   help="Start time in UTC without tz. "
                                                        "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
                    end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
-                   delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+                   delta_hours: float = typer.Option(settings.time_delta_hours, "--delta", "-d",
                                                      help="hours in the past i.e start time = end_time - delta_hours"),
                    namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
                    folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
@@ -108,7 +107,7 @@ def load_metrics(
         end_time: str = typer.Option(None, "--end", "-e",
                                      help="End of period in datetime format wo timezone (UTC is added) "
                                           "e.g. '2023-07-21T00:43:00'. If None, end_time = now in UTC"),
-        delta_hours: float = typer.Option(metrics.DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+        delta_hours: float = typer.Option(settings.time_delta_hours, "--delta", "-d",
                                           help="hours in the past i.e start time = end_time - delta_hours"),
         namespaces: str = typer.Option(..., "-n", "--namespace",
                                        help=f"list of namespaces separated by | enclosed in \" "
@@ -173,7 +172,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
                                              help="Start time in UTC without tz. "
                                                   "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
               end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
-              delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+              delta_hours: float = typer.Option(settings.time_delta_hours, "--delta", "-d",
                                                 help="hours in the past i.e start time = end_time - delta_hours"),
               folder: Path = typer.Option(settings.sla_tables, "--folder", "-f",
                                           dir_okay=True,
@@ -219,7 +218,7 @@ def load_save_df(start_time: str = typer.Option(None, "--start", "-s",
                                                 help="Start time in UTC without tz. "
                                                      "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`"),
                  end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
-                 delta_hours: float = typer.Option(DEFAULT_TIME_DELTA_HOURS, "--delta", "-d",
+                 delta_hours: float = typer.Option(settings.time_delta_hours, "--delta", "-d",
                                                    help="hours in the past i.e start time = end_time - delta_hours"),
                  namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace")):
     """Load df from DB and save it to json"""

@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     pycpt_artefacts: Path = Path(pycpt_home, '../cpt_artefacts').resolve()
     sla_tables: Path = Path(pycpt_home, 'sla_tables')
     data: Path = Path(pycpt_artefacts, 'data')
+    prometheus_report_folder: Path = Path(pycpt_artefacts, 'prometheus')
 
 
 # singleton instance of the Settings class. Use this instead of creating your own instance.

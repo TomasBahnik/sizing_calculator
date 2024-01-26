@@ -12,7 +12,6 @@ from pydantic import BaseModel
 from prometheus import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
 from prometheus.prom_ql import strip_replace, extract_labels
 from prometheus.prompt_model import Target, PromExpression, Title, PromptExample
-from reports import PROMETHEUS_REPORT_FOLDER
 from shared.utils import check_file, list_files
 
 JSON_SUFFIX = ".json"
@@ -187,7 +186,8 @@ def match_metrics(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
     examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file,
                                                  contains=file_name_contains, ends_with=file_name_ends_with)
     # cpt.prometheus.commands.metrics with contains=None creates metrics_all.json
-    metrics_file: Path = Path(PROMETHEUS_REPORT_FOLDER, 'metrics', 'metrics_all.json')
+    from settings import settings
+    metrics_file: Path = Path(settings.prometheus_report_folder, 'metrics', 'metrics_all.json')
     if metrics_file.is_file():
         metrics_df: pd.DataFrame = pd.read_json(metrics_file)
         file_names, queries, static_labels, titles = prompt_lists(examples)

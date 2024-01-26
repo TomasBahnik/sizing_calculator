@@ -9,7 +9,7 @@ from pandas import DataFrame
 from prometheus import FILE, TITLE, QUERIES, STATIC_LABEL
 from prometheus.dashboards_analysis import JSON_SUFFIX, all_examples, prompt_lists
 from prometheus.prompt_model import PromptExample
-from reports import PROMETHEUS_REPORT_FOLDER
+from settings import settings
 
 app = typer.Typer()
 
@@ -31,7 +31,7 @@ def grafana_report(dashboards_folder: Path = typer.Option(..., "--folder", dir_o
     tmp_dict = {FILE: file_names, TITLE: titles, QUERIES: queries, STATIC_LABEL: static_labels}
     tmp_df = DataFrame(data=tmp_dict)
     tmp_df.sort_values(by=[FILE, TITLE], inplace=True, ignore_index=True)
-    base_path = Path(PROMETHEUS_REPORT_FOLDER, grafana_report.__name__)
+    base_path = Path(settings.prometheus_report_folder, grafana_report.__name__)
     os.makedirs(name=base_path, exist_ok=True)
     html_file = Path(base_path, f"{dashboards_folder.parts[-1]}_{file_name_contains}_{file_name_ends_with[1:]}.html")
     if dashboard_file:
@@ -68,7 +68,7 @@ def prom_expressions(dashboards_folder: Path = typer.Option(..., "--folder", dir
         for title in e.titles:
             # typer.echo(f'\title{title.name}: {len(title.queries)} queries')
             base_file_name = title.name.replace(' ', '_').replace('/', ' ')
-            base_path = Path(PROMETHEUS_REPORT_FOLDER,
+            base_path = Path(settings.prometheus_report_folder,
                              prom_expressions.__name__, dashboards_folder.parts[-1], bare_file_name)
             os.makedirs(base_path, exist_ok=True)
             f_n = Path(base_path, f"{base_file_name}.json").resolve()

@@ -10,8 +10,8 @@ import typer
 from metrics import DEFAULT_STEP_SEC
 from metrics.collector import TimeRange
 from prometheus.sla_model import SlaTable
-from reports import PROMETHEUS_REPORT_FOLDER
 from test_summary.model import TestDetails, TestSummary
+from settings import settings
 
 
 def sla_report_header(sla_table: SlaTable, time_range: TimeRange) -> str:
@@ -25,7 +25,7 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
     from shared.utils import DATE_TIME_FORMAT_FOLDER
     ft = time_range.from_time.strftime(DATE_TIME_FORMAT_FOLDER)
     tt = time_range.to_time.strftime(DATE_TIME_FORMAT_FOLDER)
-    folder = Path(PROMETHEUS_REPORT_FOLDER, sla_table.dbSchema, sla_table.tableName)
+    folder = Path(settings.prometheus_report_folder, sla_table.dbSchema, sla_table.tableName)
     os.makedirs(folder, exist_ok=True)
     html_file = Path(folder, f'{ft}_{tt}.html')
     msg = f"Writing reports to {html_file}"

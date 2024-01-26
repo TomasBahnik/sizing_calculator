@@ -1,4 +1,6 @@
 import unittest
+from pathlib import Path
+from typing import List
 
 import pandas as pd
 import pytest
@@ -29,5 +31,16 @@ class TestLimitRequest:
         assert max_limit_memory_mib == max_request_memory_mib
 
 
-if __name__ == '__main__':
-    unittest.main()
+@pytest.mark.unit
+class TestGrafanaDashboards:
+    def test_expressions_counts(self):
+        from prometheus.prompt_model import PromptExample
+        from prometheus.dashboards_analysis import all_examples
+        from shared import PYCPT_ARTEFACTS
+        examples: List[PromptExample] = all_examples(folder=Path(PYCPT_ARTEFACTS, 'dashboards'))
+        from prometheus.dashboards_analysis import prompt_lists
+        file_names, queries, static_labels, titles = prompt_lists(examples)
+        from prometheus import FILE, TITLE, QUERIES, STATIC_LABEL
+        tmp_dict = {FILE: file_names, TITLE: titles, QUERIES: queries, STATIC_LABEL: static_labels}
+        tmp_df = pd.DataFrame(data=tmp_dict)
+        assert len(tmp_df) == 930

@@ -100,7 +100,7 @@ class DataLoader:
         df.to_json(df_path)
 
     def load_df(self, sla_table: SlaTable) -> pd.DataFrame:
-        """Load df from json file"""
+        """Load df from json file named as table name and time range located in data folder"""
         filename = f'{sla_table.tableName}_{str(self.timeRange)}.json'
         df_path = Path(DATA_FOLDER, filename)
         if df_path.exists():

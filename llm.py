@@ -16,7 +16,7 @@ from prometheus.prompts import DEFAULT_MAX_TOKENS, DEFAULT_PREFIX, DEFAULT_PROM_
 
 app = typer.Typer()
 
-base_dev = 'https://ataopenaidev-us-east.openai.azure.com/'
+base_dev = os.getenv('LLM_API_URL')
 key_dev = os.getenv('LLM_API_KEY')
 
 
@@ -33,7 +33,6 @@ def init(key, base):
     os.environ["OPENAI_API_TYPE"] = "azure"
     os.environ["OPENAI_API_VERSION"] = '2023-05-15'
     os.environ["OPENAI_API_KEY"] = key
-    # os.environ["OPENAI_API_BASE"] = base
     os.environ["AZURE_OPENAI_ENDPOINT"] = base
 
 

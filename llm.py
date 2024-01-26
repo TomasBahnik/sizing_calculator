@@ -91,9 +91,9 @@ def title_queries(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
     llm = get_model(deployment=deployment, max_tokens=max_tokens, temperature=temperature)
     if llm:
         chain = LLMChain(llm=llm, prompt=prompt)
-        response: str = chain.run(query_title)
+        response: dict[str, str] = chain.invoke({"input": query_title})
         typer.echo(f'{"=" * 10} Response Start {"=" * 10}')
-        typer.echo(response)
+        typer.echo(response['text'])
         typer.echo(f'{"=" * 10} Response End {"=" * 10}')
     else:
         typer.echo(f"Unknown model {deployment}")

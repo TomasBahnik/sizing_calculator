@@ -36,8 +36,8 @@ class TestGrafanaDashboards:
     def test_expressions_counts(self):
         from prometheus.prompt_model import PromptExample
         from prometheus.dashboards_analysis import all_examples
-        from shared import PYCPT_ARTEFACTS
-        examples: List[PromptExample] = all_examples(folder=Path(PYCPT_ARTEFACTS, 'dashboards'))
+        from settings import settings
+        examples: List[PromptExample] = all_examples(folder=Path(settings.pycpt_artefacts, 'dashboards'))
         from prometheus.dashboards_analysis import prompt_lists
         file_names, queries, static_labels, titles = prompt_lists(examples)
         from prometheus import FILE, TITLE, QUERIES, STATIC_LABEL

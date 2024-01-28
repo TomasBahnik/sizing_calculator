@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List
 
 import typer
+from loguru import logger
 from pandas import DataFrame
 
 from prometheus import FILE, TITLE, QUERIES, STATIC_LABEL
@@ -36,7 +37,7 @@ def grafana_report(dashboards_folder: Path = typer.Option(..., "--folder", dir_o
     html_file = Path(base_path, f"{dashboards_folder.parts[-1]}_{file_name_contains}_{file_name_ends_with[1:]}.html")
     if dashboard_file:
         html_file = Path(f"{dashboards_folder.parts[-1]}_{dashboard_file}_{file_name_ends_with[1:]}.html")
-    typer.echo(f'Saving to {html_file.resolve()}')
+    logger.info(f'Saving to {html_file.resolve()}')
     tmp_df.to_html(html_file, index=True)
 
 

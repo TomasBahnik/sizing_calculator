@@ -54,7 +54,7 @@ def sizing_reports(start_time: str = typer.Option(None, "--start", "-s",
         memory = LimitsRequests(ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table)
         time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
         s_c = SizingCalculator(cpu=cpu, memory=memory, time_range=time_range)
-        typer.echo(f'Creating sizing reports for {namespace} and {time_range}')
+        logger.info(f'Creating sizing reports for {namespace} and {time_range}')
         common_folder = Path(NEW_SIZING_REPORT_FOLDER)
         report_folder = Path(common_folder)
         s_c.sizing_calc_all_reports(folder=report_folder, test_summary=None)
@@ -129,7 +129,7 @@ def load_metrics(
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     for portal_table in portal_tables:
-        typer.echo(f'Table: {portal_table.dbSchema}.{portal_table.tableName}, '
+        logger.info(f'Table: {portal_table.dbSchema}.{portal_table.tableName}, '
                    f'period: {time_range.from_time} - {time_range.to_time}')
         # new table for each Portal table
         all_series: List[pd.Series] = []
@@ -141,18 +141,18 @@ def load_metrics(
                                                                         namespaces=namespaces)
         step_sec: float = portal_table.stepSec
         for prom_query in replaced_pt.queries:
-            typer.echo(f'{prom_query.columnName}')
-            typer.echo(f'\tquery: {prom_query.query}')
+            logger.info(f'{prom_query.columnName}')
+            logger.info(f'\tquery: {prom_query.query}')
             df: pd.DataFrame = prom_collector.range_query(p_query=prom_query.query, step_sec=step_sec)
             if df.empty:
-                typer.echo(f'Query returns empty data. Continue')
+                logger.info(f'Query returns empty data. Continue')
                 continue
             sf_ser = sf_series(metric_df=df, grp_keys=grp_keys)
             all_series.append(sf_ser)
             all_columns.append(prom_query.columnName)
         # after concat, index stays the same, so we can extract common columns
         if not all_series:
-            typer.echo(f'No data after all queries. Continue')
+            logger.info(f'No data after all queries. Continue')
             continue
         all_data_df: pd.DataFrame = pd.concat(all_series, axis=1)
         all_data_df.columns = all_columns
@@ -161,7 +161,7 @@ def load_metrics(
         full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
         prom_save(dfs=[full_df], portal_table=portal_table)
         unique_ns = set(full_df[NAMESPACE_COLUMN])
-        typer.echo(f'shape: {full_df.shape}\n'
+        logger.info(f'shape: {full_df.shape}\n'
                    f'{len(unique_ns)} unique namespaces: {unique_ns}')
 
 
@@ -184,7 +184,7 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
     sla_tables: SlaTables = SlaTables(folder=folder)
     for sla_table in sla_tables.load_sla_tables():
         if len(sla_table.rules) == 0:
-            typer.echo(f'No rules in {sla_table.name}. Continue ..')
+            logger.info(f'No rules in {sla_table.name}. Continue ..')
             continue
         all_ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
         main_report: str = html.sla_report_header(sla_table=sla_table, time_range=time_range)
@@ -196,8 +196,8 @@ def eval_slas(start_time: str = typer.Option(None, "--start", "-s",
                 # number can be confusing in report
                 rule.limit_pct = limit_pct if rule.limit_pct else None
             for ns in namespaces:
-                typer.echo(f'namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, '
-                           f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
+                logger.info(f'namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, '
+                            f'limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}')
                 ns_df = all_ns_df[all_ns_df[NAMESPACE_COLUMN] == ns]
                 # when verify_integrity of indexes portal table specific keys are needed
                 rr = RatioRule(ns_df=ns_df, basic_rule=rule, keys=sla_table.tableKeys)
@@ -225,7 +225,7 @@ def load_save_df(start_time: str = typer.Option(None, "--start", "-s",
     sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader.save_df(sla_table=sla_table, namespace=namespace)
     df = data_loader.load_df(sla_table=sla_table)
-    typer.echo(f'Loaded {df.shape} from {data_loader.timeRange}')
+    logger.info(f'Loaded {df.shape} from {data_loader.timeRange}')
 
 
 if __name__ == "__main__":

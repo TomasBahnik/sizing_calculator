@@ -1,4 +1,3 @@
-import logging
 import re
 from pathlib import Path
 from typing import List, Optional, TypeVar, Dict, Tuple
@@ -7,6 +6,7 @@ import pandas as pd
 import typer
 from langchain.prompts import PromptTemplate, FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
+from loguru import logger
 from pydantic import BaseModel
 
 from prometheus import QUERIES, TITLE, LABEL, STATIC_LABEL, FILE
@@ -23,7 +23,6 @@ TEMPLATE_FIELDS = [TITLE, QUERIES, FILE, STATIC_LABEL]
 PROMPT_INPUT_VARIABLE = 'input'
 NO_TITLE = "no_title"
 app = typer.Typer()
-logger = logging.getLogger(__name__)
 
 
 class SubPanel(BaseModel):
@@ -65,8 +64,7 @@ def load_dashboards_from_files(folder: Path, filename: Optional[str] = None,
         dashboards: List[Path] = [dashboard_file]
     # fileName usually encodes info about module for private dashboards
     msg = f"Folder '{folder}', file '{filename}' : {len(dashboards)} files containing '{contains}' with suffix '{ends_with}'"
-    logger.info(msg=msg)
-    typer.echo(message=msg)
+    logger.info(msg)
     ret = list(zip([PromptExample(fileName=x) for x in dashboards],
                    [GrafanaDashboard.model_validate_json(json_data=dashboard_file.read_text())
                     for dashboard_file in dashboards]))

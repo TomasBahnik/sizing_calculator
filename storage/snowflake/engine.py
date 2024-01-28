@@ -1,8 +1,7 @@
-import logging
 import os
 
 import snowflake.connector
-import typer
+from loguru import logger
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
 from snowflake.connector.pandas_tools import pd_writer
@@ -12,8 +11,6 @@ from sqlalchemy.engine import Engine
 
 from storage.snowflake import DEFAULT_SCHEMA
 from storage.snowflake.queries import q_from_to_by_uuid
-
-logger = logging.getLogger(__name__)
 
 
 class SnowflakeEngine:
@@ -35,7 +32,7 @@ class SnowflakeEngine:
         return f"account {self.ACCOUNT}, schema {self.DATABASE}.{self.schema}"
 
     def close(self):
-        typer.echo(f"Closing sf engine")
+        logger.info("Closing sf engine")
         self.connection.close()
         self.sf_engine.dispose()
 
@@ -60,7 +57,7 @@ class SnowflakeEngine:
         # Specify that the to_sql method should use the pd_writer function
         # to write the data from the DataFrame to the table named "stats"
         # in the Snowflake database.
-        typer.echo(f"Writing to table : {self.DATABASE}.{self.schema}.{table.upper()}")
+        logger.info(f"Writing to table : {self.DATABASE}.{self.schema}.{table.upper()}")
         # noinspection PyTypeChecker
         df.to_sql(name=table, con=self.sf_engine, index=False, method=pd_writer, if_exists='append')
 

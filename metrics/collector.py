@@ -1,18 +1,16 @@
 from __future__ import annotations
 
 import datetime
-import logging
 from typing import Optional, List, Tuple, Dict
 
 import pandas as pd
 import pytz
+from loguru import logger
 from prometheus_pandas import query
 
 from metrics import GIBS, MIBS, NON_EMPTY_LABEL
 from metrics.prom_ql.queries import sum_irate
 from settings import settings
-
-logger = logging.getLogger(__name__)
 
 
 def mem_gibs(df: pd.DataFrame) -> pd.DataFrame:

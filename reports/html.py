@@ -6,6 +6,7 @@ from typing import Dict, List, Optional
 
 import pandas as pd
 import typer
+from loguru import logger
 
 from metrics.collector import TimeRange
 from prometheus.sla_model import SlaTable
@@ -58,7 +59,7 @@ def sizing_calc_report(time_range: TimeRange, test_details: TestDetails,
         if test_summary is None else sizing_calc_summary_header(test_summary) + "<br/>" + sizing_calc_report_header(test_details, time_range)
     path = Path(folder, file_name)
     msg = f'Saving report to {path.resolve()}'
-    typer.echo(msg)
+    logger.info(msg)
     with open(path, 'w') as f:
         f.write(report_header + ("<br/>" + data.to_html() + "<hr>"))
 

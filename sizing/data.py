@@ -13,6 +13,7 @@ from settings import settings
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
+from loguru import logger
 
 time_delta = pd.Timedelta(seconds=1)
 cpu_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now()],
@@ -31,8 +32,6 @@ mem_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now
             MEMORY_RESOURCE.measured: [6 * MIBS, 7 * MIBS]}
 MEM_DF = pd.DataFrame(mem_data)
 DATA_FOLDER = Path(settings.pycpt_artefacts, 'data')
-
-logger = logging.getLogger(__name__)
 
 
 class DataLoader:
@@ -60,7 +59,6 @@ class DataLoader:
             table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys
             q = self.time_range_query(table_name=table_name)
             msg = f'Snowflake table: {sf.schema}.{table_name}, {self.timeRange}'
-            typer.echo(message=msg)
             logger.info(msg)
             df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
             dedup_df = df.drop_duplicates(subset=table_keys)

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import logging
 import os
 from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 import typer
+from loguru import logger
 
 from metrics import CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
     POD_BASIC_RESOURCES_TABLE
@@ -20,8 +20,6 @@ from sizing.rules import PrometheusRules
 from test_summary.model import TestDetails, TestSummary
 
 NEW_SIZING_REPORT_FOLDER = Path(settings.pycpt_artefacts, 'new_sizing')
-
-logger: logging.Logger = logging.getLogger(__name__)
 
 
 class Resource:
@@ -199,7 +197,7 @@ class SizingCalculator:
         os.makedirs(folder, exist_ok=True)
         file_name = f'new_sizing_{str(self.time_range)}.json'
         path = Path(folder, file_name)
-        typer.echo(f'Saving new sizing to {path}')
+        logger.info(f'Saving new sizing to {path}')
         n_s = self.new_sizing()
         n_s.to_json(path, orient='index', indent=2)
 
@@ -223,7 +221,7 @@ def save_new_sizing(all_test_sizing: List[pd.DataFrame],
     if len(all_test_sizing) > 0:
         new_sizings = pd.concat(all_test_sizing).groupby(CONTAINER_COLUMN).max()
         os.makedirs(folder, exist_ok=True)
-        typer.echo(f'Saving new sizings to {folder}')
+        logger.info(f'Saving new sizings to {folder}')
         new_sizings_report = sizing_calc_summary_header(test_summary) + "<br/>" + new_sizings.to_html() \
             if test_summary else new_sizings.to_html()
         with open(Path(folder, 'new_sizings.html'), 'w') as f:
@@ -239,7 +237,7 @@ def sizing_ini(new_sizings: pd.DataFrame, folder: Path):
     os.makedirs(folder, exist_ok=True)
     file_name = 'new_sizing.ini'
     path = Path(folder, file_name)
-    typer.echo(f'Saving new sizing to {path}')
+    logger.info(f'Saving new sizing to {path}')
     import configparser
     config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     # case-sensitive keys

@@ -1,9 +1,10 @@
-import logging
+from pathlib import Path
 from pathlib import Path
 from typing import List
 
 import pandas as pd
 import typer
+from loguru import logger
 
 import metrics
 from metrics import PROMETHEUS_URL, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
@@ -20,7 +21,6 @@ from sizing.data import DataLoader
 from sizing.rules import RatioRule
 from test_summary.model import TestSummary
 
-logger: logging.Logger = logging.getLogger(__name__)
 app = typer.Typer()
 
 
@@ -140,7 +140,6 @@ def load_metrics(
         replaced_pt: SlaTable = portal_prometheus.replace_portal_labels(portal_table=portal_table,
                                                                         labels=DEFAULT_LABELS,
                                                                         namespaces=namespaces)
-        #  default = DEFAULT_STEP_SEC
         step_sec: float = portal_table.stepSec
         for prom_query in replaced_pt.queries:
             typer.echo(f'{prom_query.columnName}')

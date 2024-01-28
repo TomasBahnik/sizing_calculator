@@ -1,8 +1,8 @@
-import logging
 from typing import List, Set, Dict, Optional
 
 import pandas as pd
 import typer
+from loguru import logger
 from pandas import DataFrame
 
 from metrics import TIMESTAMP_COLUMN, NAMESPACE_COLUMN, CONTAINER_COLUMN, POD_COLUMN
@@ -25,10 +25,9 @@ CPU_CORE = 'CPU_CORE'
 MEMORY_REQUEST_BYTE = 'MEMORY_REQUEST_BYTE'
 MEMORY_LIMIT_BYTE = 'MEMORY_LIMIT_BYTE'
 DEFAULT_TIME_DELTA_HOURS = 1
+
+
 # TIMESTAMP_COLUMN = 'TIMESTAMP'
-
-
-logger = logging.getLogger(__name__)
 
 
 class RatioRule:
@@ -365,8 +364,8 @@ class PrometheusRules:
             table_name = self.sla_table.tableName
             table_keys = [TIMESTAMP_COLUMN] + self.sla_table.tableKeys
             q = self.time_range_query(table_name=table_name)
-            typer.echo(f'Snowflake table: {sf.schema}.{table_name}, '
-                       f'range: {self.timeRange.from_time} - {self.timeRange.to_time}')
+            logger.info(f'Snowflake table: {sf.schema}.{table_name}, '
+                        f'range: {self.timeRange.from_time} - {self.timeRange.to_time}')
             df: DataFrame = dataframe.get_df(query=q, con=sf.connection)
             dedup_df = df.drop_duplicates(subset=table_keys)
             removed = len(df) - len(dedup_df)

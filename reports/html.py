@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import pandas as pd
-import typer
 from loguru import logger
 
 from metrics.collector import TimeRange
@@ -29,7 +28,7 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
     os.makedirs(folder, exist_ok=True)
     html_file = Path(folder, f'{ft}_{tt}.html')
     msg = f"Writing reports to {html_file}"
-    typer.echo(msg)
+    logger.info(msg)
     with open(html_file, "w") as file:
         file.write(main_report)
 

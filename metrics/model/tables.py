@@ -1,14 +1,10 @@
-import logging
 from pathlib import Path
 from typing import Optional, List
-
-import typer
+from loguru import logger
 
 from prometheus.sla_model import SlaTable
 from settings import settings
 from shared.utils import list_files
-
-logger = logging.getLogger(__name__)
 
 
 class SlaTables:
@@ -65,6 +61,6 @@ class SlaTables:
                 use_labels = use_labels + ',' + static_labels
             prom_query.query = prom_query.query.replace('labels', use_labels)
             if debug:
-                typer.echo(f'{prom_query.columnName}')
-                typer.echo(f'query          : {prom_query.query}')
+                logger.info(f'{prom_query.columnName}')
+                logger.info(f'query          : {prom_query.query}')
         return portal_table

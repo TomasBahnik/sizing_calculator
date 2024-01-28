@@ -63,17 +63,17 @@ def prom_expressions(dashboards_folder: Path = typer.Option(..., "--folder", dir
     examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file,
                                                  contains=file_name_contains, ends_with=file_name_ends_with)
     for e in examples:
-        typer.echo(f'{e.fileName}')
+        logger.info(f'{e.fileName}')
         bare_file_name = e.fileName.parts[-1].split('.')[0]
         #  instance of cpt.prometheus.prompt_model.Title
         for title in e.titles:
-            # typer.echo(f'\title{title.name}: {len(title.queries)} queries')
+            # logger.info(f'\title{title.name}: {len(title.queries)} queries')
             base_file_name = title.name.replace(' ', '_').replace('/', ' ')
             base_path = Path(settings.prometheus_report_folder,
                              prom_expressions.__name__, dashboards_folder.parts[-1], bare_file_name)
             os.makedirs(base_path, exist_ok=True)
             f_n = Path(base_path, f"{base_file_name}.json").resolve()
-            typer.echo(f'Saving {f_n}')
+            logger.info(f'Saving {f_n}')
             with open(f_n, "w") as json_file:
                 json.dump(title.model_dump(), json_file, indent=4)
 

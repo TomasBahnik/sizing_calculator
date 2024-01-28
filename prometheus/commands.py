@@ -1,9 +1,8 @@
-import logging
 from typing import List, Tuple
 
 import pandas as pd
-import typer
 import urllib3
+from loguru import logger
 
 import metrics
 from metrics import TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
@@ -17,7 +16,7 @@ from storage.snowflake.engine import SnowflakeEngine
 METRICS = 'metrics'
 DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
 
-logger = logging.getLogger(__name__)
+
 urllib3.disable_warnings()
 
 
@@ -29,7 +28,7 @@ def prom_save(dfs: List[pd.DataFrame], portal_table: SlaTable):
         # UserWarning: The provided table name ... is not found exactly as such in the database after writing
         # the table, possibly due to case sensitivity issues. Consider using lower case table names
         table = portal_table.tableName.lower()
-        typer.echo(f'Saving {len(dfs)} DataFrames to {table.upper()}')
+        logger.info(f'Saving {len(dfs)} DataFrames to {table.upper()}')
         for df in dfs:
             sf.write_df(df=df, table=table)
     finally:
@@ -106,7 +105,7 @@ def last_timestamp(table_names: List[str], namespace: str):
             df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
             max_timestamps = df[column_name].values
             assert len(max_timestamps) == 1
-            typer.echo(f'Last update: {table_name}.{namespace}: {max_timestamps[0]}')
+            logger.info(f'Last update: {table_name}.{namespace}: {max_timestamps[0]}')
             # return str(max_timestamps[0])
     finally:
         sf.sf_engine.dispose()

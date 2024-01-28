@@ -197,11 +197,11 @@ def match_metrics(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
                 q = "".join(q.split())
                 matches = re.findall(pattern, q)
                 if matches:
-                    typer.echo(f'match groups : {matches}')
+                    logger.info(f'match groups : {matches}')
                 #  add opening (
                 if f'({am}' in q:
                     am_used = True
-            typer.echo(f'{am} used {am_used}')
+            logger.info(f'{am} used {am_used}')
 
 
 if __name__ == "__main__":

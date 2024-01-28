@@ -1,7 +1,6 @@
 from typing import List, Set, Dict, Optional
 
 import pandas as pd
-import typer
 from loguru import logger
 from pandas import DataFrame
 
@@ -133,7 +132,7 @@ class RatioRule:
             for t in cp_tuples:
                 cp_idx[t] = c_p_df[(c_p_df[CONTAINER_COLUMN] == t[0]) & (c_p_df[POD_COLUMN] == t[1])].index
         except KeyError as key:
-            typer.echo(f'\t No {key}: in {self.basic_rule.resource}. Return empty dict')
+            logger.info(f'\t No {key}: in {self.basic_rule.resource}. Return empty dict')
         return cp_idx
 
     def resource_values(self) -> pd.Series:
@@ -370,7 +369,7 @@ class PrometheusRules:
             dedup_df = df.drop_duplicates(subset=table_keys)
             removed = len(df) - len(dedup_df)
             if removed > 0:
-                typer.echo(f'Removed {removed} duplicates by {table_keys}')
+                logger.info(f'Removed {removed} duplicates by {table_keys}')
             return dedup_df
         finally:
             sf.sf_engine.dispose()
@@ -385,7 +384,7 @@ class PrometheusRules:
         if namespace in all_ns:
             return [namespace]
         else:
-            typer.echo(f'{namespace} not found in {all_ns}. Return all')
+            logger.info(f'{namespace} not found in {all_ns}. Return all')
         return all_ns
 
     def ns_df(self, namespace: str):

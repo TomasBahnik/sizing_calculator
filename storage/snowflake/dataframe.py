@@ -1,6 +1,6 @@
 import pandas as pd
 import pytz
-import typer
+from loguru import logger
 from pandas import DataFrame, Series
 from snowflake.connector import SnowflakeConnection
 
@@ -43,7 +43,7 @@ def dedup_df(query: str, con: SnowflakeConnection) -> DataFrame:
     #  potentially changed behavior because of default drop duplicates
     df: DataFrame = get_df(con=con, query=query)
     if df.empty:
-        typer.echo(f"Empty dataframe for query: {query}")
+        logger.info(f"Empty dataframe for query: {query}")
         exit(3)
     df_dedup = df.drop_duplicates(subset=[TEST_ENV_KEY, END_ISO_TIME])
     return df_dedup

@@ -8,6 +8,7 @@ from langchain.chains import LLMChain
 from langchain.prompts import FewShotPromptTemplate
 from langchain_openai import AzureChatOpenAI
 from langchain_openai import AzureOpenAI
+from loguru import logger
 
 from prometheus import TITLE, QUERIES, FILE, deployment_name_4, deployment_name_35, DEFAULT_TEMPERATURE, DEPLOYMENT_HELP
 from prometheus.dashboards_analysis import all_examples, prompt_lists, shot_examples
@@ -48,9 +49,9 @@ def few_shot_prompt(dashboards_folder: Path, dashboard_file: str, max_length: in
     prompt_template: FewShotPromptTemplate = shot_examples(fse=fse, num_examples=max_length,
                                                            prefix=prefix)
     if debug:
-        typer.echo(f'{"=" * 10} Few Shot Prompt Start {"=" * 10}')
-        typer.echo(f'{prompt_template.format(input=query_title)}')
-        typer.echo(f'{"=" * 10} Few Shot Prompt End {"=" * 10}\n')
+        logger.info(f'{"=" * 10} Few Shot Prompt Start {"=" * 10}')
+        logger.info(f'{prompt_template.format(input=query_title)}')
+        logger.info(f'{"=" * 10} Few Shot Prompt End {"=" * 10}\n')
     return prompt_template
 
 
@@ -86,16 +87,16 @@ def title_queries(dashboards_folder: Path = typer.Option(..., "--folder", dir_ok
                                                     dashboard_file=dashboard_file,
                                                     max_length=max_length, prefix=prefix,
                                                     debug=show_prompt, query_title=query_title)
-    typer.echo(f"{deployment}: {query_title}")
+    logger.info(f"{deployment}: {query_title}")
     llm = get_model(deployment=deployment, max_tokens=max_tokens, temperature=temperature)
     if llm:
         chain = LLMChain(llm=llm, prompt=prompt)
         response: dict[str, str] = chain.invoke({"input": query_title})
-        typer.echo(f'{"=" * 10} Response Start {"=" * 10}')
-        typer.echo(response['text'])
-        typer.echo(f'{"=" * 10} Response End {"=" * 10}')
+        logger.info(f'{"=" * 10} Response Start {"=" * 10}')
+        logger.info(response['text'])
+        logger.info(f'{"=" * 10} Response End {"=" * 10}')
     else:
-        typer.echo(f"Unknown model {deployment}")
+        logger.info(f"Unknown model {deployment}")
 
 
 if __name__ == "__main__":

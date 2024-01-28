@@ -59,6 +59,5 @@ def q_notion(columns: List[str], table: str, connection: SnowflakeConnection) ->
     from_clause = f"FROM DWH_PROD.NOTION.{table}"
     orderby_clause = f"ORDER BY {PERIOD_UTC_COLUMN}"
     query = f"{select_clause} {from_clause} {orderby_clause}"
-    # typer.echo(f"query : {query}")
     df: DataFrame = connection.cursor().execute(query).fetch_pandas_all()
     return df[df[UUID_COLUMN].notnull()]

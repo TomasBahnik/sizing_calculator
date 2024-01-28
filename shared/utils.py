@@ -1,4 +1,3 @@
-import logging
 import os
 import socket
 import subprocess
@@ -6,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
 
-import typer
+from loguru import logger
 
 DATE_TIME_FORMAT_FOLDER = "%Y-%m-%dT%H-%M-%S%z"
 
@@ -57,7 +56,7 @@ def archive_folder(src_path: Path, dest_path: Path, dest_base_file_name: str):
     dest_file_name = Path(str(dest_base_file_name) + "-" + dt + ".tar.gz")
     full_archive_path: Path = Path(dest_path, dest_file_name).resolve()
     msg = f"Archive '{last_folder}' from {path_before_last_folder} to {full_archive_path}"
-    log_console(message=msg)
+    logger.info(msg)
     # -C change dir to second to last backup dir and archive only this one
     cmd = ['tar', '-C', str(path_before_last_folder), '-czf', str(full_archive_path), last_folder]
     p = subprocess.run(cmd)
@@ -86,15 +85,6 @@ def os_info():
     # On WSL os.getlogin() return FileNotFoundError: [Errno 2] No such file or directory
     except FileNotFoundError:
         return f"OS:{os.name} host:{socket.gethostname()}"
-
-
-def log_console(message, current_logger: logging.Logger = None, error: bool = False):
-    typer.echo(message=f'{time_stamp()} : {message}')
-    if current_logger is not None:
-        if error:
-            current_logger.error(msg=message)
-        else:
-            current_logger.info(msg=message)
 
 
 def find_chars_in_str(s: str, ch) -> List[int]:

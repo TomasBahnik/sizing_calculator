@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
-import typer
 from loguru import logger
 
 from metrics import CONTAINER_COLUMN, MIBS, TIMESTAMP_COLUMN, NAMESPACE_COLUMN, \
@@ -229,7 +228,7 @@ def save_new_sizing(all_test_sizing: List[pd.DataFrame],
         # new_sizings.to_json(Path(folder, 'new_sizings.json'), orient='index', indent=2)
         sizing_ini(new_sizings, folder)
     if len(all_test_sizing) == 0:
-        typer.echo(f'No df appended to `all_test_sizing`')
+        logger.info(f'No df appended to `all_test_sizing`')
 
 
 def sizing_ini(new_sizings: pd.DataFrame, folder: Path):

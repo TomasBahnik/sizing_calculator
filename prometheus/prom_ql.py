@@ -99,8 +99,6 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
                 new_label = True
                 prom_query.labels.append(label)
                 label_name = f'(label_{len(prom_query.labels)})'
-                # typer.echo(f'label: {label}')
-                # replace labels in query
                 prom_query.query = prom_query.query.replace(label, label_name)
                 sls: str = static_labels(label=label)
                 prom_query.staticLabels.append(sls)

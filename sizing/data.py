@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 import pandas as pd
-import typer
 from loguru import logger
 
 from metrics import TIMESTAMP_COLUMN, CONTAINER_COLUMN, POD_COLUMN, MIBS, NAMESPACE_COLUMN
@@ -64,7 +63,6 @@ class DataLoader:
             removed = len(df) - len(dedup_df)
             if removed > 0:
                 msg = f'Removed {removed} duplicates from {table_name}'
-                typer.echo(message=msg)
                 logger.info(msg)
             return dedup_df
         finally:
@@ -91,7 +89,6 @@ class DataLoader:
         filename = f'{sla_table.tableName}_{str(self.timeRange)}.json'
         df_path = Path(DATA_FOLDER, filename)
         msg = f'Save df with shape {df.shape} to {df_path}'
-        typer.echo(message=msg)
         logger.info(msg)
         os.makedirs(df_path.parent, exist_ok=True)
         df.to_json(df_path)
@@ -102,7 +99,6 @@ class DataLoader:
         df_path = Path(DATA_FOLDER, filename)
         if df_path.exists():
             msg = f'Load df from {df_path}'
-            typer.echo(message=msg)
             logger.info(msg)
             return pd.read_json(df_path)
         else:

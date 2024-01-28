@@ -1,10 +1,10 @@
-import logging
 import os
 from pathlib import Path
 from typing import Optional, Tuple
 
 import pandas as pd
 import typer
+from loguru import logger
 
 from metrics import TIMESTAMP_COLUMN, CONTAINER_COLUMN, POD_COLUMN, MIBS, NAMESPACE_COLUMN
 from metrics.collector import TimeRange
@@ -13,7 +13,6 @@ from settings import settings
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
-from loguru import logger
 
 time_delta = pd.Timedelta(seconds=1)
 cpu_data = {TIMESTAMP_COLUMN: [pd.Timestamp.now() - time_delta, pd.Timestamp.now()],

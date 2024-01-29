@@ -1,16 +1,22 @@
+from __future__ import annotations
+
 import os
 import socket
 import subprocess
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
 
 from loguru import logger
 
+
 DATE_TIME_FORMAT_FOLDER = "%Y-%m-%dT%H-%M-%S%z"
 
 
-def list_files(folder: Path, ends_with: str = '.txt', contains: Optional[str] = None) -> List[Path]:
+def list_files(
+    folder: Path, ends_with: str = ".txt", contains: Optional[str] = None
+) -> List[Path]:
     """
     traverse root directory, and list directories as dirs and files as files
     finds files or roots which contain `contains` string and ends_with `ends_with` string
@@ -19,7 +25,9 @@ def list_files(folder: Path, ends_with: str = '.txt', contains: Optional[str] = 
     for root, dirs, files in os.walk(folder):
         for file in files:
             cond_ends = file.endswith(ends_with)
-            cond_contains = True if contains is None else (contains in file or contains in root)
+            cond_contains = (
+                True if contains is None else (contains in file or contains in root)
+            )
             condition = cond_ends and cond_contains
             if condition:
                 l_f = Path(root, file)
@@ -31,7 +39,7 @@ def files_containing(files: List[Path] | Set[Path], contains: str):
     ret: List[Path] = []
     for file in files:
         #  for windows utf-8 explicitly
-        f = open(file=file, encoding='utf-8', mode='r')
+        f = open(file=file, encoding="utf-8", mode="r")
         if contains in f.read():
             ret.append(file)
         f.close()
@@ -39,7 +47,7 @@ def files_containing(files: List[Path] | Set[Path], contains: str):
 
 
 def time_stamp(date_time_format: str = DATE_TIME_FORMAT_FOLDER) -> str:
-    """ default format suitable for directory name"""
+    """default format suitable for directory name"""
     return datetime.now(timezone.utc).strftime(date_time_format)
 
 
@@ -55,10 +63,19 @@ def archive_folder(src_path: Path, dest_path: Path, dest_base_file_name: str):
     os.makedirs(dest_path, exist_ok=True)
     dest_file_name = Path(str(dest_base_file_name) + "-" + dt + ".tar.gz")
     full_archive_path: Path = Path(dest_path, dest_file_name).resolve()
-    msg = f"Archive '{last_folder}' from {path_before_last_folder} to {full_archive_path}"
+    msg = (
+        f"Archive '{last_folder}' from {path_before_last_folder} to {full_archive_path}"
+    )
     logger.info(msg)
     # -C change dir to second to last backup dir and archive only this one
-    cmd = ['tar', '-C', str(path_before_last_folder), '-czf', str(full_archive_path), last_folder]
+    cmd = [
+        "tar",
+        "-C",
+        str(path_before_last_folder),
+        "-czf",
+        str(full_archive_path),
+        last_folder,
+    ]
     p = subprocess.run(cmd)
     return p
 
@@ -100,8 +117,9 @@ def find_chars_in_str(s: str, ch) -> List[int]:
 
 def basic_auth(username: str, password: str) -> str:
     import base64
-    auth = f'{username}:{password}'
-    auth_bytes = auth.encode('utf-8')
+
+    auth = f"{username}:{password}"
+    auth_bytes = auth.encode("utf-8")
     auth_b64 = base64.b64encode(auth_bytes)
     ret = f"Basic {auth_b64.decode('utf-8')}"
     return ret

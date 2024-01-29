@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import datetime
-from typing import Optional, List, Tuple, Dict
+
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import pytz
+
 from loguru import logger
 from prometheus_pandas import query
 
@@ -22,30 +24,43 @@ def mem_mibs(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class TimeRange:
-    def __init__(self, start_time: Optional[str] = None, end_time: Optional[str] = None,
-                 delta_hours: float = settings.time_delta_hours):
+    def __init__(
+        self,
+        start_time: Optional[str] = None,
+        end_time: Optional[str] = None,
+        delta_hours: float = settings.time_delta_hours,
+    ):
         """
         :param start_time: fixed start time. If None, start_time = end_time - delta
         :param end_time: fixed end time. If None, end_time = now in GMT
         :param delta_hours: interval in past in hours from now
         """
         # rounded to minutes down - do not ask for future
-        self.to_time = pd.Timestamp(ts_input=end_time, tz=pytz.UTC) if end_time \
-            else pd.Timestamp.now(tz=pytz.UTC).floor('T')
-        self.from_time = pd.Timestamp(ts_input=start_time, tz=pytz.UTC) if start_time \
+        self.to_time = (
+            pd.Timestamp(ts_input=end_time, tz=pytz.UTC)
+            if end_time
+            else pd.Timestamp.now(tz=pytz.UTC).floor("T")
+        )
+        self.from_time = (
+            pd.Timestamp(ts_input=start_time, tz=pytz.UTC)
+            if start_time
             else self.to_time - pd.Timedelta(hours=delta_hours)
+        )
 
     @classmethod
-    def from_timestamps(cls, from_time: datetime.datetime, to_time: datetime.datetime) -> TimeRange:
+    def from_timestamps(
+        cls, from_time: datetime.datetime, to_time: datetime.datetime
+    ) -> TimeRange:
         """Create TimeRange from two timestamps"""
         return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 
-    def __format__(self, format_spec=''):
-        return f'period: {self.from_time.isoformat()} - {self.to_time.isoformat()}'
+    def __format__(self, format_spec=""):
+        return f"period: {self.from_time.isoformat()} - {self.to_time.isoformat()}"
 
     def __str__(self):
         from shared.utils import DATE_TIME_FORMAT_FOLDER
-        return f'{self.from_time.strftime(DATE_TIME_FORMAT_FOLDER)}_{self.to_time.strftime(DATE_TIME_FORMAT_FOLDER)}'
+
+        return f"{self.from_time.strftime(DATE_TIME_FORMAT_FOLDER)}_{self.to_time.strftime(DATE_TIME_FORMAT_FOLDER)}"
 
 
 class PrometheusCollector:
@@ -54,11 +69,15 @@ class PrometheusCollector:
         self.promQuery = query.Prometheus(url)
         self.timeRange: TimeRange = time_range
 
-    def __format__(self, format_spec=''):
-        return f'url: {self.promQuery.api_url}\n' \
-               f'period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n'
+    def __format__(self, format_spec=""):
+        return (
+            f"url: {self.promQuery.api_url}\n"
+            f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n"
+        )
 
-    def range_query(self, p_query: str, step_sec: float = settings.step_sec) -> pd.DataFrame:
+    def range_query(
+        self, p_query: str, step_sec: float = settings.step_sec
+    ) -> pd.DataFrame:
         """
         Time range query
         :param p_query: Prometheus expression
@@ -66,11 +85,17 @@ class PrometheusCollector:
         :return: DataFrame with values of query
         """
         logger.info(p_query)
-        df: pd.DataFrame = self.promQuery.query_range(query=p_query, start=self.timeRange.from_time,
-                                                      end=self.timeRange.to_time, step=step_sec)
+        df: pd.DataFrame = self.promQuery.query_range(
+            query=p_query,
+            start=self.timeRange.from_time,
+            end=self.timeRange.to_time,
+            step=step_sec,
+        )
         return df
 
-    def container_cpu_portal(self, namespace: str, grp_keys: List[str], rate_interval: str) -> pd.DataFrame:
+    def container_cpu_portal(
+        self, namespace: str, grp_keys: List[str], rate_interval: str
+    ) -> pd.DataFrame:
         """
         CPU of pods in given namespaces grouped by grp_keys
         :param grp_keys: keys names separated by ',' without parenthesis
@@ -79,8 +104,13 @@ class PrometheusCollector:
         :return:
         """
         portal_pod_cpu_metric: str = "container_cpu_usage_seconds_total"
-        q = sum_irate(metric=portal_pod_cpu_metric, containers=NON_EMPTY_LABEL,
-                      namespace=namespace, grp_keys=grp_keys, rate_interval=rate_interval)
+        q = sum_irate(
+            metric=portal_pod_cpu_metric,
+            containers=NON_EMPTY_LABEL,
+            namespace=namespace,
+            grp_keys=grp_keys,
+            rate_interval=rate_interval,
+        )
         return self.range_query(p_query=q)
 
 
@@ -94,18 +124,20 @@ def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:
 
 def df_tuple_columns(grp_keys: List[str], raw_df):
     # covert string column names to tuples corresponding to grp_keys
-    tuple_columns: List[Tuple[str, ...]] = [col_tuple(str(c), grp_keys) for c in raw_df.columns]
+    tuple_columns: List[Tuple[str, ...]] = [
+        col_tuple(str(c), grp_keys) for c in raw_df.columns
+    ]
     raw_df.columns = tuple_columns
 
 
 def col_dict(column_name: str, grp_keys: List[str]) -> dict:
-    """Convert columns names returned by range query with grp keys to dict. """
-    column_name = column_name.replace('=', ':')
+    """Convert columns names returned by range query with grp keys to dict."""
+    column_name = column_name.replace("=", ":")
     for key in grp_keys:
-        column_name = column_name.replace(key, f'\"{key}\"')
-    parts = column_name.split(',')
+        column_name = column_name.replace(key, f'"{key}"')
+    parts = column_name.split(",")
     filtered_parts = [p for p in parts if any([gk in p for gk in grp_keys])]
-    column_name: str = ','.join(filtered_parts)
+    column_name: str = ",".join(filtered_parts)
     # add ending } in case when there is more grp keys
-    column_name = column_name if column_name.endswith('}') else column_name + '}'
+    column_name = column_name if column_name.endswith("}") else column_name + "}"
     return eval(column_name)

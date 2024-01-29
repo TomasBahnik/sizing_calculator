@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 from typing import List, Tuple
 
-from shared.utils import find_chars_in_str
 from prometheus.prompt_model import PromExpression
+from shared.utils import find_chars_in_str
 
 
 def static_labels(label: str) -> str:
     # slice to remove '{' and '}'
     label_items: str = label[1:-1]
     lbl_list = label_items.split(",")
-    all_static_labels = [lbl.strip() for lbl in lbl_list if '$' not in lbl]
-    return ','.join(all_static_labels)
+    all_static_labels = [lbl.strip() for lbl in lbl_list if "$" not in lbl]
+    return ",".join(all_static_labels)
 
 
 def count_labels(query: str, counter: int = 0):
@@ -20,7 +22,7 @@ def count_labels(query: str, counter: int = 0):
         return counter
     counter += 1
     # continue with the rest of string
-    new_query = query[right_cb + 1:]
+    new_query = query[right_cb + 1 :]
     return count_labels(new_query, counter=counter)
 
 
@@ -46,7 +48,7 @@ def prom_labels(prom_query: PromExpression, start: int = 0) -> PromExpression:
         return prom_query
     # else block is not necessary
     # slice to extract label incl. '{' and '}'
-    label = prom_query.expr[left_cb: right_cb + 1]
+    label = prom_query.expr[left_cb : right_cb + 1]
     sls = static_labels(label=label)
     prom_query.labels.append(label)
     # noinspection PyTypeChecker
@@ -64,21 +66,29 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
     TODO based on [${__range_s}s] `__range_s` is classified as static label use `[` and `]`
     to distinguish from real label
     """
-    left_cbs: List[int] = find_chars_in_str(prom_query.expr, '{')
-    right_cbs: List[int] = find_chars_in_str(prom_query.expr, '}')
+    left_cbs: List[int] = find_chars_in_str(prom_query.expr, "{")
+    right_cbs: List[int] = find_chars_in_str(prom_query.expr, "}")
     if left_cbs and right_cbs:
         if len(right_cbs) != len(left_cbs):
-            raise ValueError(f"{len(right_cbs)} != {len(left_cbs)}: Count of left and right curly braces does not match")
+            raise ValueError(
+                f"{len(right_cbs)} != {len(left_cbs)}: Count of left and right curly braces does not match"
+            )
         first_left_cb = left_cbs[0]
         last_right_cb = right_cbs[-1]
         if not any(y > first_left_cb for y in right_cbs):
-            raise ValueError(f'Some of right cb < first left cb {right_cbs} < {first_left_cb} ')
+            raise ValueError(
+                f"Some of right cb < first left cb {right_cbs} < {first_left_cb} "
+            )
         if not any(y < last_right_cb for y in left_cbs):
-            raise ValueError(f'Some of left cb > last right cb {left_cbs} > {last_right_cb} ')
+            raise ValueError(
+                f"Some of left cb > last right cb {left_cbs} > {last_right_cb} "
+            )
         left_tuples: List[Tuple[int, int]] = [(idx, LEFT_CB) for idx in left_cbs]
         right_tuples: List[Tuple[int, int]] = [(idx, RIGHT_CB) for idx in right_cbs]
         #  sort by index
-        all_tuples: List[Tuple[int, int]] = sorted(left_tuples + right_tuples, key=lambda x: x[0])
+        all_tuples: List[Tuple[int, int]] = sorted(
+            left_tuples + right_tuples, key=lambda x: x[0]
+        )
         count = 0
         left_cb = left_tuples[0][0]
         new_label: bool = True
@@ -98,7 +108,7 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
                 label = prom_query.expr[left_cb:right_cb]
                 new_label = True
                 prom_query.labels.append(label)
-                label_name = f'(label_{len(prom_query.labels)})'
+                label_name = f"(label_{len(prom_query.labels)})"
                 prom_query.query = prom_query.query.replace(label, label_name)
                 sls: str = static_labels(label=label)
                 prom_query.staticLabels.append(sls)
@@ -108,7 +118,7 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
 
 
 def remove_inner_cbs(prom_query):
-    """ When searching for labels the nested curly braces {} around dynamic labels e.g.
+    """When searching for labels the nested curly braces {} around dynamic labels e.g.
     kube_pod_info{namespace=~"${namespace}", pod=~"${pod}", deploymentType=~"${deploymentType}"}"
     are problem so remove them first
 
@@ -116,10 +126,10 @@ def remove_inner_cbs(prom_query):
     [${__range_s}s]
     """
     tmp_expr = prom_query.expr
-    if '${' in tmp_expr:
-        tmp_expr = tmp_expr.replace('${', '$')
+    if "${" in tmp_expr:
+        tmp_expr = tmp_expr.replace("${", "$")
         tmp_expr = tmp_expr.replace('}"', '"')
-        tmp_expr = tmp_expr.replace('}s', '')
+        tmp_expr = tmp_expr.replace("}s", "")
         # tmp_expr = ''.join(str(tmp_expr).split())
     return tmp_expr
 
@@ -134,9 +144,11 @@ def replace_labels(prom_query: PromExpression):
     cpt.prometheus.prom_ql.prom_labels correctly identifies nested {}
     This replacement can be optional
     """
-    if '' not in prom_query.labels:  # only if non-empty string
+    if "" not in prom_query.labels:  # only if non-empty string
         for i in range(len(prom_query.labels)):
-            prom_query.query = prom_query.query.replace(prom_query.labels[i], f'(labels_{i})')
+            prom_query.query = prom_query.query.replace(
+                prom_query.labels[i], f"(labels_{i})"
+            )
 
 
 def strip_replace(expr):
@@ -148,5 +160,5 @@ def strip_replace(expr):
 
 def compact(expr):
     query = expr.replace("\n", "")
-    query = ''.join(query.split())
+    query = "".join(query.split())
     return strip_replace(query)

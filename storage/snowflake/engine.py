@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import os
 
 import snowflake.connector
+
 from loguru import logger
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
@@ -14,10 +17,10 @@ from storage.snowflake.queries import q_from_to_by_uuid
 
 
 class SnowflakeEngine:
-    DATABASE = 'PERFORMANCE_TESTS'
-    ACCOUNT = os.getenv('SNOWFLAKE_ACCOUNT')
-    USER = os.getenv('SNOWFLAKE_USER')
-    PASSWORD = os.getenv('SNOWFLAKE_PASSWORD')
+    DATABASE = "PERFORMANCE_TESTS"
+    ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
+    USER = os.getenv("SNOWFLAKE_USER")
+    PASSWORD = os.getenv("SNOWFLAKE_PASSWORD")
 
     # The provided table name 'TEST_DF' is not found exactly as such in the database after writing the table,
     # possibly due to case sensitivity issues. Consider using lower case table names. => use lower() for pd_writer
@@ -38,8 +41,13 @@ class SnowflakeEngine:
 
     # 'snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>'
     def create_sf_engine(self) -> Engine:
-        url = URL(account=self.ACCOUNT, user=self.USER,
-                  password=self.PASSWORD, database=self.DATABASE, schema=self.schema)
+        url = URL(
+            account=self.ACCOUNT,
+            user=self.USER,
+            password=self.PASSWORD,
+            database=self.DATABASE,
+            schema=self.schema,
+        )
         logger.info(f"Create {self.__class__.__name__}: {self}")
         engine = create_engine(url)
         return engine
@@ -50,7 +58,8 @@ class SnowflakeEngine:
             password=self.PASSWORD,
             account=self.ACCOUNT,
             database=self.DATABASE,
-            schema=self.schema)
+            schema=self.schema,
+        )
         return con
 
     def write_df(self, df: DataFrame, table: str):
@@ -59,7 +68,13 @@ class SnowflakeEngine:
         # in the Snowflake database.
         logger.info(f"Writing to table : {self.DATABASE}.{self.schema}.{table.upper()}")
         # noinspection PyTypeChecker
-        df.to_sql(name=table, con=self.sf_engine, index=False, method=pd_writer, if_exists='append')
+        df.to_sql(
+            name=table,
+            con=self.sf_engine,
+            index=False,
+            method=pd_writer,
+            if_exists="append",
+        )
 
     def from_to_by_uuid_df(self, timestamp_field: str, table_name: str) -> DataFrame:
         """

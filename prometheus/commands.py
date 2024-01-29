@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 from typing import List, Tuple
 
 import pandas as pd
 import urllib3
+
 from loguru import logger
 
 import metrics
-from metrics import TIMESTAMP_COLUMN, NON_EMPTY_CONTAINER
+
+from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
 from metrics.collector import df_tuple_columns
 from prometheus import NON_LINKERD_CONTAINER
 from prometheus.sla_model import SlaTable
@@ -13,7 +17,8 @@ from storage.snowflake import dataframe
 from storage.snowflake.dataframe import add_tz
 from storage.snowflake.engine import SnowflakeEngine
 
-METRICS = 'metrics'
+
+METRICS = "metrics"
 DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
 
 
@@ -28,7 +33,7 @@ def prom_save(dfs: List[pd.DataFrame], portal_table: SlaTable):
         # UserWarning: The provided table name ... is not found exactly as such in the database after writing
         # the table, possibly due to case sensitivity issues. Consider using lower case table names
         table = portal_table.tableName.lower()
-        logger.info(f'Saving {len(dfs)} DataFrames to {table.upper()}')
+        logger.info(f"Saving {len(dfs)} DataFrames to {table.upper()}")
         for df in dfs:
             sf.write_df(df=df, table=table)
     finally:
@@ -49,7 +54,9 @@ def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
     localized_ts = add_tz(pd.Series(df.index))
     df.index = localized_ts
     # (ns, pod)
-    tuple_columns: List[Tuple[str, ...]] = [eval(c) for c in df.columns] if columns_to_tuple else df.columns
+    tuple_columns: List[Tuple[str, ...]] = (
+        [eval(c) for c in df.columns] if columns_to_tuple else df.columns
+    )
     multi_idx = pd.MultiIndex.from_tuples(tuple_columns)
     df.columns = multi_idx
     stacked: pd.Series = df.T.stack(dropna=False)
@@ -57,8 +64,8 @@ def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
 
 
 def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
-    """ Extract first columns used as MultiIndex
-        (namespace, pod, timestamp)
+    """Extract first columns used as MultiIndex
+    (namespace, pod, timestamp)
     """
     idx_list: List[str, str, pd.Timestamp] = stacked_df.index.to_list()
     #  timestamps are last - because of stack
@@ -73,13 +80,17 @@ def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
 
 
 def sf_series(metric_df: pd.DataFrame, grp_keys: list[str]) -> pd.Series:
-    """ Add tuple columns and move timestamps to index"""
+    """Add tuple columns and move timestamps to index"""
     df_tuple_columns(grp_keys, metric_df)
     return stack_timestamps(metric_df, columns_to_tuple=False)
 
 
-def last_ns_update_query(table_name: str, column_name: str, namespace: str,
-                         timestamp_field: str = TIMESTAMP_COLUMN):
+def last_ns_update_query(
+    table_name: str,
+    column_name: str,
+    namespace: str,
+    timestamp_field: str = TIMESTAMP_COLUMN,
+):
     """
     select NAMESPACE, max(TIMESTAMP) as LAST_UPDATE
     from PORTAL.POD_BASIC_RESOURCES
@@ -98,14 +109,16 @@ def last_ns_update_query(table_name: str, column_name: str, namespace: str,
 def last_timestamp(table_names: List[str], namespace: str):
     sf = SnowflakeEngine()
     # column name is used to get values
-    column_name = 'MAX_TIMESTAMP'
+    column_name = "MAX_TIMESTAMP"
     try:
         for table_name in table_names:
-            q = last_ns_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
+            q = last_ns_update_query(
+                table_name=table_name, column_name=column_name, namespace=namespace
+            )
             df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
             max_timestamps = df[column_name].values
             assert len(max_timestamps) == 1
-            logger.info(f'Last update: {table_name}.{namespace}: {max_timestamps[0]}')
+            logger.info(f"Last update: {table_name}.{namespace}: {max_timestamps[0]}")
             # return str(max_timestamps[0])
     finally:
         sf.sf_engine.dispose()

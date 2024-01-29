@@ -1,6 +1,9 @@
+from __future__ import annotations
+
+
 DEFAULT_PREFIX = """You are looking for Prometheus Query Language expressions. Given the title of that expression  
 give me comma separated list of expressions best fitting that title. Ignore labels. Use prepared examples"""
-DEFAULT_PROM_EXPR_TITLE = 'Average pod CPU'
+DEFAULT_PROM_EXPR_TITLE = "Average pod CPU"
 DEFAULT_MAX_TOKENS: int = 256
 
 """

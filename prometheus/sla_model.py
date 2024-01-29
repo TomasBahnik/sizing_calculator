@@ -33,11 +33,12 @@ class SlaTable(BaseModel):
     Prometheus' expressions with SLAs to Snowflake table
     queries correspond to (Snowflake) table columns
     """
+
     name: str
     tableName: str
     # e.g. minio_cluster_capacity has no container/pod and sets "useGroupByDefaults": false
     useGroupByDefaults: bool = True
-    dbSchema: str = 'PORTAL'
+    dbSchema: str = "PORTAL"
     # dbSchema: str = 'ONDEMAND'
     tableKeys: List[str] = None
     stepSec: float = settings.step_sec
@@ -56,10 +57,14 @@ class SlaTable(BaseModel):
         Ensure that DEFAULT_PORTAL_GRP_KEYS are always present. Exclude possible duplicates using `set`
         and subsequent sorted created ordered list
         """
-        grp_keys: List[str] = DEFAULT_PORTAL_GRP_KEYS + self.groupBy if self.useGroupByDefaults else self.groupBy
+        grp_keys: List[str] = (
+            DEFAULT_PORTAL_GRP_KEYS + self.groupBy
+            if self.useGroupByDefaults
+            else self.groupBy
+        )
         grp_keys: List[str] = sorted(set([gk.strip() for gk in grp_keys]))
         return grp_keys
 
     @classmethod
     def dummy(cls) -> SlaTable:
-        return SlaTable(name='dummy', tableName='dummy')
+        return SlaTable(name="dummy", tableName="dummy")

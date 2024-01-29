@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import List
 
@@ -11,10 +13,11 @@ class Target(BaseModel):
 
 class PromExpression(Target):
     """Shared by
-       1. definition of SLAs (json)
-       2. extracting prom expressions from Grafana dashboards
-       3. Preparing prompts for LLM
+    1. definition of SLAs (json)
+    2. extracting prom expressions from Grafana dashboards
+    3. Preparing prompts for LLM
     """
+
     # labels replaced and static labels extracted
     query: str
     labels: List[str] = []
@@ -26,6 +29,7 @@ class ColumnPromExpression(PromExpression):
     Adds connection between (Snowflake) table column and Prometheus' expressions
     tableName is loaded to SlaTable
     """
+
     # rate interval can be set differently for each expression
     rateInterval: str = None
     columnName: str = None
@@ -33,6 +37,7 @@ class ColumnPromExpression(PromExpression):
 
 class Title(BaseModel):
     """Grafana dashboard title with list of Prometheus expressions"""
+
     name: str
     queries: List[PromExpression] = []
 

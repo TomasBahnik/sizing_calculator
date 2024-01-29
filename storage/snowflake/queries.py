@@ -1,28 +1,50 @@
+from __future__ import annotations
+
 from typing import List
 
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
 
-from storage.snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, PERIOD_UTC_COLUMN, UUID_COLUMN, TEST_ENV_KEY, \
-    EVENT_MMM_BUILD_VERSION_KEY
+from storage.snowflake import (
+    EVENT_MMM_BUILD_VERSION_KEY,
+    FROM_TIME_ALIAS,
+    PERIOD_UTC_COLUMN,
+    TEST_ENV_KEY,
+    TO_TIME_ALIAS,
+    UUID_COLUMN,
+)
 
 
-def q_env_build(test_env: str, mmm_build: str, result: str = None, table_name: str = None) -> str:
+def q_env_build(
+    test_env: str, mmm_build: str, result: str = None, table_name: str = None
+) -> str:
     env = f""""{TEST_ENV_KEY}" = '{test_env}'"""
     build = f""""{EVENT_MMM_BUILD_VERSION_KEY}" = '{mmm_build}'"""
-    q = f"SELECT * FROM {table_name} WHERE RESULT='{result}' AND {build} AND {env}" if result else \
-        f"SELECT * FROM {table_name} WHERE {build} AND {env}"
+    q = (
+        f"SELECT * FROM {table_name} WHERE RESULT='{result}' AND {build} AND {env}"
+        if result
+        else f"SELECT * FROM {table_name} WHERE {build} AND {env}"
+    )
     return q
 
 
-def q_from_to(from_time: str, to_time: str, result: str | None, timestamp_field: str, table_name: str) -> str:
-    """ Query specified time range. `result` is either pass or fail and RESULT
+def q_from_to(
+    from_time: str,
+    to_time: str,
+    result: str | None,
+    timestamp_field: str,
+    table_name: str,
+) -> str:
+    """Query specified time range. `result` is either pass or fail and RESULT
     is the table field in API_TESTS_SU table
     """
     lower_bound = f""""{timestamp_field}" > '{from_time}'"""
     upper_bound = f""""{timestamp_field}" < '{to_time}'"""
-    q = f"SELECT * FROM {table_name} WHERE RESULT='{result}' AND {lower_bound} AND {upper_bound}" if result else \
-        f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"
+    q = (
+        f"SELECT * FROM {table_name} WHERE RESULT='{result}' AND {lower_bound} AND {upper_bound}"
+        if result
+        else f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"
+    )
     return q
 
 
@@ -51,10 +73,15 @@ NOTION_API_TESTS_TABLE = "PERFORMANCE_TESTING_DB_LIST_OF_API_TESTS"
 NOTION_JOB_TESTS_TABLE = "PERFORMANCE_TESTING_DB_LIST_OF_DOC_FLOW_TESTS"
 
 
-def q_notion(columns: List[str], table: str, connection: SnowflakeConnection) -> DataFrame:
-    """ columns from Notion table with non-empty UUID ordered by period"""
-    raw_fields = [f"RAW_DATA:properties.{f}.rich_text[0].text.content::varchar as {f}" for f in columns]
-    query_fields = ','.join(raw_fields)
+def q_notion(
+    columns: List[str], table: str, connection: SnowflakeConnection
+) -> DataFrame:
+    """columns from Notion table with non-empty UUID ordered by period"""
+    raw_fields = [
+        f"RAW_DATA:properties.{f}.rich_text[0].text.content::varchar as {f}"
+        for f in columns
+    ]
+    query_fields = ",".join(raw_fields)
     select_clause = f"SELECT {query_fields}"
     from_clause = f"FROM DWH_PROD.NOTION.{table}"
     orderby_clause = f"ORDER BY {PERIOD_UTC_COLUMN}"

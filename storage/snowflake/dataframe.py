@@ -1,12 +1,24 @@
+from __future__ import annotations
+
 import pandas as pd
 import pytz
+
 from loguru import logger
 from pandas import DataFrame, Series
 from snowflake.connector import SnowflakeConnection
 
-from storage.snowflake import FROM_TIME_ALIAS, TO_TIME_ALIAS, API_TESTS_CU_RUN_INFO_TABLE_NAME, \
-    API_TESTS_CU_RAW_DATA_TABLE_NAME, API_TESTS_CU_LIST_TABLE_NAME, GMT_TZ, UUID_COLUMN, TEST_ENV_KEY, END_ISO_TIME, \
-    TIMESTAMP_KEY
+from storage.snowflake import (
+    API_TESTS_CU_LIST_TABLE_NAME,
+    API_TESTS_CU_RAW_DATA_TABLE_NAME,
+    API_TESTS_CU_RUN_INFO_TABLE_NAME,
+    END_ISO_TIME,
+    FROM_TIME_ALIAS,
+    GMT_TZ,
+    TEST_ENV_KEY,
+    TIMESTAMP_KEY,
+    TO_TIME_ALIAS,
+    UUID_COLUMN,
+)
 from storage.snowflake.queries import q_uuid
 
 
@@ -25,7 +37,9 @@ def add_tz(series: pd.Series, tz: str = GMT_TZ) -> pd.Series:
     return series.apply(lambda x: pd.Timestamp(x, tz=tz))
 
 
-def localize_series_timezone(series: pd.Series, tz: pytz.tzinfo = pytz.UTC) -> pd.Series:
+def localize_series_timezone(
+    series: pd.Series, tz: pytz.tzinfo = pytz.UTC
+) -> pd.Series:
     return series.apply(lambda x: x.tz_localize(tz=tz))
 
 
@@ -61,8 +75,8 @@ def localize_to_gmt(df: DataFrame) -> DataFrame:
 
 
 def round_from_to_times(df: DataFrame) -> DataFrame:
-    df[FROM_TIME_ALIAS] = df[FROM_TIME_ALIAS].apply(lambda x: x.floor('S'))
-    df[TO_TIME_ALIAS] = df[TO_TIME_ALIAS].apply(lambda x: x.ceil('S'))
+    df[FROM_TIME_ALIAS] = df[FROM_TIME_ALIAS].apply(lambda x: x.floor("S"))
+    df[TO_TIME_ALIAS] = df[TO_TIME_ALIAS].apply(lambda x: x.ceil("S"))
     return df
 
 

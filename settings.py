@@ -17,14 +17,16 @@ class Settings(BaseSettings):
     3. the system's environment variables.
     """
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
+    )
 
     # Paths
     pycpt_home: Path = Path(__file__).parent
-    pycpt_artefacts: Path = Path(pycpt_home, '../cpt_artefacts').resolve()
-    sla_tables: Path = Path(pycpt_home, 'sla_tables')
-    data: Path = Path(pycpt_artefacts, 'data')
-    prometheus_report_folder: Path = Path(pycpt_artefacts, 'prometheus')
+    pycpt_artefacts: Path = Path(pycpt_home, "../cpt_artefacts").resolve()
+    sla_tables: Path = Path(pycpt_home, "sla_tables")
+    data: Path = Path(pycpt_artefacts, "data")
+    prometheus_report_folder: Path = Path(pycpt_artefacts, "prometheus")
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

@@ -43,7 +43,7 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
 def sizing_calc_report_header(
     test_details: Optional[TestDetails], time_range: TimeRange
 ) -> str:
-    """report header with namespace and time range"""
+    """Report header with namespace and time range."""
     # time_range present always
     duration = (time_range.to_time - time_range.from_time).total_seconds()
     samples = int(duration / settings.step_sec) + 1
@@ -67,7 +67,7 @@ def sizing_calc_report(
     file_name: str,
     test_summary: Optional[TestSummary] = None,
 ):
-    """Create and save full report to file"""
+    """Create and save full report to file."""
     file_name = f"{file_name}_{str(time_range)}.html"
     report_header = (
         sizing_calc_report_header(test_details, time_range)
@@ -84,7 +84,7 @@ def sizing_calc_report(
 
 
 def sizing_calc_summary_header(test_summary: TestSummary) -> str:
-    """test summary header"""
+    """Test summary header."""
     data: Dict[str, List[str]] = {
         "name": [test_summary.name],
         "namespace": [test_summary.namespace],

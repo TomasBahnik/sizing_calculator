@@ -30,9 +30,6 @@ MEMORY_LIMIT_BYTE = "MEMORY_LIMIT_BYTE"
 DEFAULT_TIME_DELTA_HOURS = 1
 
 
-# TIMESTAMP_COLUMN = 'TIMESTAMP'
-
-
 class RatioRule:
 
     def __init__(self, basic_rule: BasicSla, ns_df: pd.DataFrame, keys: List[str]):
@@ -104,9 +101,7 @@ class RatioRule:
             return df.index[~df.isnull().all(axis=1)]
 
     def limits_wo_nan(self) -> pd.DataFrame:
-        """
-        assumes valid limit > 0, missing limit = -1
-        """
+        """Assumes valid limit > 0, missing limit = -1."""
         if self.is_limit_static():
             return pd.DataFrame({"limit value": [self.basic_rule.resource_limit_value]})
         limits_df = self.ns_df_indexed[[self.basic_rule.resource_limit_column]]
@@ -141,14 +136,15 @@ class RatioRule:
         return idx.to_frame()
 
     def container_pod_indexes(self):
-        """Unique sorted dictionary
+        """Unique sorted dictionary.
+
         key = (container, pod)
         value = indexes in (namespace) DataFrame with metrics
         """
         cp_idx = {}
         try:
             c_p_df = self.ns_df_ts_col[CONTAINER_POD_COLUMNS]
-            cp_tuples = sorted(set([tuple(cp) for cp in c_p_df.values]))
+            cp_tuples = sorted({tuple(cp) for cp in c_p_df.values})
             for t in cp_tuples:
                 cp_idx[t] = c_p_df[
                     (c_p_df[CONTAINER_COLUMN] == t[0]) & (c_p_df[POD_COLUMN] == t[1])
@@ -163,7 +159,7 @@ class RatioRule:
         return self.ns_df_indexed[self.basic_rule.resource]
 
     def ns_resource_ratios(self) -> pd.Series:
-        """Calculates resource/resource_limit_column ratio"""
+        """Calculate resource/resource_limit_column ratio."""
         # index = pod/container, values = limits or -1 in case of missing limit
         resource_limits: pd.DataFrame = self.limits_wo_nan()
         resource_limits_ser: pd.Series = resource_limits[
@@ -177,6 +173,7 @@ class RatioRule:
 
     def missing_idx_values(self):
         """Collected resource values for (pod,container) with missing resource limit.
+
         Only in these cases makes sense to look for suitable resource limit that can be used
         for ratio
 
@@ -382,8 +379,6 @@ class RatioRule:
         unstac_ts_data = data.unstack(level=0)
         # nan = True i.e. NOT over limit
         filled = unstac_ts_data.fillna(value=True)
-        # columns = 1
-        # rows where there is no False i.e. all are True (=under limit) incl. nan see above
         filled_false = filled[~filled.all(axis="columns")]
         index_names = filled_false.index.names
         consecutive_counts = filled_false.cumsum(axis=1)
@@ -460,11 +455,11 @@ class PrometheusRules:
             sf.sf_engine.dispose()
 
     def load_df(self):
-        """Load data from Snowflake sla table and set self.df"""
+        """Load data from Snowflake sla table and set self.df."""
         self.df = self.load_range_table()
 
     def namespaces(self, namespace: str) -> List[str]:
-        """All unique namespaces or filtered one"""
+        """All unique namespaces or filtered one."""
         all_ns = sorted(set(self.df[NAMESPACE_COLUMN]))
         if namespace in all_ns:
             return [namespace]
@@ -473,5 +468,5 @@ class PrometheusRules:
         return all_ns
 
     def ns_df(self, namespace: str):
-        """filter df by namespace"""
+        """Filter df by namespace."""
         return self.df[self.df[NAMESPACE_COLUMN] == namespace]

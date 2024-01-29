@@ -130,7 +130,6 @@ def remove_inner_cbs(prom_query):
         tmp_expr = tmp_expr.replace("${", "$")
         tmp_expr = tmp_expr.replace('}"', '"')
         tmp_expr = tmp_expr.replace("}s", "")
-        # tmp_expr = ''.join(str(tmp_expr).split())
     return tmp_expr
 
 

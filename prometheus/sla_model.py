@@ -39,7 +39,6 @@ class SlaTable(BaseModel):
     # e.g. minio_cluster_capacity has no container/pod and sets "useGroupByDefaults": false
     useGroupByDefaults: bool = True
     dbSchema: str = "PORTAL"
-    # dbSchema: str = 'ONDEMAND'
     tableKeys: List[str] = None
     stepSec: float = settings.step_sec
     groupBy: List[str] = DEFAULT_PORTAL_GRP_KEYS if useGroupByDefaults else []
@@ -62,7 +61,7 @@ class SlaTable(BaseModel):
             if self.useGroupByDefaults
             else self.groupBy
         )
-        grp_keys: List[str] = sorted(set([gk.strip() for gk in grp_keys]))
+        grp_keys: List[str] = sorted({gk.strip() for gk in grp_keys})
         return grp_keys
 
     @classmethod

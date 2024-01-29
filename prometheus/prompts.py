@@ -15,26 +15,26 @@ cols = [col for col in df.columns if (df[col] > 2 * mean[col]).any()]
 """
 
 PROMETHEUS_POD_CPU_PROMPT = """Here is data about pod CPU usage. We are looking for columns with values higher
-than twice a mean value. If there are such columns give me a list of those columns. 
-In case no such columns are found inform me with "no columns with values above 2 x mean" message  
+than twice a mean value. If there are such columns give me a list of those columns.
+In case no such columns are found inform me with "no columns with values above 2 x mean" message
 """
 
 PROMETHEUS_POD_CPU_PROMPT_COUNTS = """Here is data about pod CPU usage. We are looking for columns with values higher
-than twice a mean value. If there are such columns give me count of those columns. 
-In case no such columns are found inform me with "0 columns with values above 2 x mean" message  
+than twice a mean value. If there are such columns give me count of those columns.
+In case no such columns are found inform me with "0 columns with values above 2 x mean" message
 """
 
-COMPARE_PROMPT = """Dataframe contains columns 'test_0' and 'test_1'. Data in those two columns are durations measured 
+COMPARE_PROMPT = """Dataframe contains columns 'test_0' and 'test_1'. Data in those two columns are durations measured
 in two subsequent measurements.
-Question: Decide if these two measurements are statistically equivalent   
-If you cannot decide for whatever reason answer "Can't decide"  
+Question: Decide if these two measurements are statistically equivalent
+If you cannot decide for whatever reason answer "Can't decide"
 """
 
-TRIVIAL_COMPARE_PROMPT = """Dataframe contains 2 columns 'test_0' and 'test_1'. Data in those two columns 
+TRIVIAL_COMPARE_PROMPT = """Dataframe contains 2 columns 'test_0' and 'test_1'. Data in those two columns
 are durations measured in two subsequent measurements.
 Question: Decide if the means of those two measurements are equal within one standard deviation. 
-Take as standard deviation the smaller one of those two measurements.    
-If you cannot decide for whatever reason answer "Can't decide"  
+Take as standard deviation the smaller one of those two measurements.
+If you cannot decide for whatever reason answer "Can't decide"
 """
 """
 std = np.min(df.std())

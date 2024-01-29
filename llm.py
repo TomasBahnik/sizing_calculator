@@ -1,3 +1,5 @@
+"""Few Shot Prompt for suggesting Prometheus Expressions."""
+
 from __future__ import annotations
 
 import os
@@ -26,6 +28,7 @@ key_dev = os.getenv("LLM_API_KEY")
 
 
 def init(key, base):
+    """Initialize OpenAI API with given key and API base."""
     # None can't be assigned to env var as os.environ["OPENAI_API_KEY"] = key
     # whenever from cpt.prometheus import … is used this function is called
     # and TypeError: str expected, not NoneTyp

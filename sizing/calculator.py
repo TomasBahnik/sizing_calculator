@@ -15,7 +15,17 @@ from metrics.model.tables import SlaTables
 from prometheus.sla_model import SlaTable
 from reports.html import sizing_calc_report, sizing_calc_summary_header
 from settings import settings
-from sizing import *
+from sizing import (
+    CPU_LIMIT_MILLIS_COLUMNS,
+    CPU_LIMIT_NAME,
+    CPU_REQUEST_NAME,
+    LIMIT_PERCENTILE,
+    MEMORY_LIMIT_MIBS_COLUMNS,
+    MEMORY_LIMIT_NAME,
+    MEMORY_REQUEST_NAME,
+    PERCENTILES,
+    REQUEST_PERCENTILE,
+)
 from sizing.rules import PrometheusRules
 from test_summary.model import TestDetails, TestSummary
 
@@ -98,28 +108,28 @@ class LimitsRequests:
     def dummy(
         cls, sla_table: SlaTable, resource: Resource, df: pd.DataFrame
     ) -> LimitsRequests:
-        """Create LimitsRequests with simple data"""
+        """Create LimitsRequests with simple data."""
         return cls(ns_df=df, sla_table=sla_table, resource=resource)
 
     def set_index_ns_df(self, keys: List[str]):
-        """Create index from keys columns"""
+        """Create index from keys columns."""
         #  verify_integrity – Check the new index for duplicate
         return self.ns_df.set_index(keys=keys, verify_integrity=True, drop=True)
 
     def verify_limits_requests(self):
-        """Positive numbers with min == max, do not mix different sizings"""
+        """Positive numbers with min == max, do not mix different sizings."""
         assert self.limit_field.min(axis=1).equals(self.limit_field.max(axis=1))
         assert self.request_field.min(axis=1).equals(self.request_field.max(axis=1))
 
     def request_limit_df(self, columns: List[str]) -> pd.DataFrame:
-        """Return requests and limits values"""
+        """Return requests and limits values."""
         df = pd.concat([self.request_value, self.limit_value], axis=1)
         df.columns = columns
         df.dropna(how="all", inplace=True)
         return df
 
     def measured_df_percentiles(self) -> pd.DataFrame:
-        """Return measured values percentiles"""
+        """Return measured values percentiles."""
         described_df = self.measured_field.dropna(how="all").T.describe(
             percentiles=PERCENTILES
         )
@@ -165,7 +175,7 @@ class SizingCalculator:
         return (memory_request_limits / MIBS).astype(int)
 
     def cpu_millis(self) -> pd.DataFrame:
-        """Convert cpu limits and requests from cores to milli cores"""
+        """Convert cpu limits and requests from cores to milli cores."""
         cpu_request_limits = self.cpu.request_limit_df(columns=CPU_LIMIT_MILLIS_COLUMNS)
         return (cpu_request_limits * 1000).astype(int)
 
@@ -176,7 +186,7 @@ class SizingCalculator:
         return pd.concat([cpu_request_limits_millis, memory_request_limits_mib], axis=1)
 
     def mem_percentiles(self) -> pd.DataFrame:
-        """Return memory percentiles joined with memory requests and limits in Mi"""
+        """Return memory percentiles joined with memory requests and limits in Mi."""
         counts_ser: pd.Series = self.memory.measured_df_percentiles()[
             count_column
         ].astype(int)
@@ -187,7 +197,7 @@ class SizingCalculator:
         return pd.concat([percentiles_df, self.memory_mibs()], axis=1, join="inner")
 
     def cpu_percentiles(self) -> pd.DataFrame:
-        """Return cpu percentiles joined with cpu requests and limits in milli cores"""
+        """Return cpu percentiles joined with cpu requests and limits in milli cores."""
         counts_ser: pd.Series = self.cpu.measured_df_percentiles()[count_column].astype(
             int
         )
@@ -200,7 +210,7 @@ class SizingCalculator:
     def sizing_calc_all_reports(
         self, folder: Path, test_summary: Optional[TestSummary] = None
     ):
-        """Create and save all reports to folder"""
+        """Create and save all reports to folder."""
         os.makedirs(folder, exist_ok=True)
         # self.test_details is None by default
         sizing_calc_report(
@@ -264,7 +274,7 @@ class SizingCalculator:
         return joined_sizings
 
     def sizing_json(self, folder: Path):
-        """Save new sizing to folder as json"""
+        """Save new sizing to folder as json."""
         os.makedirs(folder, exist_ok=True)
         file_name = f"new_sizing_{str(self.time_range)}.json"
         path = Path(folder, file_name)
@@ -326,7 +336,7 @@ def save_new_sizing(
 
 
 def sizing_ini(new_sizings: pd.DataFrame, folder: Path):
-    """Save new sizing to folder as ini"""
+    """Save new sizing to folder as ini."""
     os.makedirs(folder, exist_ok=True)
     file_name = "new_sizing.ini"
     path = Path(folder, file_name)

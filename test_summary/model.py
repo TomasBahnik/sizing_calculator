@@ -1,4 +1,4 @@
-"""Model for reading test summary json files"""
+"""Model for reading test summary json files."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from metrics.collector import TimeRange
 
 
 class TestTimeRange(BaseModel):
-    """Test time range"""
+    """Test time range."""
 
     start: datetime.datetime
     end: datetime.datetime
@@ -22,14 +22,14 @@ class TestTimeRange(BaseModel):
 
 
 class TestDetails(BaseModel):
-    """Test result"""
+    """Test result."""
 
     testTimeRange: TestTimeRange
     description: str
 
 
 class TestSummary(BaseModel):
-    """Summary of test run"""
+    """Summary of test run."""
 
     name: str
     namespace: str

@@ -1,3 +1,5 @@
+"""Grafana dashboards analysis commands."""
+
 from __future__ import annotations
 
 import json
@@ -28,8 +30,7 @@ def grafana_report(
     dashboard_file: str = typer.Option(
         None,
         "--file",
-        help=f"Name of dashboard file. If None all files with "
-        f"--suffix value from the folder are loaded",
+        help="Name of dashboard file. If None all files with --suffix value from the folder are loaded",
     ),
     file_name_contains: str = typer.Option(
         None, "--contains", "-c", help="Filter filenames that contain this string"
@@ -41,7 +42,7 @@ def grafana_report(
         help="Filter filenames that ends with this string",
     ),
 ):
-    """HTML report with prometheus metrics to stdout"""
+    """HTML report with prometheus metrics to stdout."""
     examples: List[PromptExample] = all_examples(
         folder=dashboards_folder,
         filename=dashboard_file,
@@ -79,8 +80,7 @@ def prom_expressions(
     dashboard_file: str = typer.Option(
         None,
         "--file",
-        help=f"Name of dashboard file. If None all files with "
-        f"--suffix value from the folder are loaded",
+        help="Name of dashboard file. If None all files with --suffix value from the folder are loaded",
     ),
     file_name_contains: str = typer.Option(
         None, "--contains", "-c", help="Filter filenames that contain this string"
@@ -93,7 +93,7 @@ def prom_expressions(
     ),
 ):
     """
-    Store Prometheus expression as dumped cpt.prometheus.prompt_model.Title so it can be loaded back to objects
+    Store Prometheus expression as dumped cpt.prometheus.prompt_model.Title so it can be loaded back to objects.
 
     :param dashboards_folder:
     :param dashboard_file:
@@ -112,7 +112,6 @@ def prom_expressions(
         bare_file_name = e.fileName.parts[-1].split(".")[0]
         #  instance of cpt.prometheus.prompt_model.Title
         for title in e.titles:
-            # logger.info(f'\title{title.name}: {len(title.queries)} queries')
             base_file_name = title.name.replace(" ", "_").replace("/", " ")
             base_path = Path(
                 settings.prometheus_report_folder,

@@ -47,5 +47,5 @@ class PromptExample(BaseModel):
     titles: List[Title] = []
 
     def file_names(self) -> List[str]:
-        """fill file names for df column"""
+        """Fill file names for df column"""
         return [self.fileName.parts[-1]] * len(self.titles) if self.fileName else []

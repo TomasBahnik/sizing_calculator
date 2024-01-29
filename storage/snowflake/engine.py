@@ -78,8 +78,9 @@ class SnowflakeEngine:
 
     def from_to_by_uuid_df(self, timestamp_field: str, table_name: str) -> DataFrame:
         """
-        Generates list of tests from data table instead from list table as consistency check
-        By default list table is used in snowflake_engine.api_list
+        Generate list of tests from data table instead from list table.
+
+        By default, list table is used in snowflake_engine.api_list
         """
         q = q_from_to_by_uuid(timestamp_field=timestamp_field, table_name=table_name)
         df: DataFrame = self.connection.cursor().execute(q).fetch_pandas_all()

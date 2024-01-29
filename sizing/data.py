@@ -56,13 +56,15 @@ class DataLoader:
             time_range if time_range else TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
         )
 
-    def time_range_query(self, table_name: str):
+    def time_range_query(self, table_name: str) -> str:
+        """Create query for time range."""
         lower_bound = f""""{TIMESTAMP_COLUMN}" >= '{self.timeRange.from_time}'"""
         upper_bound = f""""{TIMESTAMP_COLUMN}" <= '{self.timeRange.to_time}'"""
         q = f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"
         return q
 
     def load_range_table(self, sla_table: SlaTable) -> pd.DataFrame:
+        """Load df from Snowflake table for time range."""
         sf = SnowflakeEngine(schema=sla_table.dbSchema)
         try:
             table_name = sla_table.tableName
@@ -81,7 +83,7 @@ class DataLoader:
             sf.sf_engine.dispose()
 
     def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> Tuple[pd.DataFrame, Tuple[str]]:
-        """Optionally filter time range df by namespace
+        """Optionally filter time range df by namespace.
         :param sla_table: SlaTable
         :param namespace: optional namespace filter
         :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
@@ -96,7 +98,7 @@ class DataLoader:
             return df, tuple(all_ns)
 
     def save_df(self, sla_table: SlaTable, namespace: Optional[str]):
-        """Save df to json file"""
+        """Save df to json file."""
         df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)[0]
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
         df_path = Path(DATA_FOLDER, filename)
@@ -106,7 +108,7 @@ class DataLoader:
         df.to_json(df_path)
 
     def load_df(self, sla_table: SlaTable) -> pd.DataFrame:
-        """Load df from json file named as table name and time range located in data folder"""
+        """Load df from json file named as table name and time range located in data folder."""
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
         df_path = Path(DATA_FOLDER, filename)
         if df_path.exists():

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 import pandas as pd
 
@@ -87,7 +87,7 @@ class DataLoader:
         :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
         """
         df = self.load_range_table(sla_table=sla_table)
-        all_ns = sorted(set(df[NAMESPACE_COLUMN]))
+        all_ns: List[str] = sorted(set(df[NAMESPACE_COLUMN]))
         if namespace and namespace not in all_ns:
             raise ValueError(f"Namespace {namespace} not found in {all_ns}")
         if namespace:
@@ -97,7 +97,7 @@ class DataLoader:
 
     def save_df(self, sla_table: SlaTable, namespace: Optional[str]):
         """Save df to json file"""
-        df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)
+        df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)[0]
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
         df_path = Path(DATA_FOLDER, filename)
         msg = f"Save df with shape {df.shape} to {df_path}"

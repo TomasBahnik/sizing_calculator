@@ -1,0 +1,10 @@
+[flake8]
+ignore = D203,D105,E128,D213,W503,D107,FS003,T000,U101,E203,W503
+max-complexity = 10
+max-line-length = 120
+exclude = __init__.py *pb2*.py venv assembly
+format = %(cyan)s%(path)s%(reset)s:%(yellow)s%(row)d%(reset)s:%(green)s%(col)d%(reset)s: %(red)s%(code)s%(reset)s %(text)s
+testpaths = tests
+norecursedirs = .* __pycache__ build
+unused-arguments-ignore-abstract-functions = true
+unused-arguments-ignore-stub-functions = true

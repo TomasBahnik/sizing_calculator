@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.11"
-snowflake-connector-python = {extras = ["pandas"], version = "^3.6.0"}
+snowflake-connector-python = { extras = ["pandas"], version = "^3.6.0" }
 snowflake-sqlalchemy = "^1.5.1"
 typer = "^0.9.0"
 pytest = "^7.4.4"
@@ -24,3 +24,21 @@ pandas = "2.1.3"
 langchain = "^0.1.3"
 openai = "^1.10.0"
 langchain-openai = "^0.0.4"
+
+[tool.poetry.group.dev.dependencies]
+# Linting + formatting
+# code formatter
+black = "^24.1.1"
+flake8 = "^7.0.0"
+# better list/set/dict comprehensions.
+flake8-comprehensions = "^3.14.0"
+# Linter that checks docstrings of functions, methods and classes.
+flake8-docstrings = "^1.7.0"
+# flake8 plugin that checks for commented out code.
+flake8-eradicate = "^1.5.0"
+flake8-fixme = "^1.1.1"
+# heck if the imports on your python files are sorted
+flake8-isort = "^6.1.1"
+flake8-use-fstring = "^1.4"
+flake8-unused-arguments = "^0.0.13"
+isort = "^5.13.2"

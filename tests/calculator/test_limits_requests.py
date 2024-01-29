@@ -17,9 +17,7 @@ class TestLimitRequest:
         from metrics.model.tables import SlaTables
         from sizing.data import DataLoader
 
-        data_loader: DataLoader = DataLoader(
-            delta_hours=None, start_time="2024-01-06T20", end_time="2024-01-06T20:05"
-        )
+        data_loader: DataLoader = DataLoader(delta_hours=None, start_time="2024-01-06T20", end_time="2024-01-06T20:05")
         sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
         df: pd.DataFrame = data_loader.load_df(sla_table=sla_table)
         cpu = LimitsRequests(sla_table=sla_table, resource=CPU_RESOURCE, ns_df=df)
@@ -44,9 +42,7 @@ class TestGrafanaDashboards:
         from prometheus.prompt_model import PromptExample
         from settings import settings
 
-        examples: List[PromptExample] = all_examples(
-            folder=Path(settings.pycpt_artefacts, "dashboards")
-        )
+        examples: List[PromptExample] = all_examples(folder=Path(settings.pycpt_artefacts, "dashboards"))
         from prometheus.dashboards_analysis import prompt_lists
 
         file_names, queries, static_labels, titles = prompt_lists(examples)

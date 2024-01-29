@@ -76,19 +76,13 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
         first_left_cb = left_cbs[0]
         last_right_cb = right_cbs[-1]
         if not any(y > first_left_cb for y in right_cbs):
-            raise ValueError(
-                f"Some of right cb < first left cb {right_cbs} < {first_left_cb} "
-            )
+            raise ValueError(f"Some of right cb < first left cb {right_cbs} < {first_left_cb} ")
         if not any(y < last_right_cb for y in left_cbs):
-            raise ValueError(
-                f"Some of left cb > last right cb {left_cbs} > {last_right_cb} "
-            )
+            raise ValueError(f"Some of left cb > last right cb {left_cbs} > {last_right_cb} ")
         left_tuples: List[Tuple[int, int]] = [(idx, LEFT_CB) for idx in left_cbs]
         right_tuples: List[Tuple[int, int]] = [(idx, RIGHT_CB) for idx in right_cbs]
         #  sort by index
-        all_tuples: List[Tuple[int, int]] = sorted(
-            left_tuples + right_tuples, key=lambda x: x[0]
-        )
+        all_tuples: List[Tuple[int, int]] = sorted(left_tuples + right_tuples, key=lambda x: x[0])
         count = 0
         left_cb = left_tuples[0][0]
         new_label: bool = True
@@ -145,9 +139,7 @@ def replace_labels(prom_query: PromExpression):
     """
     if "" not in prom_query.labels:  # only if non-empty string
         for i in range(len(prom_query.labels)):
-            prom_query.query = prom_query.query.replace(
-                prom_query.labels[i], f"(labels_{i})"
-            )
+            prom_query.query = prom_query.query.replace(prom_query.labels[i], f"(labels_{i})")
 
 
 def strip_replace(expr):

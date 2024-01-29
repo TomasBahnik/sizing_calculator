@@ -66,13 +66,11 @@ def load_dashboards_from_files(
     ends_with: str = ("%s" % JSON_SUFFIX),
 ) -> List[Tuple[PromptExample, GrafanaDashboard]]:
     """Load dashboards from list of files"""
-    dashboards: List[Path] = list_files(
-        folder=folder, ends_with=ends_with, contains=contains
-    )
+    dashboards: List[Path] = list_files(folder=folder, ends_with=ends_with, contains=contains)
     if filename is not None:
         dashboard_file = Path(folder, filename)
         check_file(dashboard_file)
-        dashboards: List[Path] = [dashboard_file]
+        dashboards = [dashboard_file]
     # fileName usually encodes info about module for private dashboards
     msg = f"Folder '{folder}', file '{filename}' : {len(dashboards)} files containing '{contains}' with suffix '{ends_with}'"
     logger.info(msg)
@@ -80,9 +78,7 @@ def load_dashboards_from_files(
         zip(
             [PromptExample(fileName=x) for x in dashboards],
             [
-                GrafanaDashboard.model_validate_json(
-                    json_data=dashboard_file.read_text()
-                )
+                GrafanaDashboard.model_validate_json(json_data=dashboard_file.read_text())
                 for dashboard_file in dashboards
             ],
         )
@@ -90,9 +86,7 @@ def load_dashboards_from_files(
     return ret
 
 
-def shot_examples(
-    fse: List[Dict], num_examples: int, prefix: str
-) -> FewShotPromptTemplate:
+def shot_examples(fse: List[Dict], num_examples: int, prefix: str) -> FewShotPromptTemplate:
     # Next, we specify the template to format the examples we have provided.
     # We use the `PromptTemplate` class for this.
     example_formatter_template = f"""{TEMPLATE_FIELDS[0]}: {{{TITLE}}}
@@ -136,15 +130,11 @@ def flatten_list(l_of_l):
 def extract_targets(dashboard: GrafanaDashboard) -> Dict[str, List[Target]]:
     """title: targets dictionary with filters"""
     panels: List[Panel] = flatten_list([r.panels for r in dashboard.rows])
-    panels: List[Panel] = panels + dashboard.panels
+    panels = panels + dashboard.panels
     sub_panels = [panel for panel in panels if type(panel) != SubPanel and panel.panels]
     sub_panels_list: List[SubPanel] = flatten_list([sp.panels for sp in sub_panels])
-    title_targets: Dict[str, List[Target]] = {
-        p.title.strip(): p.targets for p in panels if p.targets
-    }
-    sub_targets: Dict[str, List[Target]] = {
-        p.title.strip(): p.targets for p in sub_panels_list if p.targets
-    }
+    title_targets: Dict[str, List[Target]] = {p.title.strip(): p.targets for p in panels if p.targets}
+    sub_targets: Dict[str, List[Target]] = {p.title.strip(): p.targets for p in sub_panels_list if p.targets}
     title_targets.update(sub_targets)
     ret = {
         title: targets
@@ -160,9 +150,7 @@ def expr_query(expr: str) -> PromExpression:
     return extract_labels(PromExpression(expr=expr, query=expr))
 
 
-def prom_queries(
-    title_targets: Dict[str, List[Target]]
-) -> Dict[str, List[PromExpression]]:
+def prom_queries(title_targets: Dict[str, List[Target]]) -> Dict[str, List[PromExpression]]:
     """title: List[PromQuery] dictionary"""
     ret = {
         title: [expr_query(target.expr) for target in targets if target.expr]
@@ -173,9 +161,7 @@ def prom_queries(
 
 def prompt_lists(p_e_s: List[PromptExample]):
     """Prepare and return lists for prompt examples and html report"""
-    titles_oo: List[Title] = flatten_list(
-        [[title for title in p_e.titles] for p_e in p_e_s]
-    )
+    titles_oo: List[Title] = flatten_list([[title for title in p_e.titles] for p_e in p_e_s])
     queries_oo: List[List[PromExpression]] = [t.queries for t in titles_oo]
     titles = [t.name for t in titles_oo]
     queries = [[pq.query for pq in pqs] for pqs in queries_oo]
@@ -184,20 +170,14 @@ def prompt_lists(p_e_s: List[PromptExample]):
     return file_names, queries, static_labels, titles
 
 
-def prompt_examples(
-    dashboards: List[Tuple[PromptExample, GrafanaDashboard]]
-) -> List[PromptExample]:
+def prompt_examples(dashboards: List[Tuple[PromptExample, GrafanaDashboard]]) -> List[PromptExample]:
     for p_e, d in dashboards:
         title_targets: Dict[str, List[Target]] = extract_targets(d)
-        title_queries: Dict[str, List[PromExpression]] = prom_queries(
-            title_targets=title_targets
-        )
+        title_queries: Dict[str, List[PromExpression]] = prom_queries(title_targets=title_targets)
         if title_queries.keys() != title_targets.keys():
             raise ValueError("Different titles for targets and queries")
         titles = list(title_queries.keys())
-        titles_oo: List[Title] = [
-            Title(name=title, queries=title_queries[title]) for title in titles
-        ]
+        titles_oo: List[Title] = [Title(name=title, queries=title_queries[title]) for title in titles]
         p_e.titles = titles_oo
     examples: List[PromptExample] = [pg[0] for pg in dashboards]
     return examples
@@ -209,10 +189,8 @@ def all_examples(
     contains: Optional[str] = None,
     ends_with: str = JSON_SUFFIX,
 ) -> List[PromptExample]:
-    prompt_example_dashboard: List[Tuple[PromptExample, GrafanaDashboard]] = (
-        load_dashboards_from_files(
-            folder=folder, filename=filename, contains=contains, ends_with=ends_with
-        )
+    prompt_example_dashboard: List[Tuple[PromptExample, GrafanaDashboard]] = load_dashboards_from_files(
+        folder=folder, filename=filename, contains=contains, ends_with=ends_with
     )
     examples: List[PromptExample] = prompt_examples(prompt_example_dashboard)
     return examples
@@ -220,18 +198,13 @@ def all_examples(
 
 @app.command()
 def match_metrics(
-    dashboards_folder: Path = typer.Option(
-        ..., "--folder", dir_okay=True, help="Folder with grafana dashboards"
-    ),
+    dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True, help="Folder with grafana dashboards"),
     dashboard_file: str = typer.Option(
         None,
         "--file",
-        help=f"Name of dashboard file. If None all files with "
-        f"--suffix value from the folder are loaded",
+        help=f"Name of dashboard file. If None all files with " f"--suffix value from the folder are loaded",
     ),
-    file_name_contains: str = typer.Option(
-        None, "--contains", "-c", help="Filter filenames that contain this string"
-    ),
+    file_name_contains: str = typer.Option(None, "--contains", "-c", help="Filter filenames that contain this string"),
     file_name_ends_with: str = typer.Option(
         JSON_SUFFIX,
         "--suffix",
@@ -249,9 +222,7 @@ def match_metrics(
     # cpt.prometheus.commands.metrics with contains=None creates metrics_all.json
     from settings import settings
 
-    metrics_file: Path = Path(
-        settings.prometheus_report_folder, "metrics", "metrics_all.json"
-    )
+    metrics_file: Path = Path(settings.prometheus_report_folder, "metrics", "metrics_all.json")
     if metrics_file.is_file():
         metrics_df: pd.DataFrame = pd.read_json(metrics_file)
         file_names, queries, static_labels, titles = prompt_lists(examples)

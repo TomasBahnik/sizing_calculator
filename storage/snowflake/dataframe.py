@@ -37,9 +37,7 @@ def add_tz(series: pd.Series, tz: str = GMT_TZ) -> pd.Series:
     return series.apply(lambda x: pd.Timestamp(x, tz=tz))
 
 
-def localize_series_timezone(
-    series: pd.Series, tz: pytz.tzinfo = pytz.UTC
-) -> pd.Series:
+def localize_series_timezone(series: pd.Series, tz: pytz.tzinfo = pytz.UTC) -> pd.Series:
     return series.apply(lambda x: x.tz_localize(tz=tz))
 
 

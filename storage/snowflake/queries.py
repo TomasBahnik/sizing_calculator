@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from storage.snowflake import EVENT_MMM_BUILD_VERSION_KEY, FROM_TIME_ALIAS, TEST_ENV_KEY, TO_TIME_ALIAS, UUID_COLUMN
 
 
-def q_env_build(
-    test_env: str, mmm_build: str, result: str = None, table_name: str = None
-) -> str:
+def q_env_build(test_env: str, mmm_build: str, result: Optional[str] = None, table_name: Optional[str] = None) -> str:
     env = f""""{TEST_ENV_KEY}" = '{test_env}'"""
     build = f""""{EVENT_MMM_BUILD_VERSION_KEY}" = '{mmm_build}'"""
     q = (

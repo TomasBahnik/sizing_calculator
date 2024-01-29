@@ -54,9 +54,7 @@ def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
     localized_ts = add_tz(pd.Series(df.index))
     df.index = localized_ts
     # (ns, pod)
-    tuple_columns: List[Tuple[str, ...]] = (
-        [eval(c) for c in df.columns] if columns_to_tuple else df.columns
-    )
+    tuple_columns: List[Tuple[str, ...]] = [eval(c) for c in df.columns] if columns_to_tuple else df.columns
     multi_idx = pd.MultiIndex.from_tuples(tuple_columns)
     df.columns = multi_idx
     stacked: pd.Series = df.T.stack(dropna=False)
@@ -112,9 +110,7 @@ def last_timestamp(table_names: List[str], namespace: str):
     column_name = "MAX_TIMESTAMP"
     try:
         for table_name in table_names:
-            q = last_ns_update_query(
-                table_name=table_name, column_name=column_name, namespace=namespace
-            )
+            q = last_ns_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
             df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
             max_timestamps = df[column_name].values
             assert len(max_timestamps) == 1

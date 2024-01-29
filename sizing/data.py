@@ -53,11 +53,7 @@ class DataLoader:
         self.endTime = end_time
         self.deltaHours = delta_hours
         self.timeRange = (
-            time_range
-            if time_range
-            else TimeRange(
-                start_time=start_time, end_time=end_time, delta_hours=delta_hours
-            )
+            time_range if time_range else TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
         )
 
     def time_range_query(self, table_name: str):
@@ -84,9 +80,7 @@ class DataLoader:
         finally:
             sf.sf_engine.dispose()
 
-    def ns_df(
-        self, sla_table: SlaTable, namespace: Optional[str]
-    ) -> (pd.DataFrame, Tuple[str]):
+    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> Tuple[pd.DataFrame, Tuple[str]]:
         """Optionally filter time range df by namespace
         :param sla_table: SlaTable
         :param namespace: optional namespace filter

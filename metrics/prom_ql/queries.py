@@ -65,9 +65,7 @@ def pod_restarts(namespace: str, grp_keys: str):
     return q
 
 
-def jvm_gc(
-    namespace: str, grp_keys: str, function: str = "delta", period: str = "[1m]"
-):
+def jvm_gc(namespace: str, grp_keys: str, function: str = "delta", period: str = "[1m]"):
     """
     Collections : rate(jvm_gc_pause_seconds_count{namespace="product", pod="mmm-be-7b897fbc6b-pccvj"}[1m])
     Pause duration : rate(jvm_gc_pause_seconds_sum{namespace="product"}[1m])/rate(jvm_gc_pause_seconds_count{namespace="product"}[1m])
@@ -81,12 +79,8 @@ def jvm_gc(
     labels = f'{{{NON_EMPTY_CONTAINER}, namespace=~"{namespace}"}}'
     # jvm_gc_pause_seconds_count :The total number of observations for: Time spent in GC pause
     # {action="end of minor GC", cause="G1 Humongous Allocation", pod="mmm-be-7b897fbc6b-pccvj"}
-    gc_count = (
-        f"sum({function}(jvm_gc_pause_seconds_count{labels}{period})) by {grp_keys}"
-    )
+    gc_count = f"sum({function}(jvm_gc_pause_seconds_count{labels}{period})) by {grp_keys}"
     # jvm_gc_pause_seconds_sum : The total sum of observations for: Time spent in GC pause
-    gc_sum_sec = (
-        f"sum({function}(jvm_gc_pause_seconds_sum{labels}{period})) by {grp_keys}"
-    )
+    gc_sum_sec = f"sum({function}(jvm_gc_pause_seconds_sum{labels}{period})) by {grp_keys}"
     q = f"{gc_sum_sec}/{gc_count}"
     return q

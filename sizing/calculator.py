@@ -89,9 +89,7 @@ class LimitsRequests:
         self.sla_table: SlaTable = sla_table
         self.keys: List[str] = self.sla_table.tableKeys
         self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
-        self.indexFromKeys: List[str] = [
-            k for k in self.allKeys if k != NAMESPACE_COLUMN
-        ]
+        self.indexFromKeys: List[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
         self.ns_df_indexed: pd.DataFrame = self.set_index_ns_df(self.indexFromKeys)
         # unstack TIMESTAMP_COLUMN
         self.ns_df_unstacked = self.ns_df_indexed.unstack(level=0)
@@ -105,9 +103,7 @@ class LimitsRequests:
         self.request_value.name = resource.request
 
     @classmethod
-    def dummy(
-        cls, sla_table: SlaTable, resource: Resource, df: pd.DataFrame
-    ) -> LimitsRequests:
+    def dummy(cls, sla_table: SlaTable, resource: Resource, df: pd.DataFrame) -> LimitsRequests:
         """Create LimitsRequests with simple data."""
         return cls(ns_df=df, sla_table=sla_table, resource=resource)
 
@@ -130,16 +126,12 @@ class LimitsRequests:
 
     def measured_df_percentiles(self) -> pd.DataFrame:
         """Return measured values percentiles."""
-        described_df = self.measured_field.dropna(how="all").T.describe(
-            percentiles=PERCENTILES
-        )
+        described_df = self.measured_field.dropna(how="all").T.describe(percentiles=PERCENTILES)
         return described_df.T
 
 
 count_column = "count"
-scaled_columns = (
-    ["min"] + [f"{int(p * 100)}%" for p in PERCENTILES if p != count_column] + ["max"]
-)
+scaled_columns = ["min"] + [f"{int(p * 100)}%" for p in PERCENTILES if p != count_column] + ["max"]
 cpu_lower_limit_millis = 1
 memory_lower_limit_mib = 1
 
@@ -169,9 +161,7 @@ class SizingCalculator:
         )
 
     def memory_mibs(self) -> pd.DataFrame:
-        memory_request_limits = self.memory.request_limit_df(
-            columns=MEMORY_LIMIT_MIBS_COLUMNS
-        )
+        memory_request_limits = self.memory.request_limit_df(columns=MEMORY_LIMIT_MIBS_COLUMNS)
         return (memory_request_limits / MIBS).astype(int)
 
     def cpu_millis(self) -> pd.DataFrame:
@@ -187,29 +177,19 @@ class SizingCalculator:
 
     def mem_percentiles(self) -> pd.DataFrame:
         """Return memory percentiles joined with memory requests and limits in Mi."""
-        counts_ser: pd.Series = self.memory.measured_df_percentiles()[
-            count_column
-        ].astype(int)
-        percentiles_df = (
-            self.memory.measured_df_percentiles()[scaled_columns] / MIBS
-        ).astype(int)
+        counts_ser: pd.Series = self.memory.measured_df_percentiles()[count_column].astype(int)
+        percentiles_df = (self.memory.measured_df_percentiles()[scaled_columns] / MIBS).astype(int)
         percentiles_df[count_column] = counts_ser
         return pd.concat([percentiles_df, self.memory_mibs()], axis=1, join="inner")
 
     def cpu_percentiles(self) -> pd.DataFrame:
         """Return cpu percentiles joined with cpu requests and limits in milli cores."""
-        counts_ser: pd.Series = self.cpu.measured_df_percentiles()[count_column].astype(
-            int
-        )
-        percentiles_df = (
-            self.cpu.measured_df_percentiles()[scaled_columns] * 1000
-        ).round(1)
+        counts_ser: pd.Series = self.cpu.measured_df_percentiles()[count_column].astype(int)
+        percentiles_df = (self.cpu.measured_df_percentiles()[scaled_columns] * 1000).round(1)
         percentiles_df[count_column] = counts_ser
         return pd.concat([percentiles_df, self.cpu_millis()], axis=1, join="inner")
 
-    def sizing_calc_all_reports(
-        self, folder: Path, test_summary: Optional[TestSummary] = None
-    ):
+    def sizing_calc_all_reports(self, folder: Path, test_summary: Optional[TestSummary] = None):
         """Create and save all reports to folder."""
         os.makedirs(folder, exist_ok=True)
         # self.test_details is None by default
@@ -248,9 +228,7 @@ class SizingCalculator:
         cpu_sizing_container = cpu_sizing.groupby(CONTAINER_COLUMN).max()
         # remove rows with small cpu (in milli)
         cpu_sizing_container = (
-            cpu_sizing_container[cpu_sizing_container > cpu_lower_limit_millis]
-            .dropna(how="any")
-            .astype(int)
+            cpu_sizing_container[cpu_sizing_container > cpu_lower_limit_millis].dropna(how="any").astype(int)
         )
         # for memory we use limit = request but
         # DataFrame columns must be unique for orient='index'.
@@ -262,15 +240,11 @@ class SizingCalculator:
         mem_sizing_container = mem_sizing.groupby(CONTAINER_COLUMN).max()
         # remove rows with 0
         mem_sizing_container = (
-            mem_sizing_container[mem_sizing_container > memory_lower_limit_mib]
-            .dropna(how="any")
-            .astype(int)
+            mem_sizing_container[mem_sizing_container > memory_lower_limit_mib].dropna(how="any").astype(int)
         )
         r_l = self.request_limits().groupby(CONTAINER_COLUMN).max()
         # inner join of cpu and memory sizings removes containers with 0 cpu from memory sizing_container
-        joined_sizings = pd.concat(
-            [cpu_sizing_container, mem_sizing_container, r_l], axis=1, join="inner"
-        )
+        joined_sizings = pd.concat([cpu_sizing_container, mem_sizing_container, r_l], axis=1, join="inner")
         return joined_sizings
 
     def sizing_json(self, folder: Path):
@@ -291,26 +265,16 @@ def sizing_calculator(
     namespace: str,
     test_details: Optional[TestDetails] = None,
 ) -> SizingCalculator:
-    time_range = TimeRange(
-        start_time=start_time, end_time=end_time, delta_hours=delta_hours
-    )
+    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     sla_tables: SlaTables = SlaTables(folder=metrics_folder)
     # value error if no table with name
     sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
-    prom_rules: PrometheusRules = PrometheusRules(
-        time_range=time_range, sla_table=sla_table
-    )
+    prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
     prom_rules.load_df()
     ns_df = prom_rules.ns_df(namespace=namespace)
-    cpu: LimitsRequests = LimitsRequests(
-        ns_df=ns_df, sla_table=sla_table, resource=CPU_RESOURCE
-    )
-    memory: LimitsRequests = LimitsRequests(
-        ns_df=ns_df, sla_table=sla_table, resource=MEMORY_RESOURCE
-    )
-    return SizingCalculator(
-        cpu=cpu, memory=memory, time_range=time_range, test_details=test_details
-    )
+    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=CPU_RESOURCE)
+    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=MEMORY_RESOURCE)
+    return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, test_details=test_details)
 
 
 def save_new_sizing(
@@ -343,9 +307,7 @@ def sizing_ini(new_sizings: pd.DataFrame, folder: Path):
     logger.info(f"Saving new sizing to {path}")
     import configparser
 
-    config = configparser.ConfigParser(
-        interpolation=configparser.ExtendedInterpolation()
-    )
+    config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
     # case-sensitive keys
     config.optionxform = str
     new_sizings = new_sizings[new_sizings[CPU_REQUEST_NAME] >= 10]
@@ -357,9 +319,7 @@ def sizing_ini(new_sizings: pd.DataFrame, folder: Path):
             option="requests.cpu",
             value=str(row[CPU_REQUEST_NAME]) + "m",
         )
-        config.set(
-            section=section, option="limits.cpu", value=str(row[CPU_LIMIT_NAME]) + "m"
-        )
+        config.set(section=section, option="limits.cpu", value=str(row[CPU_LIMIT_NAME]) + "m")
         config.set(
             section=section,
             option="requests.memory",

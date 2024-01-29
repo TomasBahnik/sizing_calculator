@@ -24,17 +24,13 @@ app = typer.Typer()
 
 @app.command()
 def grafana_report(
-    dashboards_folder: Path = typer.Option(
-        ..., "--folder", dir_okay=True, help="Folder with grafana dashboards"
-    ),
+    dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True, help="Folder with grafana dashboards"),
     dashboard_file: str = typer.Option(
         None,
         "--file",
         help="Name of dashboard file. If None all files with --suffix value from the folder are loaded",
     ),
-    file_name_contains: str = typer.Option(
-        None, "--contains", "-c", help="Filter filenames that contain this string"
-    ),
+    file_name_contains: str = typer.Option(None, "--contains", "-c", help="Filter filenames that contain this string"),
     file_name_ends_with: str = typer.Option(
         JSON_SUFFIX,
         "--suffix",
@@ -65,26 +61,20 @@ def grafana_report(
         f"{dashboards_folder.parts[-1]}_{file_name_contains}_{file_name_ends_with[1:]}.html",
     )
     if dashboard_file:
-        html_file = Path(
-            f"{dashboards_folder.parts[-1]}_{dashboard_file}_{file_name_ends_with[1:]}.html"
-        )
+        html_file = Path(f"{dashboards_folder.parts[-1]}_{dashboard_file}_{file_name_ends_with[1:]}.html")
     logger.info(f"Saving to {html_file.resolve()}")
     tmp_df.to_html(html_file, index=True)
 
 
 @app.command()
 def prom_expressions(
-    dashboards_folder: Path = typer.Option(
-        ..., "--folder", dir_okay=True, help="Folder with grafana dashboards"
-    ),
+    dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True, help="Folder with grafana dashboards"),
     dashboard_file: str = typer.Option(
         None,
         "--file",
         help="Name of dashboard file. If None all files with --suffix value from the folder are loaded",
     ),
-    file_name_contains: str = typer.Option(
-        None, "--contains", "-c", help="Filter filenames that contain this string"
-    ),
+    file_name_contains: str = typer.Option(None, "--contains", "-c", help="Filter filenames that contain this string"),
     file_name_ends_with: str = typer.Option(
         JSON_SUFFIX,
         "--suffix",

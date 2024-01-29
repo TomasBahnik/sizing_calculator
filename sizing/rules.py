@@ -38,13 +38,9 @@ class RatioRule:
         self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
         # NAMESPACE is already filtered, no need for unique index
         # df.set_index, verify_integrity – Check the new index for duplicate
-        self.indexFromKeys: List[str] = [
-            k for k in self.allKeys if k != NAMESPACE_COLUMN
-        ]
+        self.indexFromKeys: List[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
         # only delta and max consecutive period rules need timestamp
-        self.groupByKeys: List[str] = [
-            k for k in self.indexFromKeys if k != TIMESTAMP_COLUMN
-        ]
+        self.groupByKeys: List[str] = [k for k in self.indexFromKeys if k != TIMESTAMP_COLUMN]
         # 0 has bool = False
         self.limit_value: bool = bool(self.basic_rule.resource_limit_value)
         self.limit_column: bool = bool(self.basic_rule.resource_limit_column)
@@ -57,9 +53,7 @@ class RatioRule:
         self.over_pct_dynamic: pd.Series = pd.Series(dtype=float)
         self.over_pct_counts: pd.Series = pd.Series(dtype=int)
         self.over_pct_static = pd.Series(data=float)
-        self.containerPodIndexes: Dict[tuple, pd.MultiIndex] = (
-            self.container_pod_indexes()
-        )
+        self.containerPodIndexes: Dict[tuple, pd.MultiIndex] = self.container_pod_indexes()
 
     def get_namespace(self) -> str:
         namespaces: Set[str] = set(self.ns_df[NAMESPACE_COLUMN])
@@ -73,13 +67,11 @@ class RatioRule:
         """Either limit value or limit column not both"""
         if self.limit_value and self.limit_column:
             raise ValueError(
-                f"{self.basic_rule.resource}: "
-                f"Either resource_limit_value or resource_limit_column not both"
+                f"{self.basic_rule.resource}: " f"Either resource_limit_value or resource_limit_column not both"
             )
         if not self.limit_value and not self.limit_column:
             raise ValueError(
-                f"{self.basic_rule.resource}:"
-                f" Either resource_limit_column or resource_limit_value must be set "
+                f"{self.basic_rule.resource}:" f" Either resource_limit_column or resource_limit_value must be set "
             )
 
     def is_limit_static(self) -> bool:
@@ -115,23 +107,17 @@ class RatioRule:
         # at least one value
         limits_with_value = limits_pod_container.dropna(thresh=1)
         # all nan/null
-        missing_limits_df = limits_pod_container[
-            limits_pod_container.isnull().all(axis=1)
-        ]
-        check_sets = set(limits_with_value.index).intersection(
-            set(missing_limits_df.index)
-        )
+        missing_limits_df = limits_pod_container[limits_pod_container.isnull().all(axis=1)]
+        check_sets = set(limits_with_value.index).intersection(set(missing_limits_df.index))
         assert len(check_sets) == 0
         return missing_limits_df.index
 
     def set_index_ns_df(self):
         """Create index from keys columns"""
         #  verify_integrity – Check the new index for duplicate
-        return self.ns_df.set_index(
-            keys=self.indexFromKeys, verify_integrity=True, drop=True
-        )
+        return self.ns_df.set_index(keys=self.indexFromKeys, verify_integrity=True, drop=True)
 
-    def index_to_frame(self):
+    def index_to_frame(self) -> pd.DataFrame:
         idx: pd.MultiIndex = self.ns_df_indexed.index
         return idx.to_frame()
 
@@ -146,13 +132,9 @@ class RatioRule:
             c_p_df = self.ns_df_ts_col[CONTAINER_POD_COLUMNS]
             cp_tuples = sorted({tuple(cp) for cp in c_p_df.values})
             for t in cp_tuples:
-                cp_idx[t] = c_p_df[
-                    (c_p_df[CONTAINER_COLUMN] == t[0]) & (c_p_df[POD_COLUMN] == t[1])
-                ].index
+                cp_idx[t] = c_p_df[(c_p_df[CONTAINER_COLUMN] == t[0]) & (c_p_df[POD_COLUMN] == t[1])].index
         except KeyError as key:
-            logger.info(
-                f"\t No {key}: in {self.basic_rule.resource}. Return empty dict"
-            )
+            logger.info(f"\t No {key}: in {self.basic_rule.resource}. Return empty dict")
         return cp_idx
 
     def resource_values(self) -> pd.Series:
@@ -162,16 +144,12 @@ class RatioRule:
         """Calculate resource/resource_limit_column ratio."""
         # index = pod/container, values = limits or -1 in case of missing limit
         resource_limits: pd.DataFrame = self.limits_wo_nan()
-        resource_limits_ser: pd.Series = resource_limits[
-            self.basic_rule.resource_limit_column
-        ]
+        resource_limits_ser: pd.Series = resource_limits[self.basic_rule.resource_limit_column]
         resource_values_ser: pd.Series = self.resource_values()
-        ratio_values_ser: pd.Series = resource_values_ser.divide(
-            resource_limits_ser, axis=0
-        )
+        ratio_values_ser: pd.Series = resource_values_ser.divide(resource_limits_ser, axis=0)
         return ratio_values_ser
 
-    def missing_idx_values(self):
+    def missing_idx_values(self) -> pd.DataFrame:
         """Collected resource values for (pod,container) with missing resource limit.
 
         Only in these cases makes sense to look for suitable resource limit that can be used
@@ -192,30 +170,20 @@ class RatioRule:
         ratios = self.calc_over_pct_dynamic()
         # group by pod/container counts timestamps
         all_ratio_counts = ratios.groupby(by=self.groupByKeys).count()
-        non_nan_samples = all_ratio_counts[
-            all_ratio_counts.index.isin(self.over_pct_counts.index)
-        ]
+        non_nan_samples = all_ratio_counts[all_ratio_counts.index.isin(self.over_pct_counts.index)]
         report_df = self.pct_above_limit(not_nan_samples=non_nan_samples)
         return report_df
 
-    def calc_over_pct_dynamic(self):
+    def calc_over_pct_dynamic(self) -> pd.Series:
         ratios = self.ns_resource_ratios()
         compare: Compare = self.basic_rule.compare
         if compare == Compare.GREATER:
-            self.over_pct_dynamic: pd.Series = ratios[
-                ratios > self.basic_rule.limit_pct
-            ]
+            self.over_pct_dynamic: pd.Series = ratios[ratios > self.basic_rule.limit_pct]
         elif compare == Compare.LESS:
-            self.over_pct_dynamic: pd.Series = ratios[
-                ratios < self.basic_rule.limit_pct
-            ]
+            self.over_pct_dynamic: pd.Series = ratios[ratios < self.basic_rule.limit_pct]
         elif compare == Compare.EQUAL:
-            self.over_pct_dynamic: pd.Series = ratios[
-                ratios == self.basic_rule.limit_pct
-            ]
-        self.over_pct_counts = self.over_pct_dynamic.groupby(
-            by=self.groupByKeys
-        ).count()
+            self.over_pct_dynamic: pd.Series = ratios[ratios == self.basic_rule.limit_pct]
+        self.over_pct_counts = self.over_pct_dynamic.groupby(by=self.groupByKeys).count()
         self.over_pct_counts.name = OVER_LIMIT_COUNT_COLUMN
         return ratios
 
@@ -226,17 +194,11 @@ class RatioRule:
         resource_values = self.resource_values()
         compare: Compare = self.basic_rule.compare
         if compare == Compare.GREATER:
-            over_pct_static: pd.Series = resource_values[
-                resource_values > self.basic_rule.resource_limit_value
-            ]
+            over_pct_static: pd.Series = resource_values[resource_values > self.basic_rule.resource_limit_value]
         elif compare == Compare.LESS:
-            over_pct_static: pd.Series = resource_values[
-                resource_values < self.basic_rule.resource_limit_value
-            ]
+            over_pct_static: pd.Series = resource_values[resource_values < self.basic_rule.resource_limit_value]
         elif compare == Compare.EQUAL:
-            over_pct_static: pd.Series = resource_values[
-                resource_values == self.basic_rule.resource_limit_value
-            ]
+            over_pct_static: pd.Series = resource_values[resource_values == self.basic_rule.resource_limit_value]
         elif compare == Compare.DELTA:
             # delta is supported only for default keys wo namespace i.e. container / pod
             # see cpt/prometheus/const.py DEFAULT_PORTAL_GRP_KEYS
@@ -250,8 +212,7 @@ class RatioRule:
             )
             over_pct: pd.DataFrame = pd.DataFrame(data=data, index=m_idx)
             over_pct_static: pd.DataFrame = over_pct[
-                over_pct[self.basic_rule.resource]
-                > self.basic_rule.resource_limit_value
+                over_pct[self.basic_rule.resource] > self.basic_rule.resource_limit_value
             ]
             return over_pct_static
         else:
@@ -261,32 +222,22 @@ class RatioRule:
         self.over_pct_counts = over_pct_static.groupby(by=self.groupByKeys).count()
         self.over_pct_counts.name = OVER_LIMIT_COUNT_COLUMN
         all_not_nan_samples = resource_values.groupby(by=self.groupByKeys).count()
-        not_nan_samples = all_not_nan_samples[
-            all_not_nan_samples.index.isin(self.over_pct_counts.index)
-        ]
+        not_nan_samples = all_not_nan_samples[all_not_nan_samples.index.isin(self.over_pct_counts.index)]
         return self.pct_above_limit(not_nan_samples=not_nan_samples)
 
-    def pct_above_limit(self, not_nan_samples):
-        """not NaN sample with index in over pct counts"""
+    def pct_above_limit(self, not_nan_samples) -> pd.DataFrame:
+        """Not NaN sample with index in over pct counts."""
         pct_above: pd.Series = 100 * self.over_pct_counts / not_nan_samples
         pct_above.name = OVER_LIMIT_PCT_COLUMN
         basic_concat_list = [self.over_pct_counts, pct_above.round(1)]
-        max_period_over_sec: pd.Series = self.max_consecutive_overtime(
-            threshold_count=1
-        )
-        concat_list = (
-            basic_concat_list
-            if max_period_over_sec.empty
-            else basic_concat_list + [max_period_over_sec]
-        )
+        max_period_over_sec: pd.Series = self.max_consecutive_overtime(threshold_count=1)
+        concat_list = basic_concat_list if max_period_over_sec.empty else basic_concat_list + [max_period_over_sec]
         report_df = pd.concat(concat_list, axis=1)
         return report_df
 
-    def report_header(self):
+    def report_header(self) -> str:
         """rule limit_pct has default value (None) - can't be used in calculation"""
-        limit_pct = (
-            f"{self.basic_rule.limit_pct * 100}%" if self.basic_rule.limit_pct else None
-        )
+        limit_pct = f"{self.basic_rule.limit_pct * 100}%" if self.basic_rule.limit_pct else None
         data: Dict[str, List[str]] = {
             "namespace": [self.get_namespace()],
             "resource": [self.basic_rule.resource],
@@ -320,9 +271,7 @@ class RatioRule:
             missing_values_count.name = "COUNT"
             missing_values_mean: pd.Series = self.missing_idx_values().mean(axis=1)
             missing_values_mean.name = "MEAN"
-            missing_values_df = pd.concat(
-                [missing_values_mean, missing_values_count], axis=1
-            )
+            missing_values_df = pd.concat([missing_values_mean, missing_values_count], axis=1)
             title = f"<h4>{self.basic_rule.resource}: values available for missing limits</h4>"
             missing_values_html: str = title + missing_values_df.to_html()
         report_html = ratios_html + missing_values_html
@@ -335,24 +284,14 @@ class RatioRule:
     def requests_limits(self, resource_table: SlaTable) -> pd.DataFrame:
         from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE, LimitsRequests, SizingCalculator
 
-        cpu: LimitsRequests = LimitsRequests(
-            ns_df=self.ns_df, sla_table=resource_table, resource=CPU_RESOURCE
-        )
-        memory: LimitsRequests = LimitsRequests(
-            ns_df=self.ns_df, sla_table=resource_table, resource=MEMORY_RESOURCE
-        )
+        cpu: LimitsRequests = LimitsRequests(ns_df=self.ns_df, sla_table=resource_table, resource=CPU_RESOURCE)
+        memory: LimitsRequests = LimitsRequests(ns_df=self.ns_df, sla_table=resource_table, resource=MEMORY_RESOURCE)
         sizing_calc = SizingCalculator(cpu=cpu, memory=memory)
         return sizing_calc.request_limits()
 
-    def add_report(
-        self, main_header: str, resource_table: Optional[SlaTable] = None
-    ) -> str:
+    def add_report(self, main_header: str, resource_table: Optional[SlaTable] = None) -> str:
         self.eval_rule()
-        requests_limits_df = (
-            self.requests_limits(resource_table=resource_table)
-            if resource_table
-            else None
-        )
+        requests_limits_df = self.requests_limits(resource_table=resource_table) if resource_table else None
         self.report_df = (
             pd.concat([self.report_df, requests_limits_df], axis=1, join="inner")
             if requests_limits_df is not None
@@ -401,14 +340,8 @@ class RatioRule:
                     period_over: pd.Timedelta = ts_over[-1] - ts_over[1]
                     periods_over_sec.append(period_over.total_seconds())
             # ValueError: max() arg is an empty sequence
-            summary_dict[idx] = (
-                max(periods_over_sec)
-                if len(periods_over_sec) > 0
-                else empty_periods_sec_default
-            )
-        summary_ser: pd.Series = pd.Series(
-            data=summary_dict.values(), index=summary_dict.keys(), dtype=float
-        )
+            summary_dict[idx] = max(periods_over_sec) if len(periods_over_sec) > 0 else empty_periods_sec_default
+        summary_ser: pd.Series = pd.Series(data=summary_dict.values(), index=summary_dict.keys(), dtype=float)
         summary_ser_not_empty = summary_ser[summary_ser != empty_periods_sec_default]
         if not summary_ser_not_empty.empty:
             summary_ser_not_empty.index.names = index_names
@@ -427,9 +360,7 @@ class PrometheusRules:
     def __format__(self, format_spec=""):
         return f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}"
 
-    def time_range_query(
-        self, table_name: str, timestamp_field: str = TIMESTAMP_COLUMN
-    ):
+    def time_range_query(self, table_name: str, timestamp_field: str = TIMESTAMP_COLUMN):
         lower_bound = f""""{timestamp_field}" >= '{self.timeRange.from_time}'"""
         upper_bound = f""""{timestamp_field}" <= '{self.timeRange.to_time}'"""
         q = f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"

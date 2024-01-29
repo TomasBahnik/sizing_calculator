@@ -37,9 +37,7 @@ class TimeRange:
         """
         # rounded to minutes down - do not ask for future
         self.to_time = (
-            pd.Timestamp(ts_input=end_time, tz=pytz.UTC)
-            if end_time
-            else pd.Timestamp.now(tz=pytz.UTC).floor("T")
+            pd.Timestamp(ts_input=end_time, tz=pytz.UTC) if end_time else pd.Timestamp.now(tz=pytz.UTC).floor("T")
         )
         self.from_time = (
             pd.Timestamp(ts_input=start_time, tz=pytz.UTC)
@@ -48,9 +46,7 @@ class TimeRange:
         )
 
     @classmethod
-    def from_timestamps(
-        cls, from_time: datetime.datetime, to_time: datetime.datetime
-    ) -> TimeRange:
+    def from_timestamps(cls, from_time: datetime.datetime, to_time: datetime.datetime) -> TimeRange:
         """Create TimeRange from two timestamps"""
         return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 
@@ -75,9 +71,7 @@ class PrometheusCollector:
             f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n"
         )
 
-    def range_query(
-        self, p_query: str, step_sec: float = settings.step_sec
-    ) -> pd.DataFrame:
+    def range_query(self, p_query: str, step_sec: float = settings.step_sec) -> pd.DataFrame:
         """
         Time range query
         :param p_query: Prometheus expression
@@ -93,9 +87,7 @@ class PrometheusCollector:
         )
         return df
 
-    def container_cpu_portal(
-        self, namespace: str, grp_keys: List[str], rate_interval: str
-    ) -> pd.DataFrame:
+    def container_cpu_portal(self, namespace: str, grp_keys: List[str], rate_interval: str) -> pd.DataFrame:
         """
         CPU of pods in given namespaces grouped by grp_keys
         :param grp_keys: keys names separated by ',' without parenthesis
@@ -124,9 +116,7 @@ def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:
 
 def df_tuple_columns(grp_keys: List[str], raw_df):
     # covert string column names to tuples corresponding to grp_keys
-    tuple_columns: List[Tuple[str, ...]] = [
-        col_tuple(str(c), grp_keys) for c in raw_df.columns
-    ]
+    tuple_columns: List[Tuple[str, ...]] = [col_tuple(str(c), grp_keys) for c in raw_df.columns]
     raw_df.columns = tuple_columns
 
 

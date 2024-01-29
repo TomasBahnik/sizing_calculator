@@ -56,17 +56,10 @@ def few_shot_prompt(
     query_title: str,
 ) -> FewShotPromptTemplate:
     """Prepare prompt for model"""
-    examples: List[PromptExample] = all_examples(
-        folder=dashboards_folder, filename=dashboard_file
-    )
+    examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file)
     file_names, queries, static_labels, titles = prompt_lists(examples)
-    fse: List[dict] = [
-        {TITLE: t[0], QUERIES: t[1], FILE: t[2]}
-        for t in zip(titles, queries, file_names)
-    ]
-    prompt_template: FewShotPromptTemplate = shot_examples(
-        fse=fse, num_examples=max_length, prefix=prefix
-    )
+    fse: List[dict] = [{TITLE: t[0], QUERIES: t[1], FILE: t[2]} for t in zip(titles, queries, file_names)]
+    prompt_template: FewShotPromptTemplate = shot_examples(fse=fse, num_examples=max_length, prefix=prefix)
     if debug:
         logger.info(f'{"=" * 10} Few Shot Prompt Start {"=" * 10}')
         logger.info(f"{prompt_template.format(input=query_title)}")
@@ -101,31 +94,18 @@ def get_model(deployment, max_tokens, temperature):
 
 @app.command()
 def title_queries(
-    dashboards_folder: Path = typer.Option(
-        ..., "--folder", dir_okay=True, help="Folder with grafana dashboards"
-    ),
+    dashboards_folder: Path = typer.Option(..., "--folder", dir_okay=True, help="Folder with grafana dashboards"),
     dashboard_file: str = typer.Option(
         None,
         "--file",
-        help=f"Dashboard file. If None all files with .json suffix "
-        f"from the folder are loaded",
+        help=f"Dashboard file. If None all files with .json suffix " f"from the folder are loaded",
     ),
-    max_length: int = typer.Option(
-        100, "--length", "-l", help="Maximum length of prompt examples"
-    ),
-    max_tokens: int = typer.Option(
-        DEFAULT_MAX_TOKENS, "--tokens", help="Maximum tokens in response"
-    ),
+    max_length: int = typer.Option(100, "--length", "-l", help="Maximum length of prompt examples"),
+    max_tokens: int = typer.Option(DEFAULT_MAX_TOKENS, "--tokens", help="Maximum tokens in response"),
     temperature: float = typer.Option(DEFAULT_TEMPERATURE, help="Model temperature"),
-    prefix: str = typer.Option(
-        DEFAULT_PREFIX, "--prefix", "-p", help="Prefix for examples"
-    ),
-    query_title: str = typer.Option(
-        DEFAULT_PROM_EXPR_TITLE, "--title", help="Query title"
-    ),
-    deployment: str = typer.Option(
-        deployment_name_35, "--model", "-m", help=DEPLOYMENT_HELP
-    ),
+    prefix: str = typer.Option(DEFAULT_PREFIX, "--prefix", "-p", help="Prefix for examples"),
+    query_title: str = typer.Option(DEFAULT_PROM_EXPR_TITLE, "--title", help="Query title"),
+    deployment: str = typer.Option(deployment_name_35, "--model", "-m", help=DEPLOYMENT_HELP),
     show_prompt: bool = typer.Option(False, help="Show few shot prompt"),
 ):
     """Prepares Few Shot Prompt from given grafana dashboards and asks model for Prometheus
@@ -139,9 +119,7 @@ def title_queries(
         query_title=query_title,
     )
     logger.info(f"{deployment}: {query_title}")
-    llm = get_model(
-        deployment=deployment, max_tokens=max_tokens, temperature=temperature
-    )
+    llm = get_model(deployment=deployment, max_tokens=max_tokens, temperature=temperature)
     if llm:
         chain = LLMChain(llm=llm, prompt=prompt)
         response: dict[str, str] = chain.invoke({"input": query_title})

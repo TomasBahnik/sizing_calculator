@@ -15,8 +15,7 @@ class SlaTables:
         self.folder: Path = folder
         self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")
         self.slaTables: List[SlaTable] = [
-            SlaTable.model_validate_json(json_data=sla_file.read_text())
-            for sla_file in self.slaFiles
+            SlaTable.model_validate_json(json_data=sla_file.read_text()) for sla_file in self.slaFiles
         ]
 
     def get_sla_table(self, table_name: str) -> SlaTable:
@@ -28,23 +27,14 @@ class SlaTables:
     def load_sla_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
         logger.info(f"Loading prom queries from {self.folder}")
         file_name_contains = table_name.lower() if table_name else None
-        metrics_files: List[Path] = list_files(
-            folder=self.folder, ends_with="json", contains=file_name_contains
-        )
+        metrics_files: List[Path] = list_files(folder=self.folder, ends_with="json", contains=file_name_contains)
         if not metrics_files:
-            raise FileNotFoundError(
-                f"No json files in {self.folder} with name containing {file_name_contains}"
-            )
+            raise FileNotFoundError(f"No json files in {self.folder} with name containing {file_name_contains}")
         ret: List[SlaTable] = [
-            SlaTable.model_validate_json(json_data=metric_file.read_text())
-            for metric_file in metrics_files
+            SlaTable.model_validate_json(json_data=metric_file.read_text()) for metric_file in metrics_files
         ]
         if table_name:
-            ret = [
-                portal_table
-                for portal_table in ret
-                if portal_table.tableName == table_name
-            ]
+            ret = [portal_table for portal_table in ret if portal_table.tableName == table_name]
             if len(ret) == 0:
                 raise ValueError(f"no table with name {table_name}")
         return ret
@@ -69,9 +59,7 @@ class SlaTables:
             prom_query.query = prom_query.query.replace("groupBy", use_group_by)
             # set for queries with rate, increase - presence indicates usage
             if prom_query.rateInterval:
-                prom_query.query = prom_query.query.replace(
-                    "rateInterval", prom_query.rateInterval
-                )
+                prom_query.query = prom_query.query.replace("rateInterval", prom_query.rateInterval)
             ns_label = f'namespace=~"{namespaces}"'
             use_labels_list = prom_query.labels if prom_query.labels else labels
             all_labels_list = [ns_label] + use_labels_list

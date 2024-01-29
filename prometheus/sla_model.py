@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -21,9 +21,9 @@ class Compare(StrEnum):
 class BasicSla(BaseModel):
     resource: str
     resource_limit_column: str = None
-    limit_pct: float = None
+    limit_pct: Optional[float] = None
     # compare if resource is greater or lower
-    resource_limit_value: float = None
+    resource_limit_value: Optional[float] = None
     # default compare, business ready has 0 = false, 1 = true and compares < 1
     compare: Compare = Compare.GREATER
 
@@ -56,11 +56,7 @@ class SlaTable(BaseModel):
         Ensure that DEFAULT_PORTAL_GRP_KEYS are always present. Exclude possible duplicates using `set`
         and subsequent sorted created ordered list
         """
-        grp_keys: List[str] = (
-            DEFAULT_PORTAL_GRP_KEYS + self.groupBy
-            if self.useGroupByDefaults
-            else self.groupBy
-        )
+        grp_keys: List[str] = DEFAULT_PORTAL_GRP_KEYS + self.groupBy if self.useGroupByDefaults else self.groupBy
         grp_keys: List[str] = sorted({gk.strip() for gk in grp_keys})
         return grp_keys
 

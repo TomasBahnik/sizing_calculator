@@ -17,9 +17,7 @@ class Settings(BaseSettings):
     3. the system's environment variables.
     """
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__"
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", env_nested_delimiter="__")
 
     # Paths
     pycpt_home: Path = Path(__file__).parent

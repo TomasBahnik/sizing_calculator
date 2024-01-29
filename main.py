@@ -40,21 +40,16 @@ def sizing_reports(
         None,
         "--start",
         "-s",
-        help="Start time in UTC without tz. "
-        "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
+        help="Start time in UTC without tz. " "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
     ),
-    end_time: str = typer.Option(
-        None, "--end", "-e", help="End time in UTC without tz"
-    ),
+    end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
     delta_hours: float = typer.Option(
         settings.time_delta_hours,
         "--delta",
         "-d",
         help="hours in the past i.e start time = end_time - delta_hours",
     ),
-    namespace: str = typer.Option(
-        None, "--namespace", "-n", help="Only selected namespace"
-    ),
+    namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
     folder: Path = typer.Option(
         settings.sla_tables,
         "--folder",
@@ -78,20 +73,14 @@ def sizing_reports(
     sla_tables: SlaTables = SlaTables(folder=folder)
     sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     if start_time is not None and end_time is not None:
-        data_loader: DataLoader = DataLoader(
-            delta_hours=delta_hours, start_time=start_time, end_time=end_time
-        )
+        data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
         ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
         # unique namespaces in df
         assert len(namespaces) == 1
         assert namespaces[0] == namespace
         cpu = LimitsRequests(ns_df=ns_df, resource=CPU_RESOURCE, sla_table=sla_table)
-        memory = LimitsRequests(
-            ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table
-        )
-        time_range = TimeRange(
-            start_time=start_time, end_time=end_time, delta_hours=delta_hours
-        )
+        memory = LimitsRequests(ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table)
+        time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
         s_c = SizingCalculator(cpu=cpu, memory=memory, time_range=time_range)
         logger.info(f"Creating sizing reports for {namespace} and {time_range}")
         common_folder = Path(NEW_SIZING_REPORT_FOLDER)
@@ -101,13 +90,9 @@ def sizing_reports(
         save_new_sizing(all_test_sizing, common_folder, test_summary=None)
 
     elif test_summary_json is not None:
-        test_summary: TestSummary = TestSummary.model_validate_json(
-            json_data=test_summary_json.read_text()
-        )
+        test_summary: TestSummary = TestSummary.model_validate_json(json_data=test_summary_json.read_text())
         logger.info(f"Loaded test summary from {test_summary_json}")
-        common_folder = Path(
-            NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(" ", "_")
-        )
+        common_folder = Path(NEW_SIZING_REPORT_FOLDER, test_summary.name.replace(" ", "_"))
         for test_details in test_summary.tests:
             logger.info(f"Processing {test_details.description}")
             namespace = test_summary.namespace
@@ -117,36 +102,24 @@ def sizing_reports(
                 start_time=None,
                 end_time=None,
             )
-            ns_df, namespaces = data_loader.ns_df(
-                sla_table=sla_table, namespace=namespace
-            )
+            ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
             # unique namespaces in df
             assert len(namespaces) == 1
             assert namespaces[0] == namespace
-            cpu = LimitsRequests(
-                ns_df=ns_df, resource=CPU_RESOURCE, sla_table=sla_table
-            )
-            memory = LimitsRequests(
-                ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table
-            )
-            s_c = SizingCalculator.from_test_details(
-                cpu=cpu, memory=memory, test_details=test_details
-            )
+            cpu = LimitsRequests(ns_df=ns_df, resource=CPU_RESOURCE, sla_table=sla_table)
+            memory = LimitsRequests(ns_df=ns_df, resource=MEMORY_RESOURCE, sla_table=sla_table)
+            s_c = SizingCalculator.from_test_details(cpu=cpu, memory=memory, test_details=test_details)
             folder = Path(common_folder, test_details.description.replace(" ", "_"))
             s_c.sizing_calc_all_reports(folder=folder, test_summary=test_summary)
             all_test_sizing.append(s_c.new_sizing())
         save_new_sizing(all_test_sizing, common_folder, test_summary)
     else:
-        raise ValueError(
-            "Either start_time and end_time or test_summary_file must be provided"
-        )
+        raise ValueError("Either start_time and end_time or test_summary_file must be provided")
 
 
 @app.command()
 def last_update(
-    namespace: str = typer.Option(
-        ..., "-n", "--namespace", help="Last update of given namespace"
-    ),
+    namespace: str = typer.Option(..., "-n", "--namespace", help="Last update of given namespace"),
     folder: Path = typer.Option(
         settings.sla_tables,
         "--folder",
@@ -189,8 +162,7 @@ def load_metrics(
         ...,
         "-n",
         "--namespace",
-        help=f'list of namespaces separated by | enclosed in " '
-        f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'",
+        help=f'list of namespaces separated by | enclosed in " ' f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'",
     ),
     folder: Path = typer.Option(
         settings.sla_tables,
@@ -212,12 +184,8 @@ def load_metrics(
     """
     portal_prometheus: SlaTables = SlaTables(folder=folder)
     portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
-    time_range = TimeRange(
-        start_time=start_time, end_time=end_time, delta_hours=delta_hours
-    )
-    prom_collector: PrometheusCollector = PrometheusCollector(
-        PROMETHEUS_URL, time_range=time_range
-    )
+    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
+    prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
     for portal_table in portal_tables:
         logger.info(
             f"Table: {portal_table.dbSchema}.{portal_table.tableName}, "
@@ -235,9 +203,7 @@ def load_metrics(
         for prom_query in replaced_pt.queries:
             logger.info(f"{prom_query.columnName}")
             logger.info(f"\tquery: {prom_query.query}")
-            df: pd.DataFrame = prom_collector.range_query(
-                p_query=prom_query.query, step_sec=step_sec
-            )
+            df: pd.DataFrame = prom_collector.range_query(p_query=prom_query.query, step_sec=step_sec)
             if df.empty:
                 logger.info(f"Query returns empty data. Continue")
                 continue
@@ -255,10 +221,7 @@ def load_metrics(
         full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
         prom_save(dfs=[full_df], portal_table=portal_table)
         unique_ns = set(full_df[NAMESPACE_COLUMN])
-        logger.info(
-            f"shape: {full_df.shape}\n"
-            f"{len(unique_ns)} unique namespaces: {unique_ns}"
-        )
+        logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
 
 
 @app.command()
@@ -267,12 +230,9 @@ def eval_slas(
         None,
         "--start",
         "-s",
-        help="Start time in UTC without tz. "
-        "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
+        help="Start time in UTC without tz. " "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
     ),
-    end_time: str = typer.Option(
-        None, "--end", "-e", help="End time in UTC without tz"
-    ),
+    end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
     delta_hours: float = typer.Option(
         settings.time_delta_hours,
         "--delta",
@@ -292,28 +252,18 @@ def eval_slas(
         "--limit-pct",
         help="Resource above percentage of limits. Overrides value in json",
     ),
-    namespace: str = typer.Option(
-        None, "--namespace", "-n", help="Only selected namespace"
-    ),
+    namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
 ):
     """Evaluate SLAs for all tables in metrics_folder"""
-    data_loader: DataLoader = DataLoader(
-        delta_hours=delta_hours, start_time=start_time, end_time=end_time
-    )
-    time_range = TimeRange(
-        start_time=start_time, end_time=end_time, delta_hours=delta_hours
-    )
+    data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
+    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     sla_tables: SlaTables = SlaTables(folder=folder)
     for sla_table in sla_tables.load_sla_tables():
         if len(sla_table.rules) == 0:
             logger.info(f"No rules in {sla_table.name}. Continue ..")
             continue
-        all_ns_df, namespaces = data_loader.ns_df(
-            sla_table=sla_table, namespace=namespace
-        )
-        main_report: str = html.sla_report_header(
-            sla_table=sla_table, time_range=time_range
-        )
+        all_ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
+        main_report: str = html.sla_report_header(sla_table=sla_table, time_range=time_range)
         for rule in sla_table.rules:
             # rule.limit_pct has default value == None
             if limit_pct:  # limit_pct is set
@@ -334,13 +284,9 @@ def eval_slas(
                     main_report = rr.add_report(main_report, sla_table)
                 else:
                     main_report = rr.add_report(main_report)
-        if main_report != html.sla_report_header(
-            sla_table=sla_table, time_range=time_range
-        ):
+        if main_report != html.sla_report_header(sla_table=sla_table, time_range=time_range):
             #  do not save empty reports
-            sla_report(
-                main_report=main_report, sla_table=sla_table, time_range=time_range
-            )
+            sla_report(main_report=main_report, sla_table=sla_table, time_range=time_range)
 
 
 @app.command()
@@ -349,28 +295,21 @@ def load_save_df(
         None,
         "--start",
         "-s",
-        help="Start time in UTC without tz. "
-        "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
+        help="Start time in UTC without tz. " "format: '2023-07-21T04:43:00' or '2023-09-13 16:35:00`",
     ),
-    end_time: str = typer.Option(
-        None, "--end", "-e", help="End time in UTC without tz"
-    ),
+    end_time: str = typer.Option(None, "--end", "-e", help="End time in UTC without tz"),
     delta_hours: float = typer.Option(
         settings.time_delta_hours,
         "--delta",
         "-d",
         help="hours in the past i.e start time = end_time - delta_hours",
     ),
-    namespace: str = typer.Option(
-        None, "--namespace", "-n", help="Only selected namespace"
-    ),
+    namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
 ):
     """Load df from DB and save it to json"""
     from sizing.data import DataLoader
 
-    data_loader: DataLoader = DataLoader(
-        delta_hours=delta_hours, start_time=start_time, end_time=end_time
-    )
+    data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
     sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader.save_df(sla_table=sla_table, namespace=namespace)
     df = data_loader.load_df(sla_table=sla_table)

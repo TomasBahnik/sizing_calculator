@@ -29,9 +29,7 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
 
     ft = time_range.from_time.strftime(DATE_TIME_FORMAT_FOLDER)
     tt = time_range.to_time.strftime(DATE_TIME_FORMAT_FOLDER)
-    folder = Path(
-        settings.prometheus_report_folder, sla_table.dbSchema, sla_table.tableName
-    )
+    folder = Path(settings.prometheus_report_folder, sla_table.dbSchema, sla_table.tableName)
     os.makedirs(folder, exist_ok=True)
     html_file = Path(folder, f"{ft}_{tt}.html")
     msg = f"Writing reports to {html_file}"
@@ -40,9 +38,7 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
         file.write(main_report)
 
 
-def sizing_calc_report_header(
-    test_details: Optional[TestDetails], time_range: TimeRange
-) -> str:
+def sizing_calc_report_header(test_details: Optional[TestDetails], time_range: TimeRange) -> str:
     """Report header with namespace and time range."""
     # time_range present always
     duration = (time_range.to_time - time_range.from_time).total_seconds()
@@ -72,9 +68,7 @@ def sizing_calc_report(
     report_header = (
         sizing_calc_report_header(test_details, time_range)
         if test_summary is None
-        else sizing_calc_summary_header(test_summary)
-        + "<br/>"
-        + sizing_calc_report_header(test_details, time_range)
+        else sizing_calc_summary_header(test_summary) + "<br/>" + sizing_calc_report_header(test_details, time_range)
     )
     path = Path(folder, file_name)
     msg = f"Saving report to {path.resolve()}"

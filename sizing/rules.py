@@ -178,27 +178,26 @@ class RatioRule:
         ratios = self.ns_resource_ratios()
         compare: Compare = self.basic_rule.compare
         if compare == Compare.GREATER:
-            self.over_pct_dynamic: pd.Series = ratios[ratios > self.basic_rule.limit_pct]
+            self.over_pct_dynamic = ratios[ratios > self.basic_rule.limit_pct]
         elif compare == Compare.LESS:
-            self.over_pct_dynamic: pd.Series = ratios[ratios < self.basic_rule.limit_pct]
+            self.over_pct_dynamic = ratios[ratios < self.basic_rule.limit_pct]
         elif compare == Compare.EQUAL:
-            self.over_pct_dynamic: pd.Series = ratios[ratios == self.basic_rule.limit_pct]
+            self.over_pct_dynamic = ratios[ratios == self.basic_rule.limit_pct]
         self.over_pct_counts = self.over_pct_dynamic.groupby(by=self.groupByKeys).count()
         self.over_pct_counts.name = OVER_LIMIT_COUNT_COLUMN
         return ratios
 
     def over_pct_static_limit(self) -> pd.DataFrame:
-        """Compare resource to fixed limit specified in the rule definition
-        as rule.resource_limit_value
-        """
+        """Compare resource to fixed limit specified in the rule definition as rule.resource_limit_value."""
         resource_values = self.resource_values()
         compare: Compare = self.basic_rule.compare
+        over_pct_static: pd.Series | pd.DataFrame
         if compare == Compare.GREATER:
-            over_pct_static: pd.Series = resource_values[resource_values > self.basic_rule.resource_limit_value]
+            over_pct_static = resource_values[resource_values > self.basic_rule.resource_limit_value]
         elif compare == Compare.LESS:
-            over_pct_static: pd.Series = resource_values[resource_values < self.basic_rule.resource_limit_value]
+            over_pct_static = resource_values[resource_values < self.basic_rule.resource_limit_value]
         elif compare == Compare.EQUAL:
-            over_pct_static: pd.Series = resource_values[resource_values == self.basic_rule.resource_limit_value]
+            over_pct_static = resource_values[resource_values == self.basic_rule.resource_limit_value]
         elif compare == Compare.DELTA:
             # delta is supported only for default keys wo namespace i.e. container / pod
             # see cpt/prometheus/const.py DEFAULT_PORTAL_GRP_KEYS
@@ -211,9 +210,7 @@ class RatioRule:
                 list(self.containerPodIndexes.keys()), names=CONTAINER_POD_COLUMNS
             )
             over_pct: pd.DataFrame = pd.DataFrame(data=data, index=m_idx)
-            over_pct_static: pd.DataFrame = over_pct[
-                over_pct[self.basic_rule.resource] > self.basic_rule.resource_limit_value
-            ]
+            over_pct_static = over_pct[over_pct[self.basic_rule.resource] > self.basic_rule.resource_limit_value]
             return over_pct_static
         else:
             raise ValueError(f"Unknown compare operator: {compare}")
@@ -249,12 +246,13 @@ class RatioRule:
         df: pd.DataFrame = pd.DataFrame(data=data)
         return df.to_html()
 
-    def eval_rule(self):
-        """Calculates specified ratios and provides DataFrame for report"""
+    def eval_rule(self) -> None:
+        """Calculates specified ratios and provides DataFrame for report."""
+        report_df: pd.DataFrame
         if self.is_limit_static():
-            report_df: pd.DataFrame = self.over_pct_static_limit()
+            report_df = self.over_pct_static_limit()
         else:
-            report_df: pd.DataFrame = self.over_pct_df()
+            report_df = self.over_pct_df()
         self.report_df = report_df
 
     def report_data(self, ratios_only: bool = True) -> str:
@@ -273,7 +271,7 @@ class RatioRule:
             missing_values_mean.name = "MEAN"
             missing_values_df = pd.concat([missing_values_mean, missing_values_count], axis=1)
             title = f"<h4>{self.basic_rule.resource}: values available for missing limits</h4>"
-            missing_values_html: str = title + missing_values_df.to_html()
+            missing_values_html = title + missing_values_df.to_html()
         report_html = ratios_html + missing_values_html
         title_unique_limits = f"<h4>{self.basic_rule.resource}: unique limits</h4>"
         report_html += title_unique_limits

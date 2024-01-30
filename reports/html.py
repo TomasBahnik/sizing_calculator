@@ -56,8 +56,8 @@ def sizing_calc_report_header(test_details: Optional[TestDetails], time_range: T
 
 
 def sizing_calc_report(
-    time_range: TimeRange,
-    test_details: TestDetails,
+    time_range: Optional[TimeRange],
+    test_details: Optional[TestDetails],
     data: pd.DataFrame,
     folder: Path,
     file_name: str,

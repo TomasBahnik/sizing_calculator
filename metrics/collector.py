@@ -28,7 +28,7 @@ class TimeRange:
         self,
         start_time: Optional[str] = None,
         end_time: Optional[str] = None,
-        delta_hours: float = settings.time_delta_hours,
+        delta_hours: Optional[float] = settings.time_delta_hours,
     ):
         """
         :param start_time: fixed start time. If None, start_time = end_time - delta
@@ -61,7 +61,9 @@ class TimeRange:
 
 class PrometheusCollector:
 
-    def __init__(self, url: str, time_range: TimeRange):
+    def __init__(self, url: str | None, time_range: TimeRange):
+        if not url:
+            raise ValueError("Prometheus url is not set")
         self.promQuery = query.Prometheus(url)
         self.timeRange: TimeRange = time_range
 

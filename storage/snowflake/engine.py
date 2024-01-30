@@ -7,6 +7,7 @@ import snowflake.connector
 from loguru import logger
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
+from snowflake.connector.cursor import SnowflakeCursor
 from snowflake.connector.pandas_tools import pd_writer
 from snowflake.sqlalchemy import URL
 from sqlalchemy import create_engine
@@ -76,6 +77,14 @@ class SnowflakeEngine:
             if_exists="append",
         )
 
+    def fetch_df(self, query: str) -> DataFrame:
+        cursor: SnowflakeCursor | None = self.connection.cursor().execute(query)
+        if cursor:
+            df: DataFrame = cursor.fetch_pandas_all()
+            return df
+        else:
+            raise ValueError(f"Cursor is None for query: {query}")
+
     def from_to_by_uuid_df(self, timestamp_field: str, table_name: str) -> DataFrame:
         """
         Generate list of tests from data table instead from list table.
@@ -83,10 +92,8 @@ class SnowflakeEngine:
         By default, list table is used in snowflake_engine.api_list
         """
         q = q_from_to_by_uuid(timestamp_field=timestamp_field, table_name=table_name)
-        df: DataFrame = self.connection.cursor().execute(q).fetch_pandas_all()
-        return df
+        return self.fetch_df(query=q)
 
     def all_df(self, table_name: str) -> DataFrame:
         q = f"SELECT * FROM {table_name}"
-        df: DataFrame = self.connection.cursor().execute(q).fetch_pandas_all()
-        return df
+        return self.fetch_df(query=q)

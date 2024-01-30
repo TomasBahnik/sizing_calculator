@@ -62,10 +62,8 @@ def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
 
 
 def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
-    """Extract first columns used as MultiIndex
-    (namespace, pod, timestamp)
-    """
-    idx_list: List[str, str, pd.Timestamp] = stacked_df.index.to_list()
+    """Extract first columns used as MultiIndex (namespace, pod, timestamp)."""
+    idx_list: List[Tuple[str, str, pd.Timestamp]] = stacked_df.index.to_list()
     #  timestamps are last - because of stack
     timestamps = [t[len(grp_keys)] for t in idx_list]
     sf_df_data = {metrics.TIMESTAMP_COLUMN: timestamps}
@@ -78,7 +76,7 @@ def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
 
 
 def sf_series(metric_df: pd.DataFrame, grp_keys: list[str]) -> pd.Series:
-    """Add tuple columns and move timestamps to index"""
+    """Add tuple columns and move timestamps to index."""
     df_tuple_columns(grp_keys, metric_df)
     return stack_timestamps(metric_df, columns_to_tuple=False)
 

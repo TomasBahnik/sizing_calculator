@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import List, Optional, Tuple
 
 import pandas as pd
 
@@ -82,7 +82,7 @@ class DataLoader:
         finally:
             sf.sf_engine.dispose()
 
-    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> Tuple[pd.DataFrame, Tuple[str]]:
+    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> Tuple[pd.DataFrame, Tuple[str, ...]]:
         """Optionally filter time range df by namespace.
         :param sla_table: SlaTable
         :param namespace: optional namespace filter

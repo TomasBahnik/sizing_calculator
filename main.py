@@ -72,8 +72,9 @@ def sizing_reports(
     all_test_sizing: List[pd.DataFrame] = []
     sla_tables: SlaTables = SlaTables(folder=folder)
     sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    data_loader: DataLoader
     if start_time is not None and end_time is not None:
-        data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
+        data_loader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
         ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
         # unique namespaces in df
         assert len(namespaces) == 1
@@ -96,7 +97,7 @@ def sizing_reports(
         for test_details in test_summary.tests:
             logger.info(f"Processing {test_details.description}")
             namespace = test_summary.namespace
-            data_loader: DataLoader = DataLoader(
+            data_loader = DataLoader(
                 time_range=test_details.testTimeRange.to_time_range(),
                 delta_hours=None,
                 start_time=None,

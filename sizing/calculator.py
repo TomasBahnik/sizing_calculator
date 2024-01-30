@@ -146,8 +146,8 @@ class SizingCalculator:
     ):
         self.cpu: LimitsRequests = cpu
         self.memory: LimitsRequests = memory
-        self.time_range: TimeRange = time_range
-        self.test_details: TestDetails = test_details
+        self.time_range: Optional[TimeRange] = time_range
+        self.test_details: Optional[TestDetails] = test_details
 
     @classmethod
     def from_test_details(

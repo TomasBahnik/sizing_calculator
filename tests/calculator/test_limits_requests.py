@@ -11,7 +11,7 @@ from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE, LimitsRequests
 
 @pytest.mark.unit
 class TestLimitRequest:
-    def test_max_limit_request(self):
+    def test_max_limit_request(self) -> None:
         """Verify correct values for max limit and request."""
         from metrics import POD_BASIC_RESOURCES_TABLE
         from metrics.model.tables import SlaTables
@@ -36,7 +36,7 @@ class TestLimitRequest:
 
 @pytest.mark.unit
 class TestGrafanaDashboards:
-    def test_expressions_counts(self):
+    def test_expressions_counts(self) -> None:
         """Verify correct number of expressions in selected dashboards."""
         from prometheus.dashboards_analysis import all_examples
         from prometheus.prompt_model import PromptExample

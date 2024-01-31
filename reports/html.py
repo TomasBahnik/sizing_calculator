@@ -38,18 +38,20 @@ def sla_report(main_report: str, sla_table: SlaTable, time_range: TimeRange):
         file.write(main_report)
 
 
-def sizing_calc_report_header(test_details: Optional[TestDetails], time_range: TimeRange) -> str:
+def sizing_calc_report_header(test_details: Optional[TestDetails], time_range: Optional[TimeRange]) -> str:
     """Report header with namespace and time range."""
     # time_range present always
-    duration = (time_range.to_time - time_range.from_time).total_seconds()
+    duration = (time_range.to_time - time_range.from_time).total_seconds() if time_range else 0
     samples = int(duration / settings.step_sec) + 1
     description = test_details.description if test_details else ""
+    from_time: str = time_range.from_time.isoformat() if time_range else ""
+    to_time: str = time_range.to_time.isoformat() if time_range else ""
     data: Dict[str, List[str]] = {
         "description": [description],
         "duration [hours]": [duration / 3600],
-        "from": [time_range.from_time.isoformat()],
-        "to": [time_range.to_time.isoformat()],
-        "max samples": [samples],
+        "from": [from_time],
+        "to": [to_time],
+        "max samples": [str(samples)],
     }
     df: pd.DataFrame = pd.DataFrame(data=data)
     return df.to_html()
@@ -82,7 +84,7 @@ def sizing_calc_summary_header(test_summary: TestSummary) -> str:
     data: Dict[str, List[str]] = {
         "name": [test_summary.name],
         "namespace": [test_summary.namespace],
-        "catalog items": [test_summary.catalogItems],
+        "catalog items": [str(test_summary.catalogItems)],
     }
     df: pd.DataFrame = pd.DataFrame(data=data)
     return df.to_html()

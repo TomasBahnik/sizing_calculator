@@ -6,6 +6,7 @@ import pytz
 from loguru import logger
 from pandas import DataFrame, Series
 from snowflake.connector import SnowflakeConnection
+from snowflake.connector.cursor import SnowflakeCursor
 
 from storage.snowflake import (
     API_TESTS_CU_LIST_TABLE_NAME,
@@ -27,7 +28,11 @@ def get_df(query: str, con: SnowflakeConnection, dedup: bool = True) -> pd.DataF
     dedup by default - no other way how to get rid of occasionally duplicated save
     no primary keys for not-normalized tables
     """
-    df: pd.DataFrame = con.cursor().execute(query).fetch_pandas_all()
+    cursor: SnowflakeCursor | None = con.cursor().execute(query)
+    if cursor:
+        df: DataFrame = cursor.fetch_pandas_all()
+    else:
+        raise ValueError(f"Cursor is None for query: {query}")
     if dedup:
         df = df.drop_duplicates()
     return df

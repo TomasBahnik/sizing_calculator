@@ -112,7 +112,7 @@ def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:
     """Convert column names returned by range query with grp keys to tuples
     used as DataFrame keys
     """
-    d: Dict[str] = col_dict(column_name, grp_keys=grp_keys)
+    d: dict = col_dict(column_name, grp_keys=grp_keys)
     return tuple([v for v in d.values()])
 
 
@@ -129,7 +129,7 @@ def col_dict(column_name: str, grp_keys: List[str]) -> dict:
         column_name = column_name.replace(key, f'"{key}"')
     parts = column_name.split(",")
     filtered_parts = [p for p in parts if any([gk in p for gk in grp_keys])]
-    column_name: str = ",".join(filtered_parts)
+    column_name = ",".join(filtered_parts)
     # add ending } in case when there is more grp keys
     column_name = column_name if column_name.endswith("}") else column_name + "}"
     return eval(column_name)

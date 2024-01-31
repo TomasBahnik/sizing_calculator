@@ -234,12 +234,12 @@ class RatioRule:
 
     def report_header(self) -> str:
         """rule limit_pct has default value (None) - can't be used in calculation"""
-        limit_pct = f"{self.basic_rule.limit_pct * 100}%" if self.basic_rule.limit_pct else None
+        limit_pct: str = f"{self.basic_rule.limit_pct * 100}%" if self.basic_rule.limit_pct else str(None)
         data: Dict[str, List[str]] = {
             "namespace": [self.get_namespace()],
             "resource": [self.basic_rule.resource],
             "limit column": [self.basic_rule.resource_limit_column],
-            "limit value": [self.basic_rule.resource_limit_value],
+            "limit value": [str(self.basic_rule.resource_limit_value)],
             "limit pct": [limit_pct],
             "compare": [self.basic_rule.compare.name],
         }
@@ -368,7 +368,7 @@ class PrometheusRules:
         sf = SnowflakeEngine(schema=self.sla_table.dbSchema)
         try:
             table_name = self.sla_table.tableName
-            table_keys = [TIMESTAMP_COLUMN] + self.sla_table.tableKeys
+            table_keys = [TIMESTAMP_COLUMN] + self.sla_table.tableKeys if self.sla_table.tableKeys else []
             q = self.time_range_query(table_name=table_name)
             logger.info(
                 f"Snowflake table: {sf.schema}.{table_name}, "

@@ -68,7 +68,7 @@ class DataLoader:
         sf = SnowflakeEngine(schema=sla_table.dbSchema)
         try:
             table_name = sla_table.tableName
-            table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys
+            table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys if sla_table.tableKeys else []
             q = self.time_range_query(table_name=table_name)
             msg = f"Snowflake table: {sf.schema}.{table_name}, {self.timeRange}"
             logger.info(msg)

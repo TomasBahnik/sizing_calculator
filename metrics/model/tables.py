@@ -44,7 +44,7 @@ class SlaTables:
         cls,
         portal_table: SlaTable,
         namespaces: Optional[str],
-        labels: Optional[List[str]] = None,
+        labels: List[str],
         debug: bool = False,
     ) -> SlaTable:
         """

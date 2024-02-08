@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 
 from pathlib import Path
-from typing import List
 
 import openai
 import typer
@@ -56,9 +55,9 @@ def few_shot_prompt(
     query_title: str,
 ) -> FewShotPromptTemplate:
     """Prepare prompt for model"""
-    examples: List[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file)
+    examples: list[PromptExample] = all_examples(folder=dashboards_folder, filename=dashboard_file)
     file_names, queries, static_labels, titles = prompt_lists(examples)
-    fse: List[dict] = [{TITLE: t[0], QUERIES: t[1], FILE: t[2]} for t in zip(titles, queries, file_names)]
+    fse: list[dict] = [{TITLE: t[0], QUERIES: t[1], FILE: t[2]} for t in zip(titles, queries, file_names)]
     prompt_template: FewShotPromptTemplate = shot_examples(fse=fse, num_examples=max_length, prefix=prefix)
     if debug:
         logger.info(f'{"=" * 10} Few Shot Prompt Start {"=" * 10}')

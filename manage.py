@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Command-line utilities for managing the application and its infrastructure."""
 
 from __future__ import annotations

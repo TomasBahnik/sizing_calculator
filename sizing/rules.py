@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set
+from typing import Optional
 
 import pandas as pd
 
@@ -32,17 +32,18 @@ DEFAULT_TIME_DELTA_HOURS = 1
 
 class RatioRule:
 
-    def __init__(self, basic_rule: BasicSla, ns_df: pd.DataFrame, keys: List[str]):
+    def __init__(self, basic_rule: BasicSla, ns_df: pd.DataFrame, keys: list[str]):
         self.basic_rule: BasicSla = basic_rule
-        self.keys: List[str] = keys
-        self.allKeys: List[str] = [TIMESTAMP_COLUMN] + self.keys
+        self.keys: list[str] = keys
+        self.allKeys: list[str] = [TIMESTAMP_COLUMN] + self.keys
         # NAMESPACE is already filtered, no need for unique index
         # df.set_index, verify_integrity – Check the new index for duplicate
-        self.indexFromKeys: List[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
+        self.indexFromKeys: list[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
         # only delta and max consecutive period rules need timestamp
-        self.groupByKeys: List[str] = [k for k in self.indexFromKeys if k != TIMESTAMP_COLUMN]
-        # 0 has bool = False
+        self.groupByKeys: list[str] = [k for k in self.indexFromKeys if k != TIMESTAMP_COLUMN]
+        # default = 0 which has bool = False
         self.limit_value: bool = bool(self.basic_rule.resource_limit_value)
+        # default = "" which has bool = False
         self.limit_column: bool = bool(self.basic_rule.resource_limit_column)
         self.validate_limits()
         self.ns_df: pd.DataFrame = ns_df
@@ -53,14 +54,14 @@ class RatioRule:
         self.over_pct_dynamic: pd.Series = pd.Series(dtype=float)
         self.over_pct_counts: pd.Series = pd.Series(dtype=int)
         self.over_pct_static = pd.Series(data=float)
-        self.containerPodIndexes: Dict[tuple, pd.MultiIndex] = self.container_pod_indexes()
+        self.containerPodIndexes: dict[tuple, pd.MultiIndex] = self.container_pod_indexes()
 
     def get_namespace(self) -> str:
-        namespaces: Set[str] = set(self.ns_df[NAMESPACE_COLUMN])
+        namespaces: set[str] = set(self.ns_df[NAMESPACE_COLUMN])
         assert len(namespaces) == 1
         return namespaces.pop()
 
-    def pod_container_columns(self, columns: List[str]) -> pd.DataFrame:
+    def pod_container_columns(self, columns: list[str]) -> pd.DataFrame:
         return self.ns_df[[POD_COLUMN, CONTAINER_COLUMN] + columns]
 
     def validate_limits(self):
@@ -235,7 +236,7 @@ class RatioRule:
     def report_header(self) -> str:
         """rule limit_pct has default value (None) - can't be used in calculation"""
         limit_pct: str = f"{self.basic_rule.limit_pct * 100}%" if self.basic_rule.limit_pct else str(None)
-        data: Dict[str, List[str]] = {
+        data: dict[str, list[str]] = {
             "namespace": [self.get_namespace()],
             "resource": [self.basic_rule.resource],
             "limit column": [self.basic_rule.resource_limit_column],
@@ -387,7 +388,7 @@ class PrometheusRules:
         """Load data from Snowflake sla table and set self.df."""
         self.df = self.load_range_table()
 
-    def namespaces(self, namespace: str) -> List[str]:
+    def namespaces(self, namespace: str) -> list[str]:
         """All unique namespaces or filtered one."""
         all_ns = sorted(set(self.df[NAMESPACE_COLUMN]))
         if namespace in all_ns:

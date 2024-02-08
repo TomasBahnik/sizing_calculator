@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 class Target(BaseModel):
     # original expression with labels
-    expr: str = None
+    expr: str = ""
 
 
 class PromExpression(Target):
@@ -31,8 +31,8 @@ class ColumnPromExpression(PromExpression):
     """
 
     # rate interval can be set differently for each expression
-    rateInterval: str = None
-    columnName: str = None
+    rateInterval: str = ""
+    columnName: str = ""
 
 
 class Title(BaseModel):

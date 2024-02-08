@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from loguru import logger
 
@@ -13,8 +13,8 @@ from shared.utils import list_files
 class SlaTables:
     def __init__(self, folder: Path = settings.sla_tables):
         self.folder: Path = folder
-        self.slaFiles: List[Path] = list_files(folder=self.folder, ends_with="json")
-        self.slaTables: List[SlaTable] = [
+        self.slaFiles: list[Path] = list_files(folder=self.folder, ends_with="json")
+        self.slaTables: list[SlaTable] = [
             SlaTable.model_validate_json(json_data=sla_file.read_text()) for sla_file in self.slaFiles
         ]
 
@@ -24,13 +24,13 @@ class SlaTables:
                 return sla_table
         raise ValueError(f"no table with name {table_name}")
 
-    def load_sla_tables(self, table_name: Optional[str] = None) -> List[SlaTable]:
+    def load_sla_tables(self, table_name: Optional[str] = None) -> list[SlaTable]:
         logger.info(f"Loading prom queries from {self.folder}")
         file_name_contains = table_name.lower() if table_name else None
-        metrics_files: List[Path] = list_files(folder=self.folder, ends_with="json", contains=file_name_contains)
+        metrics_files: list[Path] = list_files(folder=self.folder, ends_with="json", contains=file_name_contains)
         if not metrics_files:
             raise FileNotFoundError(f"No json files in {self.folder} with name containing {file_name_contains}")
-        ret: List[SlaTable] = [
+        ret: list[SlaTable] = [
             SlaTable.model_validate_json(json_data=metric_file.read_text()) for metric_file in metrics_files
         ]
         if table_name:
@@ -44,7 +44,7 @@ class SlaTables:
         cls,
         portal_table: SlaTable,
         namespaces: Optional[str],
-        labels: List[str],
+        labels: list[str],
         debug: bool = False,
     ) -> SlaTable:
         """
@@ -54,7 +54,7 @@ class SlaTables:
         labels are passed as argument or from PromQuery
         """
         for prom_query in portal_table.queries:
-            grp_by_list: List[str] = portal_table.prepare_group_keys()
+            grp_by_list: list[str] = portal_table.prepare_group_keys()
             use_group_by: str = f'{",".join(grp_by_list)}'
             prom_query.query = prom_query.query.replace("groupBy", use_group_by)
             # set for queries with rate, increase - presence indicates usage

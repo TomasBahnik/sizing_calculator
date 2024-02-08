@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import pandas as pd
 import pytz
@@ -89,7 +89,7 @@ class PrometheusCollector:
         )
         return df
 
-    def container_cpu_portal(self, namespace: str, grp_keys: List[str], rate_interval: str) -> pd.DataFrame:
+    def container_cpu_portal(self, namespace: str, grp_keys: list[str], rate_interval: str) -> pd.DataFrame:
         """
         CPU of pods in given namespaces grouped by grp_keys
         :param grp_keys: keys names separated by ',' without parenthesis
@@ -108,7 +108,7 @@ class PrometheusCollector:
         return self.range_query(p_query=q)
 
 
-def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:
+def col_tuple(column_name: str, grp_keys: list[str]) -> tuple[str, ...]:
     """Convert column names returned by range query with grp keys to tuples
     used as DataFrame keys
     """
@@ -116,13 +116,13 @@ def col_tuple(column_name: str, grp_keys: List[str]) -> Tuple[str, ...]:
     return tuple([v for v in d.values()])
 
 
-def df_tuple_columns(grp_keys: List[str], raw_df):
+def df_tuple_columns(grp_keys: list[str], raw_df):
     # covert string column names to tuples corresponding to grp_keys
-    tuple_columns: List[Tuple[str, ...]] = [col_tuple(str(c), grp_keys) for c in raw_df.columns]
+    tuple_columns: list[tuple[str, ...]] = [col_tuple(str(c), grp_keys) for c in raw_df.columns]
     raw_df.columns = tuple_columns
 
 
-def col_dict(column_name: str, grp_keys: List[str]) -> dict:
+def col_dict(column_name: str, grp_keys: list[str]) -> dict:
     """Convert columns names returned by range query with grp keys to dict."""
     column_name = column_name.replace("=", ":")
     for key in grp_keys:

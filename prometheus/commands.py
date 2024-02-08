@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Tuple
-
 import pandas as pd
 import urllib3
 
@@ -25,7 +23,7 @@ DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
 urllib3.disable_warnings()
 
 
-def prom_save(dfs: List[pd.DataFrame], portal_table: SlaTable):
+def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
     sf = SnowflakeEngine(schema=portal_table.dbSchema)
     try:
         # Snowflake table
@@ -54,16 +52,16 @@ def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
     localized_ts = add_tz(pd.Series(df.index))
     df.index = localized_ts
     # (ns, pod)
-    tuple_columns: List[Tuple[str, ...]] = [eval(c) for c in df.columns] if columns_to_tuple else df.columns
+    tuple_columns: list[tuple[str, ...]] = [eval(c) for c in df.columns] if columns_to_tuple else df.columns
     multi_idx = pd.MultiIndex.from_tuples(tuple_columns)
     df.columns = multi_idx
     stacked: pd.Series = df.T.stack(dropna=False)
     return stacked
 
 
-def common_columns(stacked_df: pd.DataFrame, grp_keys: List[str]):
+def common_columns(stacked_df: pd.DataFrame, grp_keys: list[str]):
     """Extract first columns used as MultiIndex (namespace, pod, timestamp)."""
-    idx_list: List[Tuple[str, str, pd.Timestamp]] = stacked_df.index.to_list()
+    idx_list: list[tuple[str, str, pd.Timestamp]] = stacked_df.index.to_list()
     #  timestamps are last - because of stack
     timestamps = [t[len(grp_keys)] for t in idx_list]
     sf_df_data = {metrics.TIMESTAMP_COLUMN: timestamps}
@@ -102,7 +100,7 @@ def last_ns_update_query(
     return q
 
 
-def last_timestamp(table_names: List[str], namespace: str):
+def last_timestamp(table_names: list[str], namespace: str):
     sf = SnowflakeEngine()
     # column name is used to get values
     column_name = "MAX_TIMESTAMP"

@@ -6,7 +6,6 @@ import json
 import os
 
 from pathlib import Path
-from typing import List
 
 import typer
 
@@ -39,7 +38,7 @@ def grafana_report(
     ),
 ):
     """HTML report with prometheus metrics to stdout."""
-    examples: List[PromptExample] = all_examples(
+    examples: list[PromptExample] = all_examples(
         folder=dashboards_folder,
         filename=dashboard_file,
         contains=file_name_contains,
@@ -91,7 +90,7 @@ def prom_expressions(
     :param file_name_ends_with:
     :return:
     """
-    examples: List[PromptExample] = all_examples(
+    examples: list[PromptExample] = all_examples(
         folder=dashboards_folder,
         filename=dashboard_file,
         contains=file_name_contains,

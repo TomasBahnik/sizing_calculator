@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from prometheus.prompt_model import PromExpression
 from shared.utils import find_chars_in_str
 
@@ -66,8 +64,8 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
     TODO based on [${__range_s}s] `__range_s` is classified as static label use `[` and `]`
     to distinguish from real label
     """
-    left_cbs: List[int] = find_chars_in_str(prom_query.expr, "{")
-    right_cbs: List[int] = find_chars_in_str(prom_query.expr, "}")
+    left_cbs: list[int] = find_chars_in_str(prom_query.expr, "{")
+    right_cbs: list[int] = find_chars_in_str(prom_query.expr, "}")
     if left_cbs and right_cbs:
         if len(right_cbs) != len(left_cbs):
             raise ValueError(
@@ -79,10 +77,10 @@ def extract_labels(prom_query: PromExpression) -> PromExpression:
             raise ValueError(f"Some of right cb < first left cb {right_cbs} < {first_left_cb} ")
         if not any(y < last_right_cb for y in left_cbs):
             raise ValueError(f"Some of left cb > last right cb {left_cbs} > {last_right_cb} ")
-        left_tuples: List[Tuple[int, int]] = [(idx, LEFT_CB) for idx in left_cbs]
-        right_tuples: List[Tuple[int, int]] = [(idx, RIGHT_CB) for idx in right_cbs]
+        left_tuples: list[tuple[int, int]] = [(idx, LEFT_CB) for idx in left_cbs]
+        right_tuples: list[tuple[int, int]] = [(idx, RIGHT_CB) for idx in right_cbs]
         #  sort by index
-        all_tuples: List[Tuple[int, int]] = sorted(left_tuples + right_tuples, key=lambda x: x[0])
+        all_tuples: list[tuple[int, int]] = sorted(left_tuples + right_tuples, key=lambda x: x[0])
         count = 0
         left_cb = left_tuples[0][0]
         new_label: bool = True

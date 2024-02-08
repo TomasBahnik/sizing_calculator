@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import pandas as pd
 
@@ -82,14 +82,14 @@ class DataLoader:
         finally:
             sf.sf_engine.dispose()
 
-    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> Tuple[pd.DataFrame, Tuple[str, ...]]:
+    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
         """Optionally filter time range df by namespace.
         :param sla_table: SlaTable
         :param namespace: optional namespace filter
         :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
         """
         df = self.load_range_table(sla_table=sla_table)
-        all_ns: List[str] = sorted(set(df[NAMESPACE_COLUMN]))
+        all_ns: list[str] = sorted(set(df[NAMESPACE_COLUMN]))
         if namespace and namespace not in all_ns:
             raise ValueError(f"Namespace {namespace} not found in {all_ns}")
         if namespace:

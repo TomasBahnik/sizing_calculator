@@ -6,7 +6,7 @@
   generating Prometheus expressions from Grafana dashboards
 
 
-### Install abd test
+### Install and test
 
 ```shell
 conda env remove --name sizing_calculator

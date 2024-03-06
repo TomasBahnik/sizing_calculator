@@ -5,7 +5,6 @@
 * Contains example of LLM API prompt engineering based on [LangChain](https://www.langchain.com/) for
   generating Prometheus expressions from Grafana dashboards
 
-
 ### Install and test
 
 ```shell
@@ -15,3 +14,14 @@ conda activate sizing_calculator
 poetry install
 pytest
 ```
+
+### CLI Commands
+
+* `./main.py --help` or `python main.py --help`) - - show main resource analysis message
+  (requires access to Prometheus and Snowflake).
+* `./llm.py --help` - LLM few shot prompts from Grafana dashboards to generate Prometheus expressions  
+  (requires `LLM_API_URL` and `LLM_API_KEY` env vars), Example: `./llm.py --folder ./tests/data/dashboards/`
+
+### Report Examples
+
+Use `pytest tests/calculator/test_sizing_report.py -svv` to create sample sizing reports from small test data.

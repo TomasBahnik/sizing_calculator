@@ -38,15 +38,14 @@ mem_data = {
     MEMORY_RESOURCE.measured: [6 * MIBS, 7 * MIBS],
 }
 MEM_DF = pd.DataFrame(mem_data)
-DATA_FOLDER = Path(settings.pycpt_artefacts, "data")
 
 
 class DataLoader:
     def __init__(
         self,
-        delta_hours: Optional[float],
         start_time: Optional[str],
         end_time: Optional[str],
+        delta_hours: Optional[float] = settings.time_delta_hours,
         time_range: Optional[TimeRange] = None,
     ):
         self.startTime = start_time
@@ -101,16 +100,21 @@ class DataLoader:
         """Save df to json file."""
         df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)[0]
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
-        df_path = Path(DATA_FOLDER, filename)
+        df_path = Path(settings.data, filename)
         msg = f"Save df with shape {df.shape} to {df_path}"
         logger.info(msg)
         os.makedirs(df_path.parent, exist_ok=True)
         df.to_json(df_path)
 
-    def load_df(self, sla_table: SlaTable) -> pd.DataFrame:
-        """Load df from json file named as table name and time range located in data folder."""
+    def load_df(self, sla_table: SlaTable, df_path: Path | None) -> pd.DataFrame:
+        """Load df from json file.
+        :param sla_table: SlaTable, used for filename
+        :param df_path: optional path to df json file.
+
+        If df_path is None the file in settings data folder named as tableName_timeRange is used.
+        """
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
-        df_path = Path(DATA_FOLDER, filename)
+        df_path = df_path if df_path else Path(settings.data, filename)
         if df_path.exists():
             msg = f"Load df from {df_path}"
             logger.info(msg)

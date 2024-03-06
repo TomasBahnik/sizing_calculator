@@ -17,7 +17,7 @@ pytest
 
 ### CLI Commands
 
-* `./main.py --help` or `python main.py --help`) - - show main resource analysis message
+* `./main.py --help` or `python main.py --help`) - - show main resource analysis commands
   (requires access to Prometheus and Snowflake).
 * `./llm.py --help` - LLM few shot prompts from Grafana dashboards to generate Prometheus expressions  
   (requires `LLM_API_URL` and `LLM_API_KEY` env vars), Example: `./llm.py --folder ./tests/data/dashboards/`

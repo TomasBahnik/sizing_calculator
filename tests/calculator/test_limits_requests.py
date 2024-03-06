@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 import pytest
@@ -45,7 +44,7 @@ class TestGrafanaDashboards:
         from prometheus.prompt_model import PromptExample
         from settings import settings
 
-        examples: List[PromptExample] = all_examples(folder=Path(settings.test_data, "dashboards"))
+        examples: list[PromptExample] = all_examples(folder=Path(settings.test_data, "dashboards"))
         from prometheus.dashboards_analysis import prompt_lists
 
         file_names, queries, static_labels, titles = prompt_lists(examples)

@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+"""Command-line interface for main sizing calculator commands."""
 from __future__ import annotations
 
 from pathlib import Path

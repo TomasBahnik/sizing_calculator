@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Few Shot Prompt for suggesting Prometheus Expressions."""
 
 from __future__ import annotations

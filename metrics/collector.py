@@ -47,7 +47,7 @@ class TimeRange:
 
     @classmethod
     def from_timestamps(cls, from_time: datetime.datetime, to_time: datetime.datetime) -> TimeRange:
-        """Create TimeRange from two timestamps"""
+        """Create TimeRange instance from two timestamps"""
         return cls(start_time=from_time.isoformat(), end_time=to_time.isoformat())
 
     def __format__(self, format_spec=""):

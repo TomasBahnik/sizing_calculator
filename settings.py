@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     pycpt_artefacts: Path = Path(pycpt_home, "../cpt_artefacts").resolve()
     sla_tables: Path = Path(pycpt_home, "sla_tables")
     data: Path = Path(pycpt_artefacts, "data")
+    # test data is in the repo
+    test_data: Path = Path(pycpt_home, "tests", "data")
     prometheus_report_folder: Path = Path(pycpt_artefacts, "prometheus")
 
     # Prometheus

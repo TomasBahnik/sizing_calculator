@@ -6,6 +6,7 @@ from typing import List
 import pandas as pd
 import pytest
 
+from settings import settings
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE, LimitsRequests
 
 
@@ -17,9 +18,11 @@ class TestLimitRequest:
         from metrics.model.tables import SlaTables
         from sizing.data import DataLoader
 
-        data_loader: DataLoader = DataLoader(delta_hours=None, start_time="2024-01-06T20", end_time="2024-01-06T20:05")
+        data_loader: DataLoader = DataLoader(start_time=None, end_time=None)
         sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
-        df: pd.DataFrame = data_loader.load_df(sla_table=sla_table)
+        df: pd.DataFrame = data_loader.load_df(
+            sla_table=sla_table, df_path=Path(settings.test_data, "POD_BASIC_RESOURCES.json")
+        )
         cpu = LimitsRequests(sla_table=sla_table, resource=CPU_RESOURCE, ns_df=df)
         max_cpu_request = cpu.request_value.max()
         assert max_cpu_request == 1
@@ -42,7 +45,7 @@ class TestGrafanaDashboards:
         from prometheus.prompt_model import PromptExample
         from settings import settings
 
-        examples: List[PromptExample] = all_examples(folder=Path(settings.pycpt_artefacts, "dashboards"))
+        examples: List[PromptExample] = all_examples(folder=Path(settings.test_data, "dashboards"))
         from prometheus.dashboards_analysis import prompt_lists
 
         file_names, queries, static_labels, titles = prompt_lists(examples)
@@ -55,4 +58,4 @@ class TestGrafanaDashboards:
             STATIC_LABEL: static_labels,
         }
         tmp_df = pd.DataFrame(data=tmp_dict)
-        assert len(tmp_df) == 930
+        assert len(tmp_df) == 18

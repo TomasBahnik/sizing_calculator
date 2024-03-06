@@ -313,7 +313,7 @@ def load_save_df(
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
     sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader.save_df(sla_table=sla_table, namespace=namespace)
-    df = data_loader.load_df(sla_table=sla_table)
+    df = data_loader.load_df(sla_table=sla_table, df_path=None)
     logger.info(f"Loaded {df.shape} from {data_loader.timeRange}")
 
 

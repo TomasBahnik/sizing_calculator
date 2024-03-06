@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """Grafana dashboards analysis commands."""
 
 from __future__ import annotations

@@ -21,6 +21,8 @@ pytest
   (requires access to Prometheus and Snowflake).
 * `./llm.py --help` - LLM few shot prompts from Grafana dashboards to generate Prometheus expressions  
   (requires `LLM_API_URL` and `LLM_API_KEY` env vars), Example: `./llm.py --folder ./tests/data/dashboards/`
+* `./grafana_analysis.py --help` - extracts Prometheus expressions from Grafana dashboards
+  Example: `./grafana_analysis.py --folder ./tests/data/dashboards/`
 
 ### Report Examples
 

@@ -4,7 +4,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from metrics import DEFAULT_PORTAL_GRP_KEYS
+from metrics import DEFAULT_KUBE_GRP_KEYS
 from prometheus.prompt_model import ColumnPromExpression
 from settings import settings
 
@@ -40,7 +40,7 @@ class SlaTable(BaseModel):
     dbSchema: str = "PORTAL"
     tableKeys: list[str] = []
     stepSec: float = settings.step_sec
-    groupBy: list[str] = DEFAULT_PORTAL_GRP_KEYS if useGroupByDefaults else []
+    groupBy: list[str] = DEFAULT_KUBE_GRP_KEYS if useGroupByDefaults else []
     queries: list[ColumnPromExpression] = []
     rules: list[BasicSla] = []
 
@@ -55,7 +55,7 @@ class SlaTable(BaseModel):
         Ensure that DEFAULT_PORTAL_GRP_KEYS are always present. Exclude possible duplicates using `set`
         and subsequent sorted created ordered list
         """
-        grp_keys: list[str] = DEFAULT_PORTAL_GRP_KEYS + self.groupBy if self.useGroupByDefaults else self.groupBy
+        grp_keys: list[str] = DEFAULT_KUBE_GRP_KEYS + self.groupBy if self.useGroupByDefaults else self.groupBy
         grp_keys = sorted({gk.strip() for gk in grp_keys})
         return grp_keys
 

@@ -1,0 +1,14 @@
+{
+  "name": "Node CPU basic metrics",
+  "tableName": "NODE_CPU_BASIC",
+  "queries": [
+    {
+      "query": "irate(node_cpu_seconds_total{labels}[rateInterval]) / scalar(count(count(node_cpu_seconds_total{labels})))",
+      "staticLabels": [
+        "mode=\"system\""
+      ],
+      "rateInterval": "1m",
+      "columnName": "SYSTEM"
+    }
+  ]
+}

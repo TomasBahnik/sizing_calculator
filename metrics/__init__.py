@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 
 MIBS: int = 1024**2
 GIBS: int = 1024**3

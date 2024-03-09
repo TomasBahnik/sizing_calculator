@@ -4,7 +4,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from metrics import DEFAULT_KUBE_GRP_KEYS
 from prometheus.prompt_model import ColumnPromExpression
 from settings import settings
 

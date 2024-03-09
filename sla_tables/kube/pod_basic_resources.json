@@ -1,6 +1,11 @@
 {
   "name": "Pod Basic Resources",
   "tableName": "POD_BASIC_RESOURCES",
+  "groupBy": [
+    "namespace",
+    "pod",
+    "container"
+  ],
   "queries": [
     {
       "query": "sum(rate(container_cpu_usage_seconds_total{labels}[rateInterval])) by (groupBy)",

@@ -17,7 +17,9 @@ DATE_TIME_FORMAT_FOLDER = "%Y-%m-%dT%H-%M-%S%z"
 def list_files(folder: Path, ends_with: str = ".txt", contains: Optional[str] = None) -> List[Path]:
     """
     traverse root directory, and list directories as dirs and files as files
-    finds files or roots which contain `contains` string and ends_with `ends_with` string
+    finds files or roots which contain `contains` string and ends_with `ends_with` string.
+
+    If contains is None, list all files which ends_with
     """
     file_type_files: List[Path] = []
     for root, dirs, files in os.walk(folder):

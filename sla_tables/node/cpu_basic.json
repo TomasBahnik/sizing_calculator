@@ -1,6 +1,9 @@
 {
   "name": "Node CPU basic metrics",
   "tableName": "NODE_CPU_BASIC",
+  "groupBy": [
+    "instance"
+  ],
   "queries": [
     {
       "query": "irate(node_cpu_seconds_total{labels}[rateInterval]) / scalar(count(count(node_cpu_seconds_total{labels})))",

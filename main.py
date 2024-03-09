@@ -12,7 +12,7 @@ from loguru import logger
 
 import metrics
 
-from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE, PROMETHEUS_URL
+from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import PrometheusCollector, TimeRange
 from metrics.model.tables import SlaTables
 from prometheus.commands import DEFAULT_LABELS, common_columns, last_timestamp, prom_save, sf_series
@@ -133,7 +133,7 @@ def last_update(
 ):
     """List last timestamps per table and namespace"""
     sla_tables: SlaTables = SlaTables(folder=folder)
-    all_sla_tables: List[SlaTable] = sla_tables.load_sla_tables()
+    all_sla_tables: list[SlaTable] = sla_tables.load_sla_tables()
     table_names = [f"{t.dbSchema}.{t.tableName}" for t in all_sla_tables]
     last_timestamp(table_names, namespace)
 
@@ -185,24 +185,19 @@ def load_metrics(
     Dedup Snowflake table instead
     https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
     """
-    portal_prometheus: SlaTables = SlaTables(folder=folder)
-    portal_tables: List[SlaTable] = portal_prometheus.load_sla_tables()
+    sla_tables: SlaTables = SlaTables(folder=folder)
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    prom_collector: PrometheusCollector = PrometheusCollector(PROMETHEUS_URL, time_range=time_range)
-    for portal_table in portal_tables:
-        logger.info(
-            f"Table: {portal_table.dbSchema}.{portal_table.tableName}, "
-            f"period: {time_range.from_time} - {time_range.to_time}"
-        )
+    prom_collector: PrometheusCollector = PrometheusCollector(settings.prometheus_url, time_range=time_range)
+    logger.info(f"Prometheus collector {prom_collector}")
+    for sla_table in sla_tables.load_sla_tables():
+        logger.info(f"Table: {sla_table.dbSchema}.{sla_table.tableName}")
         # new table for each Portal table
         all_series: List[pd.Series] = []
         all_columns: List[str] = []
         # grp keys ONLY on table level NOT query level - can't be mixed !!
-        grp_keys: List[str] = portal_table.prepare_group_keys()
-        replaced_pt: SlaTable = portal_prometheus.replace_portal_labels(
-            portal_table=portal_table, labels=DEFAULT_LABELS, namespaces=namespaces
-        )
-        step_sec: float = portal_table.stepSec
+        grp_keys: List[str] = sla_table.prepare_group_keys()
+        replaced_pt: SlaTable = sla_tables.replace_portal_labels(sla_table=sla_table, namespaces=namespaces)
+        step_sec: float = sla_table.stepSec
         for prom_query in replaced_pt.queries:
             logger.info(f"{prom_query.columnName}")
             logger.info(f"\tquery: {prom_query.query}")
@@ -222,9 +217,9 @@ def load_metrics(
         # extract common columns TIMESTAMP, NAMESPACE, POD
         common_columns_df = common_columns(stacked_df=all_data_df, grp_keys=grp_keys)
         full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
-        prom_save(dfs=[full_df], portal_table=portal_table)
-        unique_ns = set(full_df[NAMESPACE_COLUMN])
-        logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
+        prom_save(dfs=[full_df], portal_table=sla_table)
+        # unique_ns = set(full_df[NAMESPACE_COLUMN])
+        # logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
 
 
 @app.command()

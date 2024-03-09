@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     # test data is in the repo
     test_data: Path = Path(pycpt_home, "tests", "data")
     prometheus_report_folder: Path = Path(pycpt_artefacts, "prometheus")
+    # keep trailing `/`
+    prometheus_url: str = "http://localhost:9090/"
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

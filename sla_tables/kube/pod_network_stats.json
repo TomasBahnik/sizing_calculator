@@ -1,7 +1,6 @@
 {
   "name": "Pod Network statistics",
   "tableName": "POD_NETWORK_STATS",
-  "useGroupByDefaults": false,
   "groupBy": [
     "namespace",
     "pod"

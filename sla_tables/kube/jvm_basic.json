@@ -1,6 +1,11 @@
 {
   "name": "JVM basic metrics",
   "tableName": "JVM_BASIC",
+  "groupBy": [
+    "namespace",
+    "pod",
+    "container"
+  ],
   "queries": [
     {
       "query": "sum(process_uptime_seconds{labels}) by (groupBy)",

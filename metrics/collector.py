@@ -69,7 +69,7 @@ class PrometheusCollector:
 
     def __format__(self, format_spec=""):
         return (
-            f"url: {self.promQuery.api_url}\n"
+            f"url: {self.promQuery.api_url} "
             f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n"
         )
 
@@ -131,5 +131,5 @@ def col_dict(column_name: str, grp_keys: list[str]) -> dict:
     filtered_parts = [p for p in parts if any([gk in p for gk in grp_keys])]
     column_name = ",".join(filtered_parts)
     # add ending } in case when there is more grp keys
-    column_name = column_name if column_name.endswith("}") else column_name + "}"
+    column_name = column_name if column_name.endswith("}") else "{" + column_name + "}"
     return eval(column_name)

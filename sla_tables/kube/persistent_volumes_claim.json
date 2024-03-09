@@ -1,7 +1,6 @@
 {
   "name": "Persistent Volumes Capacity",
   "tableName": "PERSISTENT_VOLUMES_CAPACITY",
-  "useGroupByDefaults": false,
   "groupBy": [
     "namespace",
     "persistentvolumeclaim"

@@ -41,7 +41,7 @@ class SlaTables:
         return ret
 
     @classmethod
-    def replace_portal_labels(
+    def replace_labels(
         cls,
         sla_table: SlaTable,
         namespaces: Optional[str],

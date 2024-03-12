@@ -196,7 +196,7 @@ def load_metrics(
         all_columns: List[str] = []
         # grp keys ONLY on table level NOT query level - can't be mixed !!
         grp_keys: List[str] = sla_table.prepare_group_keys()
-        replaced_pt: SlaTable = sla_tables.replace_portal_labels(sla_table=sla_table, namespaces=namespaces)
+        replaced_pt: SlaTable = sla_tables.replace_labels(sla_table=sla_table, namespaces=namespaces)
         step_sec: float = sla_table.stepSec
         for prom_query in replaced_pt.queries:
             logger.info(f"{prom_query.columnName}")

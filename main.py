@@ -15,7 +15,8 @@ import metrics
 from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import PrometheusCollector, TimeRange
 from metrics.model.tables import SlaTables
-from prometheus.commands import common_columns, last_timestamp, prom_save, sf_series
+from prometheus.commands import common_columns, last_timestamp, prom_save
+from prometheus.prom_rds import PrometheusRDSColumn
 from prometheus.sla_model import SlaTable
 from reports import html
 from reports.html import sla_report
@@ -192,32 +193,31 @@ def load_metrics(
     for sla_table in sla_tables.load_sla_tables():
         logger.info(f"Table: {sla_table.dbSchema}.{sla_table.tableName}")
         # new table for each Portal table
-        all_series: List[pd.Series] = []
-        all_columns: List[str] = []
-        # grp keys ONLY on table level NOT query level - can't be mixed !!
-        grp_keys: List[str] = sla_table.prepare_group_keys()
-        replaced_pt: SlaTable = sla_tables.replace_labels(sla_table=sla_table, namespaces=namespaces)
-        step_sec: float = sla_table.stepSec
-        for prom_query in replaced_pt.queries:
-            logger.info(f"{prom_query.columnName}")
-            logger.info(f"\tquery: {prom_query.query}")
-            df: pd.DataFrame = prom_collector.range_query(p_query=prom_query.query, step_sec=step_sec)
+        all_dfs: List[pd.DataFrame] = []
+        replaced_st: SlaTable = sla_tables.replace_labels(sla_table=sla_table, namespaces=namespaces)
+        # each query is a column in the table
+        for prom_expression in replaced_st.queries:
+            logger.info(f"{prom_expression.columnName}")
+            logger.info(f"\tquery: {prom_expression.query}")
+            df: pd.DataFrame = prom_collector.range_query(p_query=prom_expression.query, step_sec=sla_table.stepSec)
             if df.empty:
                 logger.info(f"Query returns empty data. Continue")
                 continue
-            sf_ser = sf_series(metric_df=df, grp_keys=grp_keys)
-            all_series.append(sf_ser)
-            all_columns.append(prom_query.columnName)
+            prom_rds_column = PrometheusRDSColumn(
+                df=df, group_by=sla_table.groupBy, column_name=prom_expression.columnName
+            )
+            column_df: pd.DataFrame = prom_rds_column.column_df()
+            all_dfs.append(column_df)
+            prom_rds_column.common_columns()
         # after concat, index stays the same, so we can extract common columns
-        if not all_series:
+        if not all_dfs:
             logger.info(f"No data after all queries. Continue")
             continue
-        all_data_df: pd.DataFrame = pd.concat(all_series, axis=1)
-        all_data_df.columns = all_columns
-        # extract common columns TIMESTAMP, NAMESPACE, POD
-        common_columns_df = common_columns(stacked_df=all_data_df, grp_keys=grp_keys)
-        full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
-        prom_save(dfs=[full_df], portal_table=sla_table)
+        all_data_df: pd.DataFrame = pd.concat(all_dfs, axis=1)
+        # extract groupBy columns and timestamp
+        common_columns_df = common_columns(stacked_df=all_data_df, grp_keys=sla_table.prepare_group_keys())
+        # full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
+        # prom_save(dfs=[full_df], portal_table=sla_table)
         # unique_ns = set(full_df[NAMESPACE_COLUMN])
         # logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
 

@@ -7,15 +7,21 @@
 
 ### Install and test
 
+* install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+
 ```shell
 conda env remove --name sizing_calculator
 conda create --name sizing_calculator -c conda-forge python=3.11
 conda activate sizing_calculator
+# poetry installed by pip inside the conda env
+pip install poetry
 poetry install
-pytest
+pytest -svv
 ```
 
 ### CLI Commands
+
+On Windows use `python <script>.py` instead of `./<script>.py`.
 
 * `./main.py --help` or `python main.py --help`) - - show main resource analysis commands
   (requires access to Prometheus and Snowflake).

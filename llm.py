@@ -44,8 +44,10 @@ def init(key, base):
     os.environ["AZURE_OPENAI_ENDPOINT"] = base
 
 
-init(key=key_dev, base=base_dev)
-
+try:
+    init(key=key_dev, base=base_dev)
+except TypeError as e:
+    logger.error(f"OpenAI init error: {e}")
 
 def few_shot_prompt(
     dashboards_folder: Path,

@@ -57,4 +57,4 @@ class TestGrafanaDashboards:
             STATIC_LABEL: static_labels,
         }
         tmp_df = pd.DataFrame(data=tmp_dict)
-        assert len(tmp_df) == 18
+        assert len(tmp_df) == 134

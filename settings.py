@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     data: Path = Path(pycpt_artefacts, "data")
     # test data is in the repo
     test_data: Path = Path(pycpt_home, "tests", "data")
+    test_output: Path = Path(pycpt_home, "tests", "output")
     prometheus_report_folder: Path = Path(pycpt_artefacts, "prometheus")
 
     # Prometheus

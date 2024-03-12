@@ -2,16 +2,26 @@
   "name": "Node CPU basic metrics",
   "tableName": "NODE_CPU_BASIC",
   "groupBy": [
-    "instance"
+    "instance",
+    "job",
+    "cpu"
   ],
   "queries": [
     {
-      "query": "irate(node_cpu_seconds_total{labels}[rateInterval]) / scalar(count(count(node_cpu_seconds_total{labels})))",
+      "query": "sum(irate(node_cpu_seconds_total{labels}[rateInterval]) / scalar(count(count(node_cpu_seconds_total{labels})))) by (groupBy)",
       "staticLabels": [
         "mode=\"system\""
       ],
       "rateInterval": "1m",
       "columnName": "SYSTEM"
+    },
+    {
+      "query": "sum(irate(node_cpu_seconds_total{labels}[rateInterval]) / scalar(count(count(node_cpu_seconds_total{labels})))) by (groupBy)",
+      "staticLabels": [
+        "mode=\"user\""
+      ],
+      "rateInterval": "1m",
+      "columnName": "USER"
     }
   ]
 }

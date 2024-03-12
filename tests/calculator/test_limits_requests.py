@@ -37,14 +37,24 @@ class TestLimitRequest:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        ("node_exporter_1860_rev36.json", 116),
+        ("persistent_volume_usage_prometheus.json", 2),
+        ("pod_usage_overview_prometheus.json", 6),
+    ],
+)
 class TestGrafanaDashboards:
-    def test_expressions_counts(self) -> None:
+    def test_expressions_counts(self, input_data) -> None:
         """Verify correct number of expressions in selected dashboards."""
         from prometheus.dashboards_analysis import all_examples
         from prometheus.prompt_model import PromptExample
         from settings import settings
 
-        examples: list[PromptExample] = all_examples(folder=Path(settings.test_data, "dashboards"))
+        examples: list[PromptExample] = all_examples(
+            folder=Path(settings.test_data, "dashboards"), filename=input_data[0]
+        )
         from prometheus.dashboards_analysis import prompt_lists
 
         file_names, queries, static_labels, titles = prompt_lists(examples)
@@ -57,4 +67,4 @@ class TestGrafanaDashboards:
             STATIC_LABEL: static_labels,
         }
         tmp_df = pd.DataFrame(data=tmp_dict)
-        assert len(tmp_df) == 134
+        assert len(tmp_df) == input_data[1]

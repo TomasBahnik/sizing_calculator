@@ -33,6 +33,7 @@ class TestSizingReport:
         time_range = TimeRange(start_time=start_time, end_time=end_time)
         s_c = SizingCalculator(cpu=cpu, memory=memory, time_range=time_range)
         import os
+
         os.makedirs(name=settings.test_output, exist_ok=True)
         s_c.sizing_calc_all_reports(folder=settings.test_output, test_summary=None)
         new_sizing: pd.DataFrame = s_c.new_sizing()

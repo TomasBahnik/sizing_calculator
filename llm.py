@@ -49,6 +49,7 @@ try:
 except TypeError as e:
     logger.error(f"OpenAI init error: {e}")
 
+
 def few_shot_prompt(
     dashboards_folder: Path,
     dashboard_file: str,

@@ -53,9 +53,7 @@ class SlaTable(BaseModel):
         Strips trailing/leading whitespaces.
         The order of groupBy keys irrelevant - Prometheus returns columns in alphabetical order
         """
-        grp_keys: list[str] = self.groupBy
-        grp_keys = sorted({gk.strip() for gk in grp_keys})
-        return grp_keys
+        return sorted({gk.strip() for gk in self.groupBy})
 
     @classmethod
     def dummy(cls) -> SlaTable:

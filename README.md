@@ -21,6 +21,8 @@ pytest -svv
 
 ### CLI Commands
 
+On Windows use `python <script>.py` instead of `./<script>.py`.
+
 * `./main.py --help` or `python main.py --help`) - - show main resource analysis commands
   (requires access to Prometheus and Snowflake).
 * `./llm.py --help` - LLM few shot prompts from Grafana dashboards to generate Prometheus expressions  

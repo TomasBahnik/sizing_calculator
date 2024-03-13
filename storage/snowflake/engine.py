@@ -8,7 +8,7 @@ from loguru import logger
 from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
 from snowflake.connector.cursor import SnowflakeCursor
-from snowflake.connector.pandas_tools import pd_writer
+from snowflake.connector.pandas_tools import write_pandas
 from snowflake.sqlalchemy import URL
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -68,14 +68,16 @@ class SnowflakeEngine:
         # to write the data from the DataFrame to the table named "stats"
         # in the Snowflake database.
         logger.info(f"Writing to table : {self.DATABASE}.{self.schema}.{table.upper()}")
-        # noinspection PyTypeChecker
-        df.to_sql(
-            name=table,
-            con=self.sf_engine,
-            index=False,
-            method=pd_writer,
-            if_exists="append",
+        success, n_chunks, n_rows, _ = write_pandas(
+            conn=self.connection,
+            df=df,
+            table_name=table,
+            database=self.DATABASE,
+            schema=self.schema,
+            auto_create_table=True,
+            use_logical_type=True,
         )
+        logger.info(f"Success: {success}, chunks: {n_chunks}, rows: {n_rows}")
 
     def fetch_df(self, query: str) -> DataFrame:
         cursor: SnowflakeCursor | None = self.connection.cursor().execute(query)

@@ -39,37 +39,3 @@ class SlaTables:
             if len(ret) == 0:
                 raise ValueError(f"no table with name {table_name}")
         return ret
-
-    @classmethod
-    def replace_labels(
-        cls,
-        sla_table: SlaTable,
-        namespaces: Optional[str],
-        debug: bool = False,
-    ) -> SlaTable:
-        """
-        Replace `groupBy`, `rateInterval` and `labels` placeholders
-        groupBy is taken from PortalTable
-        rateInterval is part of the query definition in json file
-        labels are passed as argument or from PromQuery
-        """
-        for prom_query in sla_table.queries:
-            grp_by_list: list[str] = sla_table.prepare_group_keys()
-            use_group_by: str = f'{",".join(grp_by_list)}'
-            prom_query.query = prom_query.query.replace("groupBy", use_group_by)
-            # set for queries with rate, increase - presence indicates usage
-            if prom_query.rateInterval:
-                prom_query.query = prom_query.query.replace("rateInterval", prom_query.rateInterval)
-            ns_label = f'namespace=~"{namespaces}"' if namespaces else None
-            use_labels_list = prom_query.labels if prom_query.labels else sla_table.defaultLabels
-            all_labels_list = [ns_label] + use_labels_list if ns_label is not None else use_labels_list
-            use_labels = ",".join(all_labels_list)
-            # staticLabels is by default empty list no need to check for None
-            static_labels = ",".join(prom_query.staticLabels)
-            if static_labels:
-                use_labels = use_labels + "," + static_labels if use_labels else static_labels
-            prom_query.query = prom_query.query.replace("labels", use_labels)
-            if debug:
-                logger.info(f"{prom_query.columnName}")
-                logger.info(f"query          : {prom_query.query}")
-        return sla_table

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Optional
 
+from loguru import logger
 from pydantic import BaseModel
 
 from prometheus.prompt_model import ColumnPromExpression
@@ -55,6 +57,33 @@ class SlaTable(BaseModel):
         """
         return sorted({gk.strip() for gk in self.groupBy})
 
-    @classmethod
-    def dummy(cls) -> SlaTable:
-        return SlaTable(name="dummy", tableName="dummy")
+    def replace_labels(
+        self,
+        namespace: Optional[str],
+        debug: bool = False,
+    ):
+        """
+        Replace `groupBy`, `rateInterval` and `labels` placeholders
+        groupBy is taken from PortalTable
+        rateInterval is part of the query definition in json file
+        labels are passed as argument or from PromQuery
+        """
+        for prom_query in self.queries:
+            grp_by_list: list[str] = self.prepare_group_keys()
+            use_group_by: str = f'{",".join(grp_by_list)}'
+            prom_query.query = prom_query.query.replace("groupBy", use_group_by)
+            # set for queries with rate, increase - presence indicates usage
+            if prom_query.rateInterval:
+                prom_query.query = prom_query.query.replace("rateInterval", prom_query.rateInterval)
+            ns_label = f'namespace="{namespace}"' if namespace is not None else None
+            use_labels_list = prom_query.labels if prom_query.labels else self.defaultLabels
+            all_labels_list = [ns_label] + use_labels_list if ns_label is not None else use_labels_list
+            use_labels = ",".join(all_labels_list)
+            # staticLabels is by default empty list no need to check for None
+            static_labels = ",".join(prom_query.staticLabels)
+            if static_labels:
+                use_labels = use_labels + "," + static_labels if use_labels else static_labels
+            prom_query.query = prom_query.query.replace("labels", use_labels)
+            if debug:
+                logger.info(f"{prom_query.columnName}")
+                logger.info(f"query          : {prom_query.query}")

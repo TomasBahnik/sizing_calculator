@@ -23,5 +23,15 @@
       "rateInterval": "1m",
       "columnName": "USER"
     }
+  ],
+  "rules": [
+    {
+      "resource": "SYSTEM",
+      "resource_limit_value": 0.03
+    },
+    {
+      "resource": "USER",
+      "resource_limit_value": 0.03
+    }
   ]
 }

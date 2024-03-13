@@ -162,14 +162,14 @@ def load_metrics(
         "-d",
         help="hours in the past i.e start time = end_time - delta_hours",
     ),
-    namespaces: str = typer.Option(
-        ...,
+    namespace: str = typer.Option(
+        None,
         "-n",
         "--namespace",
-        help=f'list of namespaces separated by | enclosed in " ' f"or using .+ e.g. for all '{metrics.PORTAL_ONE_NS}'",
+        help="Load metrics from given k8s namespace",
     ),
     folder: Path = typer.Option(
-        settings.sla_tables,
+        Path(settings.sla_tables, "node"),
         "--folder",
         "-f",
         dir_okay=True,
@@ -194,9 +194,9 @@ def load_metrics(
         logger.info(f"Table: {sla_table.dbSchema}.{sla_table.tableName}")
         # new table for each Portal table
         all_dfs: List[pd.DataFrame] = []
-        replaced_st: SlaTable = sla_tables.replace_labels(sla_table=sla_table, namespaces=namespaces)
+        sla_table.replace_labels(namespace=namespace)
         # each query is a column in the table
-        for prom_expression in replaced_st.queries:
+        for prom_expression in sla_table.queries:
             logger.info(f"{prom_expression.columnName}")
             logger.info(f"\tquery: {prom_expression.query}")
             df: pd.DataFrame = prom_collector.range_query(p_query=prom_expression.query, step_sec=sla_table.stepSec)
@@ -216,8 +216,7 @@ def load_metrics(
         df_save = all_data_df.reset_index()
         df_save[metrics.TIMESTAMP_COLUMN] = df_save[metrics.TIMESTAMP_COLUMN].dt.tz_localize(tz="UTC")
         prom_save(dfs=[df_save], portal_table=sla_table)
-        # unique_ns = set(full_df[NAMESPACE_COLUMN])
-        # logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
+        logger.info(f"Saved {df_save.shape} to {sla_table.dbSchema}.{sla_table.tableName}")
 
 
 @app.command()

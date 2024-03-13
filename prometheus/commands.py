@@ -30,8 +30,8 @@ def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
         # use lower case for SF table name - even if it appears in upper case in Database view
         # UserWarning: The provided table name ... is not found exactly as such in the database after writing
         # the table, possibly due to case sensitivity issues. Consider using lower case table names
-        table = portal_table.tableName.lower()
-        logger.info(f"Saving {len(dfs)} DataFrames to {table.upper()}")
+        table = portal_table.tableName
+        logger.info(f"Saving {len(dfs)} DataFrames to {table}.")
         for df in dfs:
             sf.write_df(df=df, table=table)
     finally:

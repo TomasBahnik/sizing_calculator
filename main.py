@@ -15,7 +15,7 @@ import metrics
 from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import PrometheusCollector, TimeRange
 from metrics.model.tables import SlaTables
-from prometheus.commands import common_columns, last_timestamp, prom_save
+from prometheus.commands import last_timestamp, prom_save
 from prometheus.prom_rds import PrometheusRDSColumn
 from prometheus.sla_model import SlaTable
 from reports import html
@@ -208,16 +208,14 @@ def load_metrics(
             )
             column_df: pd.DataFrame = prom_rds_column.column_df()
             all_dfs.append(column_df)
-            prom_rds_column.common_columns()
-        # after concat, index stays the same, so we can extract common columns
         if not all_dfs:
             logger.info(f"No data after all queries. Continue")
             continue
         all_data_df: pd.DataFrame = pd.concat(all_dfs, axis=1)
-        # extract groupBy columns and timestamp
-        common_columns_df = common_columns(stacked_df=all_data_df, grp_keys=sla_table.prepare_group_keys())
-        # full_df: pd.DataFrame = pd.concat([common_columns_df, all_data_df], axis=1)
-        # prom_save(dfs=[full_df], portal_table=sla_table)
+        # move timestamp and groupBy to columns with corresponding names
+        df_save = all_data_df.reset_index()
+        df_save[metrics.TIMESTAMP_COLUMN] = df_save[metrics.TIMESTAMP_COLUMN].dt.tz_localize(tz="UTC")
+        prom_save(dfs=[df_save], portal_table=sla_table)
         # unique_ns = set(full_df[NAMESPACE_COLUMN])
         # logger.info(f"shape: {full_df.shape}\n" f"{len(unique_ns)} unique namespaces: {unique_ns}")
 

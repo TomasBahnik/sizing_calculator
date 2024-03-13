@@ -5,14 +5,10 @@ import urllib3
 
 from loguru import logger
 
-import metrics
-
 from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
-from metrics.collector import df_tuple_columns
 from prometheus import NON_LINKERD_CONTAINER
 from prometheus.sla_model import SlaTable
 from storage.snowflake import dataframe
-from storage.snowflake.dataframe import add_tz
 from storage.snowflake.engine import SnowflakeEngine
 
 
@@ -36,47 +32,6 @@ def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
             sf.write_df(df=df, table=table)
     finally:
         sf.sf_engine.dispose()
-
-
-def stack_timestamps(df: pd.DataFrame, columns_to_tuple: bool) -> pd.Series:
-    """
-    Stack the prescribed level(s) from columns to index
-    transpose df has single level column - timestamp
-    if the columns have a single level, the output is a Series
-    dropna = True by default
-    When reading from json file columns are strings and needs to be converted to tuples
-    :param df: Dataframe from Prometheus API
-    :param columns_to_tuple to covert string columns to tuples
-    :return: DataFrame to store in snowflake
-    """
-    localized_ts = add_tz(pd.Series(df.index))
-    df.index = localized_ts
-    # (ns, pod)
-    tuple_columns: list[tuple[str, ...]] = [eval(c) for c in df.columns] if columns_to_tuple else df.columns
-    multi_idx = pd.MultiIndex.from_tuples(tuple_columns)
-    df.columns = multi_idx
-    stacked: pd.Series = df.T.stack(dropna=False)
-    return stacked
-
-
-def common_columns(stacked_df: pd.DataFrame, grp_keys: list[str]):
-    """Extract first columns used as MultiIndex (namespace, pod, timestamp)."""
-    idx_list: list[tuple[str, str, pd.Timestamp]] = stacked_df.index.to_list()
-    #  timestamps are last - because of stack
-    timestamps = [t[len(grp_keys)] for t in idx_list]
-    sf_df_data = {metrics.TIMESTAMP_COLUMN: timestamps}
-    for i in range(len(grp_keys)):
-        key: str = grp_keys[i].upper()
-        values = [t[i] for t in idx_list]
-        sf_df_data[key] = values
-    sf_df: pd.DataFrame = pd.DataFrame(sf_df_data, index=stacked_df.index)
-    return sf_df
-
-
-def sf_series(metric_df: pd.DataFrame, grp_keys: list[str]) -> pd.Series:
-    """Add tuple columns and move timestamps to index."""
-    df_tuple_columns(grp_keys, metric_df)
-    return stack_timestamps(metric_df, columns_to_tuple=False)
 
 
 def last_ns_update_query(

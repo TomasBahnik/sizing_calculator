@@ -5,7 +5,6 @@ from __future__ import annotations
 import pandas as pd
 
 import metrics
-from storage.snowflake.dataframe import add_tz
 
 
 class PrometheusRDSColumn:
@@ -18,7 +17,6 @@ class PrometheusRDSColumn:
         # in case of typos and duplicates in json file - set comprehension, sorted returns list
         self.groupBy: list[str] = sorted({key.strip() for key in group_by})
         self.columnName: str = column_name
-        self.localized_ts = add_tz(pd.Series(self.df.index))
         self.tableColumns = [g.upper() for g in self.groupBy]
         self.multiIndex = self.multi_index()
 
@@ -58,7 +56,7 @@ class PrometheusRDSColumn:
     def multi_index(self) -> pd.MultiIndex:
         """MultiIndex from columns."""
         tuple_columns: list[tuple[str, ...]] = self.columns_to_tuples()
-        return pd.MultiIndex.from_tuples(tuple_columns)
+        return pd.MultiIndex.from_tuples(tuple_columns, names=self.tableColumns)
 
     def column_df(self) -> pd.DataFrame:
         """Single column DataFrame with multi index = self.groupBy and timestamp.
@@ -71,22 +69,13 @@ class PrometheusRDSColumn:
         When reading from json file columns are strings and needs to be converted to tuples
         :return: Single columns DataFrame to store in RDS
         """
-        # first set timestamp with timezone
-        self.df.index = self.localized_ts
+        # Original index is DateTimeIndex in UTC without timezone, which is explicitly added just
+        # before saving to RDS
+        self.df.index.name = metrics.TIMESTAMP_COLUMN
         # columns as multi index
         self.df.columns = self.multiIndex
         # transpose so localized timestamp are columns and self.multi_index() indexes rows
-        # after stack localized timestamp becomes last level of index
-        stacked: pd.Series = self.df.T.stack(dropna=False)
+        # after stacking, localized timestamp becomes last level of index
+        stacked: pd.Series = self.df.stack(dropna=False, level=list(range(len(self.groupBy))))
         df: pd.DataFrame = pd.DataFrame(stacked, columns=[self.columnName])
         return df
-
-    def common_columns(self):
-        """Extract columns used in MultiIndex."""
-        column_values = self.columns_to_tuples()
-        column_keys = self.groupBy
-        ts_data: dict = {metrics.TIMESTAMP_COLUMN: self.localized_ts}
-        col_data: dict = {column_keys[i]: [t[i] for t in column_values] for i in range(len(column_keys))}
-        # ts_data.update(col_data)
-        # df: pd.DataFrame = pd.DataFrame(ts_data, index=self.df.index)
-        # return sf_df

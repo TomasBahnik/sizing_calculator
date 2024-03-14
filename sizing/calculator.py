@@ -11,7 +11,7 @@ from loguru import logger
 
 from metrics import CONTAINER_COLUMN, MIBS, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE, TIMESTAMP_COLUMN
 from metrics.collector import TimeRange
-from metrics.model.tables import SlaTables
+from metrics.model.tables import SlaTablesHelper
 from prometheus.sla_model import SlaTable
 from reports.html import sizing_calc_report, sizing_calc_summary_header
 from settings import settings
@@ -266,7 +266,7 @@ def sizing_calculator(
     test_details: Optional[TestDetails] = None,
 ) -> SizingCalculator:
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    sla_tables: SlaTables = SlaTables(folder=metrics_folder)
+    sla_tables: SlaTablesHelper = SlaTablesHelper(folder=metrics_folder)
     # value error if no table with name
     sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)

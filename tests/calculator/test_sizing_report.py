@@ -14,11 +14,11 @@ class TestSizingReport:
     def test_files(self) -> None:
         """Verify correct shape new sizing df."""
         from metrics import POD_BASIC_RESOURCES_TABLE
-        from metrics.model.tables import SlaTables
+        from metrics.model.tables import SlaTablesHelper
         from sizing.data import DataLoader
 
         data_loader: DataLoader = DataLoader(start_time=None, end_time=None)
-        sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+        sla_table = SlaTablesHelper().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
         df: pd.DataFrame = data_loader.load_df(
             sla_table=sla_table, df_path=Path(settings.test_data, "POD_BASIC_RESOURCES.json")
         )

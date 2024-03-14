@@ -10,13 +10,14 @@ from settings import settings
 from shared.utils import list_files
 
 
-class SlaTables:
+class SlaTablesHelper:
     def __init__(self, folder: Path = settings.sla_tables):
         self.folder: Path = folder
         self.slaFiles: list[Path] = list_files(folder=self.folder, ends_with="json")
         self.slaTables: list[SlaTable] = [
             SlaTable.model_validate_json(json_data=sla_file.read_text()) for sla_file in self.slaFiles
         ]
+        self.tableNames: list[str] = [f"{t.dbSchema}.{t.tableName}" for t in self.slaTables]
 
     def get_sla_table(self, table_name: str) -> SlaTable:
         for sla_table in self.slaTables:

@@ -19,7 +19,7 @@ class TestLimitRequest:
 
         data_loader: DataLoader = DataLoader(start_time=None, end_time=None)
         sla_table = SlaTablesHelper().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
-        df: pd.DataFrame = data_loader.load_df(
+        df: pd.DataFrame = data_loader.load_df_file(
             sla_table=sla_table, df_path=Path(settings.test_data, "POD_BASIC_RESOURCES.json")
         )
         cpu = LimitsRequests(sla_table=sla_table, resource=CPU_RESOURCE, ns_df=df)

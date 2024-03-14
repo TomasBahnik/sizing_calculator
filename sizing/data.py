@@ -81,13 +81,15 @@ class DataLoader:
         finally:
             sf.sf_engine.dispose()
 
-    def ns_df(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
-        """Optionally filter time range df by namespace.
+    def load_df_db(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
+        """Load data for given range from DB, optionally filter by namespace.
         :param sla_table: SlaTable
         :param namespace: optional namespace filter
         :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
         """
         df = self.load_range_table(sla_table=sla_table)
+        if namespace is None:
+            return df, tuple()
         all_ns: list[str] = sorted(set(df[NAMESPACE_COLUMN]))
         if namespace and namespace not in all_ns:
             raise ValueError(f"Namespace {namespace} not found in {all_ns}")
@@ -98,7 +100,7 @@ class DataLoader:
 
     def save_df(self, sla_table: SlaTable, namespace: Optional[str]):
         """Save df to json file."""
-        df: pd.DataFrame = self.ns_df(sla_table=sla_table, namespace=namespace)[0]
+        df: pd.DataFrame = self.load_df_db(sla_table=sla_table, namespace=namespace)[0]
         filename = f"{sla_table.tableName}_{str(self.timeRange)}.json"
         df_path = Path(settings.data, filename)
         msg = f"Save df with shape {df.shape} to {df_path}"
@@ -106,7 +108,7 @@ class DataLoader:
         os.makedirs(df_path.parent, exist_ok=True)
         df.to_json(df_path)
 
-    def load_df(self, sla_table: SlaTable, df_path: Path | None) -> pd.DataFrame:
+    def load_df_file(self, sla_table: SlaTable, df_path: Path | None) -> pd.DataFrame:
         """Load df from json file.
         :param sla_table: SlaTable, used for filename
         :param df_path: optional path to df json file.

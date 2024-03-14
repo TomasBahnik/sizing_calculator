@@ -14,7 +14,7 @@ import metrics
 
 from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import PrometheusCollector, TimeRange
-from metrics.model.tables import SlaTables
+from metrics.model.tables import SlaTablesHelper
 from prometheus.commands import last_timestamp, prom_save
 from prometheus.prom_rds import PrometheusRDSColumn
 from prometheus.sla_model import SlaTable
@@ -73,12 +73,12 @@ def sizing_reports(
     When test_summary file is provided then start_time, end_time and delta_hours are ignored
     """
     all_test_sizing: List[pd.DataFrame] = []
-    sla_tables: SlaTables = SlaTables(folder=folder)
+    sla_tables: SlaTablesHelper = SlaTablesHelper(folder=folder)
     sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader: DataLoader
     if start_time is not None and end_time is not None:
         data_loader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
-        ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
+        ns_df, namespaces = data_loader.load_df_db(sla_table=sla_table, namespace=namespace)
         # unique namespaces in df
         assert len(namespaces) == 1
         assert namespaces[0] == namespace
@@ -106,7 +106,7 @@ def sizing_reports(
                 start_time=None,
                 end_time=None,
             )
-            ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
+            ns_df, namespaces = data_loader.load_df_db(sla_table=sla_table, namespace=namespace)
             # unique namespaces in df
             assert len(namespaces) == 1
             assert namespaces[0] == namespace
@@ -123,7 +123,7 @@ def sizing_reports(
 
 @app.command()
 def last_update(
-    namespace: str = typer.Option(..., "-n", "--namespace", help="Last update of given namespace"),
+    namespace: str = typer.Option(None, "-n", "--namespace", help="Last update of given namespace"),
     folder: Path = typer.Option(
         settings.sla_tables,
         "--folder",
@@ -133,10 +133,7 @@ def last_update(
     ),
 ):
     """List last timestamps per table and namespace"""
-    sla_tables: SlaTables = SlaTables(folder=folder)
-    all_sla_tables: list[SlaTable] = sla_tables.load_sla_tables()
-    table_names = [f"{t.dbSchema}.{t.tableName}" for t in all_sla_tables]
-    last_timestamp(table_names, namespace)
+    last_timestamp(SlaTablesHelper(folder=folder).tableNames, namespace)
 
 
 @app.command()
@@ -186,11 +183,10 @@ def load_metrics(
     Dedup Snowflake table instead
     https://stackoverflow.com/questions/58259580/how-to-delete-duplicate-records-in-snowflake-database-table/65743216#65743216
     """
-    sla_tables: SlaTables = SlaTables(folder=folder)
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
     prom_collector: PrometheusCollector = PrometheusCollector(settings.prometheus_url, time_range=time_range)
     logger.info(f"Prometheus collector {prom_collector}")
-    for sla_table in sla_tables.load_sla_tables():
+    for sla_table in SlaTablesHelper(folder=folder).slaTables:
         logger.info(f"Table: {sla_table.dbSchema}.{sla_table.tableName}")
         # new table for each Portal table
         all_dfs: List[pd.DataFrame] = []
@@ -252,12 +248,12 @@ def eval_slas(
     """Evaluate SLAs for all tables in metrics_folder"""
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    sla_tables: SlaTables = SlaTables(folder=folder)
+    sla_tables: SlaTablesHelper = SlaTablesHelper(folder=folder)
     for sla_table in sla_tables.load_sla_tables():
         if len(sla_table.rules) == 0:
             logger.info(f"No rules in {sla_table.name}. Continue ..")
             continue
-        all_ns_df, namespaces = data_loader.ns_df(sla_table=sla_table, namespace=namespace)
+        all_ns_df, namespaces = data_loader.load_df_db(sla_table=sla_table, namespace=namespace)
         main_report: str = html.sla_report_header(sla_table=sla_table, time_range=time_range)
         for rule in sla_table.rules:
             # rule.limit_pct has default value == None
@@ -305,9 +301,9 @@ def load_save_df(
     from sizing.data import DataLoader
 
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
-    sla_table = SlaTables().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
+    sla_table = SlaTablesHelper().get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
     data_loader.save_df(sla_table=sla_table, namespace=namespace)
-    df = data_loader.load_df(sla_table=sla_table, df_path=None)
+    df = data_loader.load_df_file(sla_table=sla_table, df_path=None)
     logger.info(f"Loaded {df.shape} from {data_loader.timeRange}")
 
 

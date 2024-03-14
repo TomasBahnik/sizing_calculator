@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import typer
@@ -248,12 +248,11 @@ def eval_slas(
     """Evaluate SLAs for all tables in metrics_folder"""
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)
     time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    sla_tables: SlaTablesHelper = SlaTablesHelper(folder=folder)
-    for sla_table in sla_tables.load_sla_tables():
+    for sla_table in SlaTablesHelper(folder=folder).slaTables:
         if len(sla_table.rules) == 0:
             logger.info(f"No rules in {sla_table.name}. Continue ..")
             continue
-        all_ns_df, namespaces = data_loader.load_df_db(sla_table=sla_table, namespace=namespace)
+        time_range_df, namespaces = data_loader.load_df_db(sla_table=sla_table, namespace=namespace)
         main_report: str = html.sla_report_header(sla_table=sla_table, time_range=time_range)
         for rule in sla_table.rules:
             # rule.limit_pct has default value == None
@@ -262,22 +261,30 @@ def eval_slas(
                 # to the same value but keep those rule which do not need limit_pct None
                 # number can be confusing in report
                 rule.limit_pct = limit_pct if rule.limit_pct else None
-            for ns in namespaces:
-                logger.info(
-                    f"namespace: {ns}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, "
-                    f"limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}"
-                )
-                ns_df = all_ns_df[all_ns_df[NAMESPACE_COLUMN] == ns]
-                # when verify_integrity of indexes portal table specific keys are needed
-                rr = RatioRule(ns_df=ns_df, basic_rule=rule, keys=sla_table.tableKeys)
-                if sla_table.tableName == POD_BASIC_RESOURCES_TABLE:
-                    # add resource request and limits only for POD_BASIC_RESOURCES table
-                    main_report = rr.add_report(main_report, sla_table)
-                else:
-                    main_report = rr.add_report(main_report)
+            if namespaces:
+                for namespace in namespaces:
+                    main_report = add_ns_report(time_range_df, main_report, namespace, rule, sla_table)
+            else:
+                main_report = add_ns_report(time_range_df, main_report, None, rule, sla_table)
         if main_report != html.sla_report_header(sla_table=sla_table, time_range=time_range):
             #  do not save empty reports
             sla_report(main_report=main_report, sla_table=sla_table, time_range=time_range)
+
+
+def add_ns_report(all_ns_df: pd.DataFrame, main_report, namespace: Optional[str], rule, sla_table) -> str:
+    logger.info(
+        f"namespace: {namespace}, rule: {rule.resource}, limit_pct: {rule.limit_pct}, "
+        f"limit_value: {rule.resource_limit_value}, compare: {rule.compare.name}"
+    )
+    df: pd.DataFrame = all_ns_df[all_ns_df[NAMESPACE_COLUMN] == namespace] if namespace else all_ns_df
+    # when verify_integrity of indexes portal table specific keys are needed
+    rr = RatioRule(ns_df=df, basic_rule=rule, keys=sla_table.tableKeys)
+    if sla_table.tableName == POD_BASIC_RESOURCES_TABLE:
+        # add resource request and limits only for POD_BASIC_RESOURCES table
+        main_report = rr.add_report(main_report, sla_table)
+    else:
+        main_report = rr.add_report(main_report)
+    return main_report
 
 
 @app.command()

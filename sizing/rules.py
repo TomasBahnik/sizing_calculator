@@ -57,8 +57,13 @@ class RatioRule:
         self.containerPodIndexes: dict[tuple, pd.MultiIndex] = self.container_pod_indexes()
 
     def get_namespace(self) -> str:
-        namespaces: set[str] = set(self.ns_df[NAMESPACE_COLUMN])
-        assert len(namespaces) == 1
+        """At most one namespace in the DataFrame."""
+        try:
+            namespaces: set[str] = set(self.ns_df[NAMESPACE_COLUMN])
+            assert len(namespaces) == 1
+        except KeyError:
+            logger.info("No namespace in DataFrame. Return empty string")
+            return ""
         return namespaces.pop()
 
     def pod_container_columns(self, columns: list[str]) -> pd.DataFrame:

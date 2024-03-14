@@ -70,7 +70,7 @@ class PrometheusCollector:
     def __format__(self, format_spec=""):
         return (
             f"url: {self.promQuery.api_url} "
-            f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}\n"
+            f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}"
         )
 
     def range_query(self, p_query: str, step_sec: float = settings.step_sec) -> pd.DataFrame:

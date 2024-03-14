@@ -83,15 +83,21 @@ class DataLoader:
 
     def load_df_db(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
         """Load data for given range from DB, optionally filter by namespace.
+
+        Namespace has a role of higher level entity. Data is loaded only for given time range potentially
+        containing more than one higher level entity (called namespace here).
+        namespace = None returns the whole time range dataframe
         :param sla_table: SlaTable
         :param namespace: optional namespace filter
         :return: namespace df and list of namespaces, when namespace is None all namespaces are returned
         """
-        df = self.load_range_table(sla_table=sla_table)
+        df: pd.DataFrame = self.load_range_table(sla_table=sla_table)
+        if df.empty:
+            raise ValueError(f"No data for {sla_table.tableName} in {self.timeRange}")
         if namespace is None:
             return df, tuple()
         all_ns: list[str] = sorted(set(df[NAMESPACE_COLUMN]))
-        if namespace and namespace not in all_ns:
+        if namespace is not None and namespace not in all_ns:
             raise ValueError(f"Namespace {namespace} not found in {all_ns}")
         if namespace:
             return df[df[NAMESPACE_COLUMN] == namespace], (namespace,)

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import pandas as pd
 import urllib3
 
 from loguru import logger
+
+import metrics
 
 from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
 from prometheus import NON_LINKERD_CONTAINER
@@ -34,38 +38,47 @@ def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
         sf.sf_engine.dispose()
 
 
-def last_ns_update_query(
+def last_update_query(
     table_name: str,
     column_name: str,
-    namespace: str,
+    namespace: Optional[str],
     timestamp_field: str = TIMESTAMP_COLUMN,
 ):
     """
-    select NAMESPACE, max(TIMESTAMP) as LAST_UPDATE
-    from PORTAL.POD_BASIC_RESOURCES
-    WHERE NAMESPACE = 'one-b59x5'
-    GROUP BY NAMESPACE;
-    :param table_name:
-    :param column_name:
-    :param timestamp_field:
-    :param namespace:
-    :return:
+    Select max timestamp from table with table_name as column_name
+    :param table_name: table to search for max timestamp
+    :param column_name: name of the column to return
+    :param timestamp_field: name of the timestamp field
+    :param namespace:  optional namespace filter
+    :return: SQL query
     """
-    q = f"SELECT max({timestamp_field}) as {column_name} FROM {table_name} WHERE NAMESPACE='{namespace}'"
+    q = f"SELECT max({timestamp_field}) as {column_name} FROM {table_name}"
+    if namespace is not None:
+        q = q + f" WHERE {metrics.NAMESPACE_COLUMN}='{namespace}'"
     return q
 
 
-def last_timestamp(table_names: list[str], namespace: str):
+def last_timestamp(table_names: list[str], namespace: Optional[str]):
     sf = SnowflakeEngine()
     # column name is used to get values
     column_name = "MAX_TIMESTAMP"
     try:
         for table_name in table_names:
-            q = last_ns_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
+            q = last_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
+            logger.debug(f"Query: {q}")
             df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
-            max_timestamps = df[column_name].values
+            try:
+                max_timestamps = df[column_name].dt.tz_convert(tz="UTC")
+            except TypeError as e:
+                # Older version of snowflake pandas
+                # TypeError: Cannot convert tz-naive timestamps, use tz_localize to localize
+                max_timestamps = df[column_name].dt.tz_localize(tz="UTC")
             assert len(max_timestamps) == 1
-            logger.info(f"Last update: {table_name}.{namespace}: {max_timestamps[0]}")
-            # return str(max_timestamps[0])
+            msg = (
+                f"Last update: {table_name}[{namespace}]: {max_timestamps[0]}"
+                if namespace
+                else f"Last update: {table_name}: {max_timestamps[0]}"
+            )
+            logger.info(msg)
     finally:
         sf.sf_engine.dispose()

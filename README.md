@@ -37,3 +37,11 @@ Use `pytest tests/calculator/test_sizing_report.py -svv` to create sample sizing
 ### Docker image
 * `docker build -t sizing-calculator .` (creates `sizing-calculator:latest` image)
 * `docker run sizing-calculator` - show main help
+
+### Kubernetes cron job
+* `minikube image load sizing-calculator:latest` - need docker version 24 docker 25. has a bug
+* `kubectl apply -f kube/cron_job.yaml`
+* `kubectl get cronjobs`
+* `kubectl get pod`
+* `kubectl logs <pod_name>` - show logs = help
+* `kubectl delete  -f kube/cron_job.yaml`

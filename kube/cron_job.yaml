@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: sizing-calculator
+  name: sc-cronjob
 spec:
   schedule: "* * * * *"
   jobTemplate:
@@ -9,11 +9,7 @@ spec:
       template:
         spec:
           containers:
-            - name: sizing-calculator
-              image: sizing_calculator:0.1
+            - name: sc-container
+              image: sizing-calculator:latest
               imagePullPolicy: IfNotPresent
-              command:
-                - /bin/sh
-                - -c
-                - ./main.py --help
           restartPolicy: OnFailure

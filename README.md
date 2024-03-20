@@ -33,3 +33,7 @@ On Windows use `python <script>.py` instead of `./<script>.py`.
 ### Report Examples
 
 Use `pytest tests/calculator/test_sizing_report.py -svv` to create sample sizing reports from small test data.
+
+### Docker image
+* `docker build -t sizing-calculator .` (creates `sizing-calculator:latest` image)
+* `docker run sizing-calculator` - show main help

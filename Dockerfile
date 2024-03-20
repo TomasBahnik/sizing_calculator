@@ -1,14 +1,20 @@
-FROM python:3.11 as builder
+FROM python:3.11
 
-# ---------------- Install pip packages that will be copied to the app image ----------------
-COPY pyproject.toml poetry.lock ./
+# Set up the project directory
+WORKDIR /app
 
-# Python packages are installed system-wide, root privileges required
-USER 0
-RUN python -m pip install --upgrade --no-cache-dir pip setuptools poetry
+# Copy poetry files
+COPY poetry.lock pyproject.toml /app/
 
-RUN python -m poetry export --without-hashes -f requirements.txt -o requirements.txt
-# Install via pip because we can select target location - https://github.com/python-poetry/poetry/issues/1937
-# ignore-installed - poetry has some of our dependencies, they wouldn't be installed to the target location otherwise
-RUN python -m pip install --no-cache-dir --ignore-installed --prefix /build/packages -r requirements.txt
-USER 2001
+# Install Poetry via pip
+RUN pip install poetry==1.5.1
+
+# Install dependencies
+RUN poetry install
+
+# Copy the rest of the application
+COPY . /app
+
+# Use poetry run INSIDE app folder so it uses created virtual env
+# and dependecies in it
+CMD ["poetry", "run", "python", "main.py", "--help"]

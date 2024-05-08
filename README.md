@@ -13,9 +13,12 @@
 conda env remove --name sizing_calculator
 conda create --name sizing_calculator -c conda-forge python=3.11
 conda activate sizing_calculator
-# poetry installed by pip inside the conda env
-pip install poetry
-poetry install
+# https://python-poetry.org/docs/#installing-with-the-official-installer
+# Poetry should always be installed in a dedicated virtual environment to isolate it 
+# from the rest of your system. 
+# It should in no case be installed in the environment of the project that is to be managed by Poetry
+# If you do not want to install the current project use --no-root.
+poetry install --no-root
 pytest -svv
 ```
 

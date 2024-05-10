@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     prometheus_report_folder: Path = Path(pycpt_artefacts, "prometheus")
     # keep trailing `/`
     prometheus_url: str = "http://localhost:9090/"
+    prometheus_user: str = "admin"
+    prometheus_password: str
+    prometheus_verify_ssl: bool = False
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

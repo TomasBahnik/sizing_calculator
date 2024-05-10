@@ -60,11 +60,15 @@ class TimeRange:
 
 
 class PrometheusCollector:
+    import requests
+    session = requests.Session()
+    session.verify = settings.prometheus_verify_ssl
+    session.auth = (settings.prometheus_user, settings.prometheus_password)
 
     def __init__(self, url: str | None, time_range: TimeRange):
         if not url:
             raise ValueError("Prometheus url is not set")
-        self.promQuery = query.Prometheus(url)
+        self.promQuery = query.Prometheus(url, http=self.session)
         self.timeRange: TimeRange = time_range
 
     def __format__(self, format_spec=""):

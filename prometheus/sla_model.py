@@ -36,7 +36,7 @@ class SlaTable(BaseModel):
 
     name: str
     tableName: str
-    dbSchema: str = "PORTAL"
+    dbSchema: str = settings.prometheus_db_schema
     tableKeys: list[str] = []
     stepSec: float = settings.step_sec
     groupBy: list[str] = []

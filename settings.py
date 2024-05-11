@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     prometheus_user: str = "admin"
     prometheus_password: str
     prometheus_verify_ssl: bool = False
+    prometheus_db_schema: str = "TMP"
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

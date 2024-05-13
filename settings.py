@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # keep trailing `/`
     prometheus_url: str = "http://localhost:9090/"
     prometheus_user: str = "admin"
-    prometheus_password: str
+    prometheus_password: str | None = None
     prometheus_verify_ssl: bool = False
     prometheus_db_schema: str = "TMP"
 

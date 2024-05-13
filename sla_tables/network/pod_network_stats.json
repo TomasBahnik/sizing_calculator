@@ -8,17 +8,11 @@
   "queries": [
     {
       "query": "sum(rate(container_network_receive_bytes_total{labels}[rateInterval])) by (groupBy)",
-      "labels": [
-        "container!=\"linkerd-proxy\""
-      ],
       "rateInterval": "1m",
       "columnName": "RECEIVE_BYTES"
     },
     {
       "query": "sum(rate(container_network_transmit_bytes_total{labels}[rateInterval])) by (groupBy)",
-      "labels": [
-        "container!=\"linkerd-proxy\""
-      ],
       "rateInterval": "1m",
       "columnName": "TRANSMIT_BYTES"
     }

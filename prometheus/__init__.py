@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 DEFAULT_TEMPERATURE = 0.3
 
 deployment_name_davinci = "text-davinci"
@@ -16,4 +15,3 @@ TITLE = "title"
 LABEL = "label"
 STATIC_LABEL = "static_labels"
 FILE = "file"
-NON_LINKERD_CONTAINER = 'container!="linkerd-proxy"'

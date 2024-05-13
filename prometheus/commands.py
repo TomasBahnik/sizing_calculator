@@ -4,21 +4,15 @@ from typing import Optional
 
 import pandas as pd
 import urllib3
-
 from loguru import logger
 
 import metrics
-
-from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
-from prometheus import NON_LINKERD_CONTAINER
+from metrics import TIMESTAMP_COLUMN
 from prometheus.sla_model import SlaTable
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
 
-
 METRICS = "metrics"
-DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
-
 
 urllib3.disable_warnings()
 
@@ -39,10 +33,10 @@ def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
 
 
 def last_update_query(
-    table_name: str,
-    column_name: str,
-    namespace: Optional[str],
-    timestamp_field: str = TIMESTAMP_COLUMN,
+        table_name: str,
+        column_name: str,
+        namespace: Optional[str],
+        timestamp_field: str = TIMESTAMP_COLUMN,
 ):
     """
     Select max timestamp from table with table_name as column_name

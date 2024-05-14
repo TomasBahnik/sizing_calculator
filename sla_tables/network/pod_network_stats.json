@@ -16,5 +16,12 @@
       "rateInterval": "1m",
       "columnName": "TRANSMIT_BYTES"
     }
+  ],
+  "rules": [
+    {
+      "resource": "TRANSMIT_BYTES",
+      "description": "Transmit bytes",
+      "resource_limit_value": 9999
+    }
   ]
 }

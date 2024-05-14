@@ -27,7 +27,10 @@ class PrometheusRDSColumn:
         """
         column_name = column_name.replace("=", ":")
         for key in self.groupBy:
-            column_name = column_name.replace(key, f'"{key}"')
+            # in case when column name contains key - multiple replacement e.g.
+            # {container="gatekeeper-controller-container", namespace="gatekeeper-system", ...
+            # pod="gatekeeper-controller-77558f4f9b-bkstg"}
+            column_name = column_name.replace(key, f'"{key}"', 1)
         parts = column_name.split(",")
         filtered_parts = [p for p in parts if any([gk in p for gk in self.groupBy])]
         column_name = ",".join(filtered_parts)

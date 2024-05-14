@@ -6,12 +6,14 @@ import pandas as pd
 import urllib3
 
 from loguru import logger
+from sqlalchemy.exc import OperationalError
 
 import metrics
 
 from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
 from prometheus import NON_LINKERD_CONTAINER
 from prometheus.sla_model import SlaTable
+from storage.postgres.engine import PostgresEngine
 from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
 
@@ -23,7 +25,7 @@ DEFAULT_LABELS = [NON_LINKERD_CONTAINER, NON_EMPTY_CONTAINER]
 urllib3.disable_warnings()
 
 
-def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
+def sf_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
     sf = SnowflakeEngine(schema=portal_table.dbSchema)
     try:
         # Snowflake table
@@ -36,6 +38,20 @@ def prom_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
             sf.write_df(df=df, table=table)
     finally:
         sf.sf_engine.dispose()
+
+
+def pg_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
+    engine = PostgresEngine()
+    try:
+        table = portal_table.tableName
+        logger.info(f"Saving {len(dfs)} DataFrames to {table}.")
+        for df in dfs:
+            engine.write_df(df=df, table=table)
+    except OperationalError as e:
+        logger.error(e)
+    finally:
+
+        engine.close()
 
 
 def last_update_query(

@@ -39,7 +39,6 @@ class Settings(BaseSettings):
     postgres_db: str = "prometheus"
     postgres_hostname: str = "localhost"
     postgres_port: int = 5432
-    postgres_connection: str = f"{postgres_user}:{postgres_password}@{postgres_hostname}:{postgres_port}/{postgres_db}"
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     prometheus_user: str = "admin"
     prometheus_password: str | None = None
     prometheus_verify_ssl: bool = False
-    prometheus_db_schema: str = "TMP"
+    prometheus_db_schema: str = "public"
     postgres_user: str = "toba"
-    postgres_password: str
+    postgres_password: str | None = None
     postgres_db: str = "prometheus"
     postgres_hostname: str = "localhost"
     postgres_port: int = 5432

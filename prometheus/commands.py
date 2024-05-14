@@ -11,7 +11,6 @@ import metrics
 from metrics import TIMESTAMP_COLUMN
 from prometheus.sla_model import SlaTable
 from storage.postgres.engine import PostgresEngine
-from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
 
 METRICS = "metrics"
@@ -44,7 +43,6 @@ def pg_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
     except OperationalError as e:
         logger.error(e)
     finally:
-
         engine.close()
 
 
@@ -56,27 +54,34 @@ def last_update_query(
 ):
     """
     Select max timestamp from table with table_name as column_name
+
+    Use quoted identifiers to keep upper case for PG
     :param table_name: table to search for max timestamp
     :param column_name: name of the column to return
     :param timestamp_field: name of the timestamp field
     :param namespace:  optional namespace filter
     :return: SQL query
     """
-    q = f"SELECT max({timestamp_field}) as {column_name} FROM {table_name}"
+    timestamp_field_quoted = f'"{timestamp_field}"'
+    q = f'SELECT max({timestamp_field_quoted}) as "{column_name}" FROM {table_name}'
     if namespace is not None:
-        q = q + f" WHERE {metrics.NAMESPACE_COLUMN}='{namespace}'"
+        q = q + f" WHERE \"{metrics.NAMESPACE_COLUMN}\"='{namespace}'"
     return q
 
 
 def last_timestamp(table_names: list[str], namespace: Optional[str]):
-    sf = SnowflakeEngine()
+    # TODO use generic abstract class for Snowflake, Postgres ...
+    # sf = SnowflakeEngine()
+    pg = PostgresEngine()
     # column name is used to get values
+    # if quoted in query PG keeps upper case
     column_name = "MAX_TIMESTAMP"
     try:
         for table_name in table_names:
             q = last_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
             logger.debug(f"Query: {q}")
-            df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
+            # df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
+            df = pd.read_sql_query(q, con=pg.engine)
             try:
                 max_timestamps = df[column_name].dt.tz_convert(tz="UTC")
             except TypeError as e:
@@ -91,4 +96,5 @@ def last_timestamp(table_names: list[str], namespace: Optional[str]):
             )
             logger.info(msg)
     finally:
-        sf.sf_engine.dispose()
+        # sf.sf_engine.dispose()
+        pg.close()

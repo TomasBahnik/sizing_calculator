@@ -5,6 +5,7 @@ import pandas as pd
 from loguru import logger
 from pandas import DataFrame
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 
 from settings import settings
 
@@ -17,7 +18,7 @@ postgres_connection: str = (
 
 class PostgresEngine:
     def __init__(self):
-        self.engine = create_engine(f"postgresql://{postgres_connection}")
+        self.engine: Engine = create_engine(f"postgresql://{postgres_connection}")
 
     def close(self):
         logger.info(f"Closing {self.engine}")

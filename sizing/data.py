@@ -14,8 +14,7 @@ from metrics.collector import TimeRange
 from prometheus.sla_model import SlaTable
 from settings import settings
 from sizing.calculator import CPU_RESOURCE, MEMORY_RESOURCE
-from storage.snowflake import dataframe
-from storage.snowflake.engine import SnowflakeEngine
+from storage.postgres.engine import PostgresEngine
 
 
 time_delta = pd.Timedelta(seconds=1)
@@ -63,15 +62,17 @@ class DataLoader:
         return q
 
     def load_range_table(self, sla_table: SlaTable) -> pd.DataFrame:
-        """Load df from Snowflake table for time range."""
-        sf = SnowflakeEngine(schema=sla_table.dbSchema)
+        """Load df from storage table for time range."""
+        # sf = SnowflakeEngine(schema=sla_table.dbSchema)
+        pg = PostgresEngine()
         try:
-            table_name = sla_table.tableName
+            table_name = f'"{sla_table.tableName}"'
             table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys if sla_table.tableKeys else []
             q = self.time_range_query(table_name=table_name)
-            msg = f"Snowflake table: {sf.schema}.{table_name}, {self.timeRange}"
+            msg = f"Table: {table_name}, {self.timeRange}"
             logger.info(msg)
-            df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
+            # df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
+            df = pd.read_sql_query(q, con=pg.engine)
             dedup_df = df.drop_duplicates(subset=table_keys)
             removed = len(df) - len(dedup_df)
             if removed > 0:
@@ -79,7 +80,8 @@ class DataLoader:
                 logger.info(msg)
             return dedup_df
         finally:
-            sf.sf_engine.dispose()
+            # sf.sf_engine.dispose()
+            pg.close()
 
     def load_df_db(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
         """Load data for given range from DB, optionally filter by namespace.

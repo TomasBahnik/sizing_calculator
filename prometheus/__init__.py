@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 DEFAULT_TEMPERATURE = 0.3
 
 deployment_name_davinci = "text-davinci"

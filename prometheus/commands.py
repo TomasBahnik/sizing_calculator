@@ -4,14 +4,17 @@ from typing import Optional
 
 import pandas as pd
 import urllib3
+
 from loguru import logger
 from sqlalchemy.exc import OperationalError
 
 import metrics
+
 from metrics import TIMESTAMP_COLUMN
 from prometheus.sla_model import SlaTable
 from storage.postgres.engine import PostgresEngine
 from storage.snowflake.engine import SnowflakeEngine
+
 
 METRICS = "metrics"
 
@@ -47,10 +50,10 @@ def pg_save(dfs: list[pd.DataFrame], portal_table: SlaTable):
 
 
 def last_update_query(
-        table_name: str,
-        column_name: str,
-        namespace: Optional[str],
-        timestamp_field: str = TIMESTAMP_COLUMN,
+    table_name: str,
+    column_name: str,
+    namespace: Optional[str],
+    timestamp_field: str = TIMESTAMP_COLUMN,
 ):
     """
     Select max timestamp from table with table_name as column_name

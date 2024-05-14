@@ -15,7 +15,7 @@ import metrics
 from metrics import NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE
 from metrics.collector import PrometheusCollector, TimeRange
 from metrics.model.tables import SlaTablesHelper
-from prometheus.commands import last_timestamp, pg_save, sf_save
+from prometheus.commands import last_timestamp, pg_save
 from prometheus.prom_rds import PrometheusRDSColumn
 from prometheus.sla_model import SlaTable
 from reports import html

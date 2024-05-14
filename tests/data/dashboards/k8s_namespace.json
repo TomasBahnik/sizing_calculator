@@ -1,0 +1,1408 @@
+{
+  "editable": true,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "repeat": "environment",
+      "title": "Overview - ${environment}",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 3,
+      "interval": "2m",
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": false,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"${namespace}\", image!=\"\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}[$__rate_interval])) / sum(machine_cpu_cores{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Namespace(s) usage on total cluster CPU in %",
+      "transparent": true,
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 4,
+      "interval": "2m",
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": false,
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": false
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}) / sum(machine_memory_bytes{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Requests",
+          "refId": "A"
+        }
+      ],
+      "title": "Namespace(s) usage on total cluster RAM in %",
+      "transparent": true,
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "description": "Namespace(s) CPU Usage in cores.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              }
+            ]
+          },
+          "unit": "cpu"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "id": 5,
+      "interval": "2m",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{unit=\"core\", namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Requets",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(machine_cpu_cores{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Total",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}[$__rate_interval]))",
+          "format": "time_series",
+          "legendFormat": "Real",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=~\"${namespace}\", unit=\"core\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Limits",
+          "refId": "D"
+        }
+      ],
+      "title": "Namespace(s) CPU Usage in cores",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "$datasource"
+      },
+      "description": "Namespace(s) RAM Usage in bytes.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "gray",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 6,
+      "interval": "2m",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_requests{unit=\"byte\", namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Requets",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(machine_memory_bytes{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Total",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(container_memory_working_set_bytes{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Real",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(kube_pod_container_resource_limits{namespace=~\"${namespace}\", unit=\"byte\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"})",
+          "format": "time_series",
+          "legendFormat": "Limits",
+          "refId": "D"
+        }
+      ],
+      "title": "Namespace(s) RAM Usage in bytes",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 7,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual POD problems.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              }
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 10
+          },
+          "id": 8,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase!=\"Running\", phase!=\"Succeeded\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"}) by (phase)",
+              "format": "time_series",
+              "legendFormat": "{{phase}}",
+              "refId": "A"
+            }
+          ],
+          "title": "POD problems",
+          "transparent": true,
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual POD problems.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "gray",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 10
+          },
+          "id": 9,
+          "interval": "2m",
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase=\"Failed\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Failed",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase=\"Pending\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Pending",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase=\"Unknown\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Unknown",
+              "refId": "C"
+            }
+          ],
+          "title": "POD problems",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual PVC problems.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              }
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 18
+          },
+          "id": 10,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_persistentvolumeclaim_status_phase{phase!=\"Bound\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"}) by (phase)",
+              "format": "time_series",
+              "legendFormat": "{{phase}}",
+              "refId": "A"
+            }
+          ],
+          "title": "PVC problems",
+          "transparent": true,
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual PVC problems.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "gray",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 1
+                  }
+                ]
+              }
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 18
+          },
+          "id": 11,
+          "interval": "2m",
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_persistentvolumeclaim_status_phase{phase=\"Lost\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Lost",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_persistentvolumeclaim_status_phase{phase=\"Pending\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Pending",
+              "refId": "B"
+            }
+          ],
+          "title": "PVC problems",
+          "transparent": true,
+          "type": "stat"
+        }
+      ],
+      "repeat": "environment",
+      "title": "Problems - ${environment}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 12,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual overview of Kubernetes resources.",
+          "fieldConfig": {
+            "defaults": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "gray",
+                    "value": null
+                  }
+                ]
+              }
+            }
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 24,
+            "x": 0,
+            "y": 1
+          },
+          "id": 13,
+          "interval": "2m",
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "center",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_container_status_running{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Running Containers",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase=\"Running\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Running Pods",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_service_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Services",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_endpoint_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Endpoints",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_ingress_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Ingresses",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_deployment_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Deployments",
+              "refId": "F"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_statefulset_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Statefulsets",
+              "refId": "G"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_daemonset_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Daemonsets",
+              "refId": "H"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_persistentvolumeclaim_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Persistent Volume Claims",
+              "refId": "I"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_hpa_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Horizontal Pod Autoscalers",
+              "refId": "J"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_configmap_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Configmaps",
+              "refId": "K"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_secret_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Secrets",
+              "refId": "L"
+            }
+          ],
+          "title": "Kubernetes Resource Count",
+          "transparent": true,
+          "type": "stat"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual overview of Kubernetes resources.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              }
+            }
+          },
+          "gridPos": {
+            "h": 11,
+            "w": 24,
+            "x": 0,
+            "y": 10
+          },
+          "id": 14,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "calcs": [
+                "last"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_container_status_running{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Running Containers",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_pod_status_phase{phase=\"Running\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Running Pods",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_service_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Services",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_endpoint_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Endpoints",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_ingress_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Ingresses",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_statefulset_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Statefulsets",
+              "refId": "F"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_daemonset_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Daemonsets",
+              "refId": "G"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_persistentvolumeclaim_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Persistent Volume Claims",
+              "refId": "H"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_hpa_labels{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Horizontal Pod Autoscalers",
+              "refId": "I"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_configmap_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Configmaps",
+              "refId": "J"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kube_secret_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"})",
+              "format": "time_series",
+              "legendFormat": "Secrets",
+              "refId": "K"
+            }
+          ],
+          "title": "Kubernetes Resource Count",
+          "transparent": true,
+          "type": "timeseries"
+        }
+      ],
+      "repeat": "environment",
+      "title": "Resources - ${environment}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 11
+      },
+      "id": 15,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual CPU usage by pod.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "CPU cores",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 25,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": "always",
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 1
+          },
+          "id": 16,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "calcs": [
+                "last"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"}[$__rate_interval])) by (pod)",
+              "format": "time_series",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ],
+          "title": "CPU usage by pod",
+          "transparent": true,
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual memory usage by pod.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "Memory",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 25,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": "always",
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "decimals": 2,
+              "unit": "bytes"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 1
+          },
+          "id": 17,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "calcs": [
+                "last"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(container_memory_working_set_bytes{image!=\"\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\", namespace=~\"${namespace}\"}) by (pod)",
+              "format": "time_series",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ],
+          "title": "Memory usage by pod",
+          "transparent": true,
+          "type": "timeseries"
+        }
+      ],
+      "repeat": "environment",
+      "title": "Utilization - ${environment}",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 18,
+      "panels": [
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Actual persistent volumes capacity.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "BANDWIDTH",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 25,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "unit": "percentunit"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 1
+          },
+          "id": 19,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kubelet_volume_stats_used_bytes{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}) by (persistentvolumeclaim) / sum(kubelet_volume_stats_capacity_bytes{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}) by (persistentvolumeclaim)",
+              "format": "time_series",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ],
+          "title": "Persistent Volumes - Capacity",
+          "transparent": true,
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "uid": "$datasource"
+          },
+          "description": "Persistent volumes Inodes.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "BANDWIDTH",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 25,
+                "gradientMode": "opacity",
+                "lineInterpolation": "smooth",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": true,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                }
+              },
+              "unit": "percentunit"
+            }
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 1
+          },
+          "id": 20,
+          "interval": "2m",
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(kubelet_volume_stats_inodes_used{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}) by (persistentvolumeclaim) / sum(kubelet_volume_stats_inodes{namespace=~\"${namespace}\", deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}) by (persistentvolumeclaim) * 100",
+              "format": "time_series",
+              "legendFormat": "__auto",
+              "refId": "A"
+            }
+          ],
+          "title": "Persistent Volumes - Inodes",
+          "transparent": true,
+          "type": "timeseries"
+        }
+      ],
+      "repeat": "environment",
+      "title": "Storage - ${environment}",
+      "type": "row"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 25,
+  "style": "dark",
+  "tags": [
+    "ataccama",
+    "kubernetes"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "default",
+          "value": "default"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Data Source",
+        "multi": false,
+        "name": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "deploymentType",
+        "multi": true,
+        "name": "deploymentType",
+        "query": "label_values(node_uname_info, deploymentType)",
+        "refresh": "load",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "environment",
+        "query": "label_values(node_uname_info, environment)",
+        "refresh": "load",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Namespace",
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(kube_pod_info{deploymentType=~\"${deploymentType}\", environment=~\"${environment}\"}, namespace)",
+        "refresh": "load",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "utc",
+  "title": "Kubernetes / Namespaces",
+  "uid": "02884d77ae4dd57920315eebb4f07c35",
+  "weekStart": "monday"
+}

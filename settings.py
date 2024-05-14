@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     prometheus_password: str | None = None
     prometheus_verify_ssl: bool = False
     prometheus_db_schema: str = "TMP"
+    postgres_user: str = "toba"
+    postgres_password: str
+    postgres_db: str = "prometheus"
+    postgres_hostname: str = "localhost"
+    postgres_port: int = 5432
+    postgres_connection: str = f"{postgres_user}:{postgres_password}@{postgres_hostname}:{postgres_port}/{postgres_db}"
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

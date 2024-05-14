@@ -9,62 +9,77 @@
   "queries": [
     {
       "query": "sum(rate(container_cpu_usage_seconds_total{labels}[rateInterval])) by (groupBy)",
+      "columnName": "CPU_CORE",
       "rateInterval": "1m",
-      "columnName": "CPU_CORE"
+      "staticLabels": [
+        "container!=\"\""
+      ]
     },
     {
       "query": "sum(container_memory_working_set_bytes{labels}) by (groupBy)",
-      "columnName": "MEMORY_BYTE"
+      "columnName": "MEMORY_BYTE",
+      "staticLabels": [
+        "container!=\"\""
+      ]
     },
     {
       "query": "sum(kube_pod_container_resource_limits{labels}) by (groupBy)",
+      "columnName": "MEMORY_LIMIT_BYTE",
       "staticLabels": [
         "resource=\"memory\"",
-        "unit=\"byte\""
-      ],
-      "columnName": "MEMORY_LIMIT_BYTE"
+        "unit=\"byte\"",
+        "container!=\"\""
+      ]
     },
     {
       "query": "sum(kube_pod_container_resource_requests{labels}) by (groupBy)",
+      "columnName": "MEMORY_REQUEST_BYTE",
       "staticLabels": [
         "resource=\"memory\"",
-        "unit=\"byte\""
-      ],
-      "columnName": "MEMORY_REQUEST_BYTE"
+        "unit=\"byte\"",
+        "container!=\"\""
+      ]
     },
     {
       "query": "sum(kube_pod_container_resource_limits{labels}) by (groupBy)",
+      "columnName": "CPU_LIMIT_CORE",
       "staticLabels": [
         "resource=\"cpu\"",
-        "unit=\"core\""
-      ],
-      "columnName": "CPU_LIMIT_CORE"
+        "unit=\"core\"",
+        "container!=\"\""
+      ]
     },
     {
       "query": "sum(kube_pod_container_resource_requests{labels}) by (groupBy)",
+      "columnName": "CPU_REQUEST_CORE",
       "staticLabels": [
         "resource=\"cpu\"",
-        "unit=\"core\""
-      ],
-      "columnName": "CPU_REQUEST_CORE"
+        "unit=\"core\"",
+        "container!=\"\""
+      ]
     },
     {
       "query": "max(kube_pod_container_status_restarts_total{labels}) by (groupBy)",
-      "columnName": "RESTARTS"
+      "columnName": "RESTARTS",
+      "staticLabels": [
+        "container!=\"\""
+      ]
     },
     {
       "query": "max(kube_pod_container_status_last_terminated_reason{labels}) by (groupBy)",
       "columnName": "OOM_KILLED",
       "staticLabels": [
-        "reason=\"OOMKilled\""
+        "reason=\"OOMKilled\"",
+        "container!=\"\""
       ]
     },
     {
       "query": "sum(increase(container_cpu_cfs_throttled_periods_total{labels}[rateInterval])) by (groupBy)/sum(increase(container_cpu_cfs_periods_total{labels}[rateInterval])) by (groupBy)",
-      "rateInterval": "1m",
       "columnName": "CPU_THROTTLED",
+      "rateInterval": "1m",
       "staticLabels": [
-        "job=\"kubelet\""
+        "job=\"kubelet\"",
+        "container!=\"\""
       ]
     }
   ],

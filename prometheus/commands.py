@@ -14,7 +14,6 @@ from metrics import NON_EMPTY_CONTAINER, TIMESTAMP_COLUMN
 from prometheus import NON_LINKERD_CONTAINER
 from prometheus.sla_model import SlaTable
 from storage.postgres.engine import PostgresEngine
-from storage.snowflake import dataframe
 from storage.snowflake.engine import SnowflakeEngine
 
 
@@ -70,7 +69,7 @@ def last_update_query(
     :return: SQL query
     """
     timestamp_field_quoted = f'"{timestamp_field}"'
-    q = f"SELECT max({timestamp_field_quoted}) as \"{column_name}\" FROM {table_name}"
+    q = f'SELECT max({timestamp_field_quoted}) as "{column_name}" FROM {table_name}'
     if namespace is not None:
         q = q + f" WHERE \"{metrics.NAMESPACE_COLUMN}\"='{namespace}'"
     return q

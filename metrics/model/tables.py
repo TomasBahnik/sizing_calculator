@@ -17,7 +17,7 @@ class SlaTablesHelper:
         self.slaTables: list[SlaTable] = [
             SlaTable.model_validate_json(json_data=sla_file.read_text()) for sla_file in self.slaFiles
         ]
-        self.tableNames: list[str] = [f"{t.dbSchema}.\"{t.tableName}\"" for t in self.slaTables]
+        self.tableNames: list[str] = [f'{t.dbSchema}."{t.tableName}"' for t in self.slaTables]
 
     def get_sla_table(self, table_name: str) -> SlaTable:
         for sla_table in self.slaTables:

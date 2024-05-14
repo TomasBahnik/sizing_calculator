@@ -61,6 +61,7 @@ class TimeRange:
 
 class PrometheusCollector:
     import requests
+
     session = requests.Session()
     session.verify = settings.prometheus_verify_ssl
     session.auth = (settings.prometheus_user, settings.prometheus_password)

@@ -38,7 +38,10 @@ class RatioRule:
         self.allKeys: list[str] = [TIMESTAMP_COLUMN] + self.keys
         # NAMESPACE is already filtered, no need for unique index
         # df.set_index, verify_integrity – Check the new index for duplicate
-        self.indexFromKeys: list[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
+        # when namespace = None - all namespaces are returned so the previous
+        # assumption is NOT true
+        # self.indexFromKeys: list[str] = [k for k in self.allKeys if k != NAMESPACE_COLUMN]
+        self.indexFromKeys: list[str] = self.allKeys
         # only delta and max consecutive period rules need timestamp
         self.groupByKeys: list[str] = [k for k in self.indexFromKeys if k != TIMESTAMP_COLUMN]
         # default = 0 which has bool = False
@@ -60,7 +63,8 @@ class RatioRule:
         """At most one namespace in the DataFrame."""
         try:
             namespaces: set[str] = set(self.ns_df[NAMESPACE_COLUMN])
-            assert len(namespaces) == 1
+            # all namespaces
+            # assert len(namespaces) == 1
         except KeyError:
             logger.info("No namespace in DataFrame. Return empty string")
             return ""

@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from settings import settings
+from storage.abc_engine import AbstractEngine
 
 
 postgres_connection: str = (
@@ -16,7 +17,7 @@ postgres_connection: str = (
 )
 
 
-class PostgresEngine:
+class PostgresEngine(AbstractEngine):
     def __init__(self):
         self.engine: Engine = create_engine(f"postgresql://{postgres_connection}")
 

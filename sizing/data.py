@@ -64,7 +64,7 @@ class DataLoader:
     def load_range_table(self, sla_table: SlaTable) -> pd.DataFrame:
         """Load df from storage table for time range."""
         # sf = SnowflakeEngine(schema=sla_table.dbSchema)
-        pg = PostgresEngine()
+        engine = PostgresEngine()
         try:
             table_name = f'"{sla_table.tableName}"'
             table_keys = [TIMESTAMP_COLUMN] + sla_table.tableKeys if sla_table.tableKeys else []
@@ -72,7 +72,7 @@ class DataLoader:
             msg = f"Table: {table_name}, {self.timeRange}"
             logger.info(msg)
             # df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
-            df = pd.read_sql_query(q, con=pg.engine)
+            df = engine.read_df(q)
             dedup_df = df.drop_duplicates(subset=table_keys)
             removed = len(df) - len(dedup_df)
             if removed > 0:
@@ -81,7 +81,7 @@ class DataLoader:
             return dedup_df
         finally:
             # sf.sf_engine.dispose()
-            pg.close()
+            engine.close()
 
     def load_df_db(self, sla_table: SlaTable, namespace: Optional[str]) -> tuple[pd.DataFrame, tuple[str, ...]]:
         """Load data for given range from DB, optionally filter by namespace.

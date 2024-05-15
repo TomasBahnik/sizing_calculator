@@ -46,6 +46,13 @@ class Settings(BaseSettings):
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries
     step_sec: float = 30  # prometheus sample step in sec
 
+    # Snowflake
+    # sf_account: str
+    # sf_user: str
+    # sf_password: str
+    # sf_db: str
+    # sf_schema: str
+
 
 # singleton instance of the Settings class. Use this instead of creating your own instance.
 settings = Settings()

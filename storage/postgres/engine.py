@@ -28,5 +28,5 @@ class PostgresEngine:
         df = pd.read_sql_query(query, con=self.engine)
         return df
 
-    def write_df(self, df: DataFrame, table: str):
-        df.to_sql(table, self.engine, if_exists="append", index=False)
+    def write_df(self, df: DataFrame, table: str, schema: str):
+        df.to_sql(name=table, con=self.engine, schema=schema, if_exists="append", index=False)

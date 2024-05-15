@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -34,11 +36,11 @@ class Settings(BaseSettings):
     prometheus_password: str | None = None
     prometheus_verify_ssl: bool = False
     prometheus_db_schema: str = "public"
-    postgres_user: str = "toba"
-    postgres_password: str | None = None
-    postgres_db: str = "prometheus"
-    postgres_hostname: str = "localhost"
-    postgres_port: int = 5432
+    postgres_user: str = os.getenv("PGUSER")
+    postgres_password: str = os.getenv("PGPASSWORD")
+    postgres_db: str = os.getenv("PGDATABASE")
+    postgres_hostname: str = os.getenv("PGHOST")
+    postgres_port: int = int(os.getenv("PGPORT"))
 
     # Prometheus
     time_delta_hours: float = 1  # time delta from now in hours for timeseries queries

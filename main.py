@@ -211,8 +211,7 @@ def load_metrics(
         # move timestamp and groupBy to columns with corresponding names
         df_save = all_data_df.reset_index()
         df_save[metrics.TIMESTAMP_COLUMN] = df_save[metrics.TIMESTAMP_COLUMN].dt.tz_localize(tz="UTC")
-        pg_save(dfs=[df_save], portal_table=sla_table)
-        logger.info(f"Saved {df_save.shape} to {sla_table.dbSchema}.{sla_table.tableName}")
+        pg_save(dfs=[df_save], sla_table=sla_table)
 
 
 @app.command()

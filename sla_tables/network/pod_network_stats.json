@@ -21,7 +21,7 @@
     {
       "resource": "TRANSMIT_BYTES",
       "description": "Transmit bytes",
-      "resource_limit_value": 9999
+      "resource_limit_value": 200
     }
   ]
 }

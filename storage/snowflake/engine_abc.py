@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import snowflake.connector
+
 from loguru import logger
 from snowflake.connector import SnowflakeConnection
 from snowflake.connector.pandas_tools import write_pandas
@@ -10,6 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from storage.abc_engine import AbstractEngine
+from storage.snowflake import dataframe
 
 
 class SnowflakeEngine(AbstractEngine):
@@ -20,15 +22,15 @@ class SnowflakeEngine(AbstractEngine):
         self.db = db
         self.user = user
         self.password = password
-        self.sf_engine: Engine = self.create_sf_engine()
+        self.engine: Engine = self.create_engine()
         self.connection: SnowflakeConnection = self.create_con()
 
     def close(self):
         self.connection.close()
-        self.sf_engine.dispose()
+        self.engine.dispose()
 
     def read_df(self, query: str) -> pd.DataFrame:
-        pass
+        return dataframe.get_df(query=query, con=self.connection)
 
     def write_df(self, df: pd.DataFrame, table: str, schema: str):
         # The to_sql method should use the pd_writer function
@@ -45,7 +47,7 @@ class SnowflakeEngine(AbstractEngine):
         )
         logger.info(f"Success: {success}, chunks: {n_chunks}, rows: {n_rows}")
 
-    def create_sf_engine(self) -> Engine:
+    def create_engine(self) -> Engine:
         """Create Engine from URL.
         snowflake://<user_login_name>:<password>@<account_identifier>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>'
 

@@ -76,9 +76,9 @@ def last_update_query(
 
 
 def last_timestamp(table_names: list[str], namespace: Optional[str]):
-    # TODO use generic abstract class for Snowflake, Postgres ...
-    # sf = SnowflakeEngine()
-    pg = PostgresEngine()
+    # import storage.snowflake.engine_abc.SnowflakeEngine
+    # engine = SnowflakeEngine()
+    engine = PostgresEngine()
     # column name is used to get values
     # if quoted in query PG keeps upper case
     column_name = "MAX_TIMESTAMP"
@@ -86,8 +86,8 @@ def last_timestamp(table_names: list[str], namespace: Optional[str]):
         for table_name in table_names:
             q = last_update_query(table_name=table_name, column_name=column_name, namespace=namespace)
             logger.debug(f"Query: {q}")
-            # df: pd.DataFrame = dataframe.get_df(query=q, con=sf.connection)
-            df = pd.read_sql_query(q, con=pg.engine)
+            # df: pd.DataFrame = engine.read_df(q)
+            df = engine.read_df(q)
             try:
                 max_timestamps = df[column_name].dt.tz_convert(tz="UTC")
             except TypeError as e:
@@ -103,4 +103,4 @@ def last_timestamp(table_names: list[str], namespace: Optional[str]):
             logger.info(msg)
     finally:
         # sf.sf_engine.dispose()
-        pg.close()
+        engine.close()

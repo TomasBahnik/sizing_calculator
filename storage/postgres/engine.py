@@ -23,7 +23,7 @@ class PostgresEngine(AbstractEngine):
 
     def close(self):
         logger.info(f"Closing {self.engine}")
-        self.engine.dispose()
+        self.engine.dispose(close=True)
 
     def read_df(self, query: str) -> pd.DataFrame:
         df = pd.read_sql_query(query, con=self.engine)

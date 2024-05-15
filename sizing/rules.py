@@ -133,18 +133,21 @@ class RatioRule:
 
     def container_pod_indexes(self):
         """Unique sorted dictionary.
+        Used only for Compare.DELTA see sizing.rules.RatioRule.over_pct_static_limit
 
         key = (container, pod)
         value = indexes in (namespace) DataFrame with metrics
         """
         cp_idx = {}
+        if self.basic_rule.compare != Compare.DELTA:
+            return cp_idx
         try:
             c_p_df = self.ns_df_ts_col[CONTAINER_POD_COLUMNS]
             cp_tuples = sorted({tuple(cp) for cp in c_p_df.values})
             for t in cp_tuples:
                 cp_idx[t] = c_p_df[(c_p_df[CONTAINER_COLUMN] == t[0]) & (c_p_df[POD_COLUMN] == t[1])].index
         except KeyError as key:
-            logger.info(f"\t No {key}: in {self.basic_rule.resource}. Return empty dict")
+            logger.error(f"\t KeyError: {key} in {self.basic_rule.resource}")
         return cp_idx
 
     def resource_values(self) -> pd.Series:

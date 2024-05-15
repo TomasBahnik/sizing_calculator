@@ -17,11 +17,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "~3.11"
+# storage for prometheus data
 snowflake-connector-python = { extras = ["pandas"], version = "^3.6.0" }
 snowflake-sqlalchemy = "^1.5.1"
 prometheus-pandas = "^0.3.3"
 # snowflake-connector-python 3.6.0 insatlled pandas 1.5.3 explicitely selected last version <2.2.0
 pandas = "2.1.3"
+# storage for prometheus data - need pg_config and gcc
+# sudo apt-get install libpq-dev
+# sudo apt install build-essential
+psycopg2 = "^2.9.9"
 
 # Infrastructure
 typer = "^0.9.0"

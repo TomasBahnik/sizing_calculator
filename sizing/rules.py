@@ -394,7 +394,7 @@ class PrometheusRules:
                 logger.info(f"Removed {removed} duplicates by {table_keys}")
             return dedup_df
         finally:
-            sf.engine.dispose()
+            sf.close()
 
     def load_df(self):
         """Load data from Snowflake sla table and set self.df."""

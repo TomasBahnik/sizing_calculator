@@ -42,7 +42,7 @@ def pg_save(dfs: list[pd.DataFrame], sla_table: SlaTable):
         # create in default schema. Non-existing schema is not created automatically
         table = sla_table.tableName
         schema = sla_table.dbSchema
-        logger.info(f"Saving {len(dfs)} DataFrame(s) to {schema}{table}.")
+        logger.info(f"Saving {len(dfs)} DataFrame(s) to {schema}.{table}.")
         for df in dfs:
             engine.write_df(df=df, table=table, schema=sla_table.dbSchema)
             logger.info(f"Saved {df.shape} df to {schema}.{table}")

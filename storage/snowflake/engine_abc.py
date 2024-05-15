@@ -2,17 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 import snowflake.connector
-
 from loguru import logger
-from pandas import DataFrame
 from snowflake.connector import SnowflakeConnection
-from snowflake.connector.cursor import SnowflakeCursor
 from snowflake.connector.pandas_tools import write_pandas
 from snowflake.sqlalchemy import URL
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from settings import settings
 from storage.abc_engine import AbstractEngine
 
 

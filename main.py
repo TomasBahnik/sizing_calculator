@@ -303,7 +303,7 @@ def load_save_df(
     ),
     namespace: str = typer.Option(None, "--namespace", "-n", help="Only selected namespace"),
 ):
-    """Load df from DB and save it to json"""
+    """Load df from POD_BASIC_RESOURCES and save it to json"""
     from sizing.data import DataLoader
 
     data_loader: DataLoader = DataLoader(delta_hours=delta_hours, start_time=start_time, end_time=end_time)

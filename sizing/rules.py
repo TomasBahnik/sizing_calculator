@@ -3,16 +3,10 @@ from __future__ import annotations
 from typing import Optional
 
 import pandas as pd
-
 from loguru import logger
-from pandas import DataFrame
 
 from metrics import CONTAINER_COLUMN, NAMESPACE_COLUMN, POD_COLUMN, TIMESTAMP_COLUMN
-from metrics.collector import TimeRange
 from prometheus.sla_model import BasicSla, Compare, SlaTable
-from storage.snowflake import dataframe
-from storage.snowflake.engine import SnowflakeEngine
-
 
 CONTAINER_POD_COLUMNS = [CONTAINER_COLUMN, POD_COLUMN]
 OVER_LIMIT_PCT_COLUMN = "OVER_LIMIT_PCT"
@@ -358,57 +352,3 @@ class RatioRule:
             summary_ser_not_empty.index.names = index_names
             summary_ser_not_empty.name = MAX_OVER_LIMIT_TIME_SEC_COLUMN
         return summary_ser_not_empty.round(0)
-
-
-class PrometheusRules:
-
-    def __init__(self, sla_table: SlaTable, time_range: TimeRange):
-        self.timeRange: TimeRange = time_range
-        self.sla_table: SlaTable = sla_table
-        # load_df() must be called to set this to non-empty
-        self.df: pd.DataFrame = pd.DataFrame()
-
-    def __format__(self, format_spec=""):
-        return f"period: {self.timeRange.from_time.isoformat()} - {self.timeRange.to_time.isoformat()}"
-
-    def time_range_query(self, table_name: str, timestamp_field: str = TIMESTAMP_COLUMN):
-        lower_bound = f""""{timestamp_field}" >= '{self.timeRange.from_time}'"""
-        upper_bound = f""""{timestamp_field}" <= '{self.timeRange.to_time}'"""
-        q = f"SELECT * FROM {table_name} WHERE {lower_bound} AND {upper_bound}"
-        return q
-
-    def load_range_table(self) -> pd.DataFrame:
-        sf = SnowflakeEngine(schema=self.sla_table.dbSchema)
-        try:
-            table_name = self.sla_table.tableName
-            table_keys = [TIMESTAMP_COLUMN] + self.sla_table.tableKeys if self.sla_table.tableKeys else []
-            q = self.time_range_query(table_name=table_name)
-            logger.info(
-                f"Snowflake table: {sf.schema}.{table_name}, "
-                f"range: {self.timeRange.from_time} - {self.timeRange.to_time}"
-            )
-            df: DataFrame = dataframe.get_df(query=q, con=sf.connection)
-            dedup_df = df.drop_duplicates(subset=table_keys)
-            removed = len(df) - len(dedup_df)
-            if removed > 0:
-                logger.info(f"Removed {removed} duplicates by {table_keys}")
-            return dedup_df
-        finally:
-            sf.close()
-
-    def load_df(self):
-        """Load data from Snowflake sla table and set self.df."""
-        self.df = self.load_range_table()
-
-    def namespaces(self, namespace: str) -> list[str]:
-        """All unique namespaces or filtered one."""
-        all_ns = sorted(set(self.df[NAMESPACE_COLUMN]))
-        if namespace in all_ns:
-            return [namespace]
-        else:
-            logger.info(f"{namespace} not found in {all_ns}. Return all")
-        return all_ns
-
-    def ns_df(self, namespace: str):
-        """Filter df by namespace."""
-        return self.df[self.df[NAMESPACE_COLUMN] == namespace]

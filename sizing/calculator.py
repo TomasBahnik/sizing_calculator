@@ -9,9 +9,8 @@ import pandas as pd
 
 from loguru import logger
 
-from metrics import CONTAINER_COLUMN, MIBS, NAMESPACE_COLUMN, POD_BASIC_RESOURCES_TABLE, TIMESTAMP_COLUMN
+from metrics import CONTAINER_COLUMN, MIBS, NAMESPACE_COLUMN, TIMESTAMP_COLUMN
 from metrics.collector import TimeRange
-from metrics.model.tables import SlaTablesHelper
 from prometheus.sla_model import SlaTable
 from reports.html import sizing_calc_report, sizing_calc_summary_header
 from settings import settings
@@ -26,7 +25,6 @@ from sizing import (
     PERCENTILES,
     REQUEST_PERCENTILE,
 )
-from sizing.rules import PrometheusRules
 from test_summary.model import TestDetails, TestSummary
 
 
@@ -255,26 +253,6 @@ class SizingCalculator:
         logger.info(f"Saving new sizing to {path}")
         n_s = self.new_sizing()
         n_s.to_json(path, orient="index", indent=2)
-
-
-def sizing_calculator(
-    start_time: str,
-    end_time: str,
-    delta_hours: float,
-    metrics_folder: Path,
-    namespace: str,
-    test_details: Optional[TestDetails] = None,
-) -> SizingCalculator:
-    time_range = TimeRange(start_time=start_time, end_time=end_time, delta_hours=delta_hours)
-    sla_tables: SlaTablesHelper = SlaTablesHelper(folder=metrics_folder)
-    # value error if no table with name
-    sla_table: SlaTable = sla_tables.get_sla_table(table_name=POD_BASIC_RESOURCES_TABLE)
-    prom_rules: PrometheusRules = PrometheusRules(time_range=time_range, sla_table=sla_table)
-    prom_rules.load_df()
-    ns_df = prom_rules.ns_df(namespace=namespace)
-    cpu: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=CPU_RESOURCE)
-    memory: LimitsRequests = LimitsRequests(ns_df=ns_df, sla_table=sla_table, resource=MEMORY_RESOURCE)
-    return SizingCalculator(cpu=cpu, memory=memory, time_range=time_range, test_details=test_details)
 
 
 def save_new_sizing(

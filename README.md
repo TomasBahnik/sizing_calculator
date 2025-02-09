@@ -1,3 +1,31 @@
+## Setting Up
+
+PyCharm on fresh WSL2 does not render markdown preview. PyCharm relies on JavaFX for rendering Markdown previews. WSL2
+does not support GUI applications natively, so rendering might fail.
+
+```shell
+sudo apt update
+sudo apt install openjfx
+```
+
+[Poetry installation](https://python-poetry.org/docs/#installing-with-the-official-installer)
+
+```shell
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+Add `export PATH="/home/toba/.local/bin:$PATH"` to your shell configuration file
+
+[Miniforge](https://github.com/conda-forge/miniforge) (Miniconda is not free for commercial since 2020)
+Miniforge3 will now be installed into this location`/home/toba/miniforge3`
+
+If you'd prefer that conda's base environment not be activated on startup, run the following command when conda is
+activated:
+
+`conda config --set auto_activate_base false`
+
+You can undo this by running `conda init --reverse $SHELL`? [yes|no]
+
 ## Resource Analysis and Sizing
 
 * Collects and analyses [Prometheus](https://prometheus.io/) metrics
@@ -7,12 +35,13 @@
 
 ### Install and test
 
-* install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
-
 ```shell
-conda env remove --name sizing_calculator
-conda create --name sizing_calculator -c conda-forge python=3.11
-conda activate sizing_calculator
+export venv=sizing_calculator
+conda deactivate
+conda env remove --name $venv
+conda create --name $venv -c conda-forge python=3.11
+conda activate $venv
+
 # https://python-poetry.org/docs/#installing-with-the-official-installer
 # Poetry should always be installed in a dedicated virtual environment to isolate it 
 # from the rest of your system. 

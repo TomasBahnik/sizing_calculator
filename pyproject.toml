@@ -16,7 +16,7 @@ authors = ["Bahnik, Tomas <tomas.bahnik@email.cz>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "~3.11"
+python = "~3.12"
 snowflake-connector-python = { extras = ["pandas"], version = "^3.6.0" }
 snowflake-sqlalchemy = "^1.5.1"
 prometheus-pandas = "^0.3.3"

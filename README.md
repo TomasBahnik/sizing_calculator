@@ -39,7 +39,7 @@ You can undo this by running `conda init --reverse $SHELL`? [yes|no]
 export venv=sizing_calculator
 conda deactivate
 conda env remove --name $venv
-conda create --name $venv -c conda-forge python=3.11
+conda create --name $venv -c conda-forge python=3.12
 conda activate $venv
 
 # https://python-poetry.org/docs/#installing-with-the-official-installer
@@ -49,6 +49,18 @@ conda activate $venv
 # If you do not want to install the current project use --no-root.
 poetry install --no-root
 pytest -svv
+```
+
+There is deprecation warning `DeprecationWarning: datetime.datetime.utcfromtimestamp()` from `dateutils`.
+
+```shell
+poetry update python-dateutil
+```
+
+fixes that
+
+```text
+Updating python-dateutil (2.8.2 -> 2.9.0.post0)
 ```
 
 ### CLI Commands
